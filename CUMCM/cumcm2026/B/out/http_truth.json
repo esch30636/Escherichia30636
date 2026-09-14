@@ -1,0 +1,247 @@
+{
+ "scenario": [
+  {
+   "id": 0,
+   "channel": 8,
+   "x": 1184.481718655581,
+   "y": -1226.9794246206493,
+   "r": 1117.7582286530858,
+   "directional": true,
+   "direction_deg": 287.95662937978324,
+   "cleared": true,
+   "cleared_at": 11985.13399
+  },
+  {
+   "id": 1,
+   "channel": 5,
+   "x": 1642.6954737263602,
+   "y": 191.9899540373122,
+   "r": 1253.5340694616957,
+   "directional": false,
+   "cleared": true,
+   "cleared_at": 11334.735664
+  },
+  {
+   "id": 2,
+   "channel": 18,
+   "x": -297.56293538783603,
+   "y": -1087.587886990314,
+   "r": 1118.0970641979318,
+   "directional": true,
+   "direction_deg": 335.96060408115613,
+   "cleared": true,
+   "cleared_at": 14811.320421
+  },
+  {
+   "id": 3,
+   "channel": 11,
+   "x": 1263.844856038058,
+   "y": 9.526833523624049,
+   "r": 1042.912895543415,
+   "directional": false,
+   "cleared": true,
+   "cleared_at": 11500.723148
+  },
+  {
+   "id": 4,
+   "channel": 4,
+   "x": -1480.3696032352248,
+   "y": -31.294372494694983,
+   "r": 1183.9403694557584,
+   "directional": false,
+   "cleared": true,
+   "cleared_at": 17533.47397
+  },
+  {
+   "id": 5,
+   "channel": 15,
+   "x": -409.16726570612315,
+   "y": 171.99691467778277,
+   "r": 1199.7126307894032,
+   "directional": false,
+   "cleared": true,
+   "cleared_at": 15574.434339
+  },
+  {
+   "id": 6,
+   "channel": 14,
+   "x": 388.44058887857244,
+   "y": 1284.2294684887167,
+   "r": 1278.0798877669486,
+   "directional": true,
+   "direction_deg": 266.9118012100126,
+   "cleared": true,
+   "cleared_at": 14146.173214
+  },
+  {
+   "id": 7,
+   "channel": 12,
+   "x": -425.4594495233255,
+   "y": 835.7556194778698,
+   "r": 1337.1948574433814,
+   "directional": false,
+   "cleared": true,
+   "cleared_at": 15365.985649
+  },
+  {
+   "id": 8,
+   "channel": 7,
+   "x": 583.9749683636118,
+   "y": -1583.995908432173,
+   "r": 1231.9121800416835,
+   "directional": true,
+   "direction_deg": 230.73845093327193,
+   "cleared": true,
+   "cleared_at": 16606.851074
+  },
+  {
+   "id": 9,
+   "channel": 16,
+   "x": -184.96289939945515,
+   "y": 416.94544335829585,
+   "r": 1053.5447480686432,
+   "directional": false,
+   "cleared": true,
+   "cleared_at": 15723.258933
+  },
+  {
+   "id": 10,
+   "channel": 1,
+   "x": 879.16868301442,
+   "y": 1194.8265957016158,
+   "r": 1317.6933999453554,
+   "directional": true,
+   "direction_deg": 287.468404490198,
+   "cleared": true,
+   "cleared_at": 12610.8231
+  },
+  {
+   "id": 11,
+   "channel": 19,
+   "x": -533.7503806873444,
+   "y": -1591.9162285300147,
+   "r": 1097.0127380035224,
+   "directional": true,
+   "direction_deg": 287.25619899492756,
+   "cleared": true,
+   "cleared_at": 17045.647534
+  },
+  {
+   "id": 12,
+   "channel": 3,
+   "x": -813.7392768722608,
+   "y": 272.6543797498076,
+   "r": 1190.2376853216617,
+   "directional": false,
+   "cleared": true,
+   "cleared_at": 15879.842006
+  },
+  {
+   "id": 13,
+   "channel": 6,
+   "x": 515.544712072727,
+   "y": -1623.4118225378356,
+   "r": 1306.2589020826558,
+   "directional": false,
+   "cleared": true,
+   "cleared_at": 13456.109532
+  }
+ ],
+ "n_sources": 14,
+ "n_cleared": 14,
+ "cleared_channels": [
+  8,
+  5,
+  18,
+  11,
+  4,
+  15,
+  14,
+  12,
+  7,
+  16,
+  1,
+  19,
+  3,
+  6
+ ],
+ "total_virtual_time_s": 17538.47397,
+ "per_source": [
+  {
+   "channel": 8,
+   "cleared": true,
+   "cleared_at": 11985.13399
+  },
+  {
+   "channel": 5,
+   "cleared": true,
+   "cleared_at": 11334.735664
+  },
+  {
+   "channel": 18,
+   "cleared": true,
+   "cleared_at": 14811.320421
+  },
+  {
+   "channel": 11,
+   "cleared": true,
+   "cleared_at": 11500.723148
+  },
+  {
+   "channel": 4,
+   "cleared": true,
+   "cleared_at": 17533.47397
+  },
+  {
+   "channel": 15,
+   "cleared": true,
+   "cleared_at": 15574.434339
+  },
+  {
+   "channel": 14,
+   "cleared": true,
+   "cleared_at": 14146.173214
+  },
+  {
+   "channel": 12,
+   "cleared": true,
+   "cleared_at": 15365.985649
+  },
+  {
+   "channel": 7,
+   "cleared": true,
+   "cleared_at": 16606.851074
+  },
+  {
+   "channel": 16,
+   "cleared": true,
+   "cleared_at": 15723.258933
+  },
+  {
+   "channel": 1,
+   "cleared": true,
+   "cleared_at": 12610.8231
+  },
+  {
+   "channel": 19,
+   "cleared": true,
+   "cleared_at": 17045.647534
+  },
+  {
+   "channel": 3,
+   "cleared": true,
+   "cleared_at": 15879.842006
+  },
+  {
+   "channel": 6,
+   "cleared": true,
+   "cleared_at": 13456.109532
+  }
+ ],
+ "stat": {
+  "n_measure": 1108,
+  "n_clear": 14,
+  "dist_move": 54677.36984866603,
+  "n_switch": 993
+ }
+}

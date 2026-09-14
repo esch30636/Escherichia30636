@@ -1,0 +1,315 @@
+DOI 核验报告  共 304 条
+
+== A1. 中文刊 DOI（Crossref 无记录，属正常，用期刊官网核验）(28) ==
+[71] 10.16333/j.1001-6880.2017.S.023
+[72] 10.3976/j.issn.1002-4026.2023.04.002
+[74] 10.88888/j.0253-2670.2019.13.3052-3057
+[76] 10.88888/j.0253-2670.2020.5.1226-1232
+[79] 10.13386/j.issn1002-0306.2020050009
+[81] 10.14148/j.issn.1672-0482.2021.0786
+[86] 10.11975/j.issn.1002-6819.2015.11.041
+[118] 10.13386/j.issn1002-0306.2017.07.040
+[126] 10.11975/j.issn.1002-6819.202406126
+[129] 10.13995/j.cnki.11-1802/ts.040176
+[132] 10.13657/j.cnki.gxkxyxb.20260107.006
+[133] 10.16429/j.1009-7848.2024.01.021
+[245] 10.11975/j.issn.1002-6819.2021.12.033
+[259] 10.7501/j.issn.0253-2670.2022.09.031
+[260] 10.7501/j.issn.0253-2670.2022.02.032
+[327] 10.19540/j.cnki.cjcmm.20230331.301
+[329] 10.11975/j.issn.1002-6819.202307126
+[338] 10.11975/j.issn.1002-6819.2021.05.034
+[347] 10.13427/j.cnki.njyi.2023.09.009
+[357] 10.13733/j.jcam.issn.2095-5553.2023.01.022
+[371] 10.13733/j.jcam.issn.2095-5553.2026.07.038
+[373] 10.13922/j.cnki.cjvst.202304009
+[374] 10.13386/j.issn1002-0306.2023120125
+[378] 10.19554/j.cnki.1001-3563.2021.21.002
+[414] 10.13335/j.1000-3673.pst.2025.1065
+[428] 10.11975/j.issn.1002-6819.202306104
+[429] 10.11841/j.issn.1007-4333.2023.01.13
+[438] 10.13386/j.issn1002-0306.2020010245
+
+== A2. 非中文 DOI 在 Crossref 未找到 (2) ==
+[13] 10.1016/S0065-2717(08)70223-5  err=HTTP 429  doi.org解析=200
+[88] 10.13748/j.cnki.issn1007-7693.20223758  err=HTTP 404  doi.org解析=200
+
+== B. 标题关键词零重叠, 需人工核对 (1) ==
+[281] 10.1201/9780429461040
+      本库: Joardder M U H, Akram W, Karim A. Heat and Mass Transfer Modelling During Drying: Empirical to Multiscale Appr
+      Crossref: Heat and Mass Transfer Modelling During Drying
+
+== C. 通过 (273) ==
+[2] 10.1016/0017-9310(75)90002-2 | bodies,capillary,differential,equations,porous,review
+[3] 10.1016/S0065-2717(08)70098-4 | bodies,capillary,porous
+[4] 10.1016/B978-1-4832-0065-1.50006-4 | conditions,equations,single,valuedness
+[5] 10.1002/nme.1620380609 | capillary,equations,integral,linear,luikov,media
+[6] 10.1080/07373939708917263 | capillary,differential,formulations,lumped,media,porous
+[7] 10.1016/j.ijthermalsci.2013.04.011 | capillary,equations,gradient,hybrid,integral,luikov
+[8] 10.1016/j.ijheatmasstransfer.2018.02.106 | analytical,boundary,conditions,equations,luikov,periodic
+[9] 10.1016/S0017-9310(97)00357-8 | capillary,efficient,hygroscopic,porous,processes,simulation
+[10] 10.1016/0017-9310(73)90058-6 | approach,capillary,hygroscopic,porous,solids,theoretical
+[11] 10.1016/0017-9310(66)90124-4 | body,capillary,moist,moving,porous
+[12] 10.1080/07373939108916644 | capillary,internal,media,porous,transport
+[14] 10.1016/S0065-2717(08)70240-5 | coupled,multiphase,systems,theory,transport
+[15] 10.1080/07373938308916768 | experiment,granular,media,porous,theory
+[17] 10.1007/978-3-662-21830-3_3 | granular,mechanisms,media,moisture,porous,transport
+[18] 10.1155/2018/9456418 | implementation,media,models,numerical,porous,process
+[19] 10.1016/0017-9310(88)90084-1 | convective,detailed,media,porous
+[20] 10.1080/07373939108916746 | part,processes,related,theoretical
+[21] 10.1080/07373939108916747 | both,media,part,porous,processes,related
+[22] 10.1016/0735-1933(87)90016-9 | importance,measurements,permeability,softwoods,upon
+[23] 10.1080/07373939908917614 | computational,generic,media,porous,transpore,understanding
+[24] 10.1016/j.ijheatmasstransfer.2019.06.043 | biosourced,computational,coupled,equilibrium,formulation,local
+[25] 10.1080/07373937.2022.2159974 | mechanistic,perspectives,progress,review,solids,state
+[26] 10.1016/0017-9310(89)90196-8 | consolidated,convective,porous,slab
+[27] 10.1016/0735-1933(90)90077-W | consolidated,convective,including,porous,region,slab
+[28] 10.1080/10407789808913980 | conjugate,convective,media,porous
+[29] 10.1016/j.ijheatmasstransfer.2011.08.047 | coefficients,conjugate,convective,flat,plate,porous
+[30] 10.1016/j.ijheatmasstransfer.2021.121356 | bidirectional,convective,coupling,hydro,mechanical,media
+[31] 10.1016/j.jfoodeng.2019.05.028 | considering,convective,foods,media,multiphase,porous
+[32] 10.1080/07373937.2014.970260 | bidirectional,biological,coupling,hydro,mathematical,mechanics
+[33] 10.1201/9781351019224-1 | application,media,phenomena,porous
+[34] 10.1201/9781351019224-2 | diffusivity,media,porous
+[35] 10.1201/9781351019224-3 | media,multiscale,porous
+[36] 10.1029/TR038i002p00222 | gradients,moisture,movement,porous,temperature,under
+[37] 10.1016/S1385-8947(01)00283-2 | advances,media,models,pore,porous,recent
+[38] 10.1201/9781003011811-1 | capillary,evaporation,medium,porous,slow
+[39] 10.1201/9781003011811-5 | evaporation,media,models,network,pore,porous
+[40] 10.1080/07373930802045932 | fractal,review,theory
+[41] 10.1081/DRT-120028222 | investigation,mechanism,media,moisture,porous,process
+[42] 10.1201/9780203748794-9 | evaporation,stationary
+[43] 10.1201/9780203748794-10 | bodies,porous,rigid,shrinkage
+[44] 10.1080/07373937.2019.1668405 | approach,coupled,dielectric,equilibrium,magnetic,media
+[45] 10.3390/chemengineering4010013 | implementation,numerical,processes,soret
+[46] 10.1016/j.ijmecsci.2021.106412 | combined,convection,dufour,enclosure,entropy,generation
+[47] 10.1016/j.cnsns.2009.05.062 | boundary,convection,dufour,filled,flow,layer
+[48] 10.1080/10020070512331342530 | analytical,considering,equations,explicit,fick,fourier
+[49] 10.1016/j.icheatmasstransfer.2025.109101 | assessment,building,credibility,equilibrium,hygric,moisture
+[50] 10.1080/07373937.2023.2209157 | adaptability,assumptions,equilibrium,freeze,into,local
+[51] 10.1080/07373937.2024.2328292 | experimental,media,moisture,porous,process,simulation
+[52] 10.1021/acs.energyfuels.5c03194 | boltzmann,electrolyzers,flow,lattice,media,methods
+[53] 10.1080/07373937.2022.2033422 | network,pore,years
+[54] 10.55900/lavrknht | coupled,direct,hygroscopic,media,numerical,porous
+[55] 10.1017/CBO9780511997846 | processes
+[56] 10.1017/CBO9780511997846.006 | approaches,comparisons,fickian,luikov,theories,type
+[57] 10.1002/aic.13808 | alternative,approach,biological,engineering,multiphase,nonequilibrium
+[58] 10.1080/07373937.2015.1069326 | approach,development,engineering,implementations,problems,reaction
+[94] 10.1038/s41598-025-13497-z | acori,characteristics,different,kinetics,layer,rhizoma
+[95] 10.3390/molecules28093898 | attributes,changes,components,final,flavor,herba
+[96] 10.3390/foods11060784 | aroma,assessment,attributes,haplocalyx,kinetics,layer
+[97] 10.1016/j.heliyon.2023.e15554 | attributes,aurantii,different,fructus,kinetics,layer
+[98] 10.3390/pr14111749 | astragalus,characteristics,freeze,kinetics,migration,moisture
+[99] 10.1016/j.ifset.2025.104146 | assisted,astragalus,characteristics,frequency,moisture,product
+[100] 10.1080/07373937.2015.1105814 | convective,core,distribution,evolution,kinetics,moisture
+[101] 10.1016/j.foodchem.2025.146018 | characteristics,chinese,developing,effective,efficiency,pretreatment
+[102] 10.3390/foods12163048 | combined,composition,consumption,energy,infrared,kinetics
+[103] 10.1111/jfpe.14179 | characteristics,combined,content,microwave,moisture,notoginseng
+[104] 10.1080/07373937.2020.1761827 | kinetics,notoginseng,panax,pulsed,quality,roots
+[105] 10.25165/j.ijabe.20221501.6210 | characteristics,combined,ginsenosides,infrared,notoginseng,panax
+[106] 10.1016/j.energy.2022.123216 | collector,different,hybrid,notoginseng,panax,parts
+[107] 10.1016/j.energy.2021.119982 | characteristic,elata,experiments,gastrodia,multi,variable
+[108] 10.1016/j.icheatmasstransfer.2025.109089 | combined,elata,gastrodia,intermittent,microwave,performance
+[109] 10.1080/07373937.2026.2640164 | elata,gastrodia,lstm,microwave,migration,moisture
+[110] 10.1016/j.jfca.2025.108716 | behavior,berries,characterization,dynamic,goji,moisture
+[111] 10.15586/ijfs.v33i1.1949 | barbarum,berry,characteristics,degradation,fruit,goji
+[112] 10.3390/foods11111645 | barbarum,characteristics,combined,frequency,lycium,quality
+[113] 10.3390/foods12061202 | angelica,characteristics,improving,microwave,physicochemical,quality
+[114] 10.1016/j.lwt.2019.108563 | blast,changes,determination,dried,kinetics,panax
+[115] 10.1007/s13399-022-03722-4 | behaviors,chinese,diffusivity,effective,fuels,medicine
+[116] 10.1186/s44147-026-01071-x | comprehensive,dehumidification,desiccant,herbal,kinetics,performance
+[123] 10.3390/foods13193075 | astragalus,evaluation,mechanism,microwave,quality,roots
+[125] 10.1016/j.fbp.2025.07.004 | camellia,experimental,numerical,oleifera,seed,simulation
+[128] 10.1016/j.foodres.2025.117423 | diffusion,evaporation,hardening,integrated,internal,moisture
+[136] 10.1080/07373937.2026.2640483 | aurantii,fructus,moisture,scanning
+[137] 10.1081/DRT-120005864 | layer,single
+[138] 10.1080/07373937.2013.873047 | curve,equations,layer,review,thin
+[139] 10.1111/1541-4337.12196 | fruits,layer,review,thin,vegetables
+[140] 10.1080/10408390802437063 | experimental,foods,layer,results,review,theory
+[141] 10.1007/s00231-016-1791-8 | carrot,characteristics,colour,convective,kinetics,rehydration
+[142] 10.1016/j.heliyon.2021.e07182 | differing,influence,kinetics,layer,mango,methods
+[143] 10.1515/phys-2022-0029 | eryngii,kinetics,pleurotus,slices
+[144] 10.1021/acsomega.0c05824 | characteristics,coupled,kinetics,lotus,microwave,root
+[145] 10.1007/s00231-017-2202-5 | consumption,cubes,dehydration,energy,intermittent,kinetics
+[147] 10.1016/0260-8774(92)90009-U | conductivity,content,four,function,porosity,single
+[148] 10.1016/S0260-8774(96)00060-X | conductivity,content,fruits,function,improved,porosity
+[149] 10.1111/j.1365-2621.1974.tb07323.x | conductivity,experimental,fruits,selected,thermal,values
+[150] 10.1201/9781003062332 | agricultural,properties,thermal
+[151] 10.1081/JFP-200063038 | changes,conductivity,density,diffusivity,plums,specific
+[152] 10.1111/j.1745-4530.2002.tb00575.x | content,influenced,moisture,physical,properties,selected
+[153] 10.1016/S0963-9969(03)00012-7 | apparent,conductivity,content,function,moisture,networks
+[154] 10.1111/j.1745-4530.2002.tb00557.x | conductivity,granular,intermediate,moisture,predictive,thermal
+[155] 10.1016/S0260-8774(99)00026-6 | cooling,enthalpy,equations,freezing,predictive,properties
+[156] 10.1016/j.ijheatmasstransfer.2024.126138 | approach,conductivity,dependent,moisture,phase,porous
+[157] 10.1016/j.ijpharm.2023.123130 | capacity,conductivity,content,moisture,pharmaceutical,porosity
+[158] 10.1111/jfpe.70153 | corn,cultivar,enhancing,integrating,kernels,learning
+[159] 10.1007/s11947-025-04075-2 | almonds,characterization,components,damage,ground,harvest
+[160] 10.1016/j.jfoodeng.2005.12.015 | chenopodium,content,diffusivity,initial,moisture,quinoa
+[161] 10.1016/j.jfoodeng.2006.07.011 | baking,cake,moisture,white
+[162] 10.1016/j.jfoodeng.2006.01.051 | analytical,considering,diffusivity,kinetics,shrinkage,solution
+[163] 10.1016/S0260-8774(00)00033-9 | analytical,considering,equation,kinetics,shrinkage,solution
+[164] 10.1016/j.jfoodeng.2005.02.026 | carrot,convective,core,cortex,diffusivity,isothermal
+[165] 10.1016/j.jfoodeng.2009.12.029 | analytical,coefficient,convective,cylindrical,determination,diffusivity
+[166] 10.1016/j.ijheatmasstransfer.2015.02.027 | coefficients,diffusivities,fruit,moisture,passion,peel
+[167] 10.1080/07373939508916962 | analytical,diffusion,moisture,objects,solid
+[168] 10.1080/00908319808970044 | coefficients,diffusivities,loss,moisture,part,products
+[169] 10.1016/S0963-9969(03)00118-2 | combined,convective,cylinders,microwave,slabs,solid
+[170] 10.1515/ijfe-2015-0002 | american,dryer,ginseng,impingement,kinetics,layer
+[171] 10.48047/ecb/2023.12.10.192 | aromatic,convective,diffusivity,leaves,medicinal,moisture
+[172] 10.1016/j.rineng.2025.104763 | cabinet,dryer,kinetics,leaves,moringa
+[173] 10.1038/s41598-025-03367-z | automated,economic,kinetics,leaves,sage,thermodynamics
+[174] 10.1021/ja01269a023 | adsorption,gases,layers,multimolecular
+[175] 10.1016/B978-0-12-591350-8.50007-3 | activity,aspects,estimation,systems,theoretical,water
+[176] 10.1111/j.1745-4530.1993.tb00160.x | assessment,empirical,four,general,isotherms,moisture
+[177] 10.1007/s12393-022-09328-w | curves,empirical,hydration,models,moisture,sigmoid
+[178] 10.1016/j.profoo.2011.09.026 | contents,determined,dynamic,edodes,equilibrium,herb
+[179] 10.1016/j.lwt.2012.01.026 | balm,dynamic,established,isosteric,isotherms,leaves
+[180] 10.1016/j.jfoodeng.2004.11.021 | ambrosioides,chenopodium,isotherms,leaves,sorption,temperatures
+[181] 10.54966/jreen.v10i3.764 | alba,artemisia,herba,isotherms,moisture,properties
+[182] 10.3136/fstr.13.315 | ganoderma,isotherms,lincheu,lucidum,moisture,mushroom
+[187] 10.1007/978-1-4612-4254-3_3 | conduction
+[191] 10.1002/cjce.5450690606 | capillary,cylindrical,media,porous
+[192] 10.1016/S0017-9310(03)00229-1 | approach,cylindrical,difference,dimensional,finite,moist
+[193] 10.1080/07373939908917593 | combined,conduction,convection,granular,products
+[194] 10.1111/j.1745-4530.2008.00254.x | calculation,crank,dehydration,diffusivity,fick,fruits
+[195] 10.1016/j.icheatmasstransfer.2022.106500 | analytical,boundary,conditions,granular,mixtures,solution
+[196] 10.55214/25768484.v9i6.8276 | cordyceps,experimental,freeze,militaris,numerical,primary
+[197] 10.1007/978-1-4020-5480-8_10 | conditions,convective,cylinder,kaolin,linear,steady
+[198] 10.1016/j.ijheatmasstransfer.2004.09.008 | conjugate,cores,cylindrical,dielectric,freeze,media
+[199] 10.1080/10407782.2017.1359004 | blockage,characteristics,convection,cylinder,forced,numerical
+[200] 10.1016/S0260-8774(03)00144-4 | convective,review,shrinkage
+[201] 10.1111/1541-4337.12375 | challenges,current,shrinkage,status
+[202] 10.1016/0260-8774(94)90125-2 | foodstuffs,shrinkage
+[203] 10.1111/j.1365-2621.1976.tb14414.x | dehydration,root,shrinkage,vegetables
+[204] 10.3389/fmats.2024.1330599 | porous,properties,review,shrinkage
+[205] 10.1007/s42853-020-00056-9 | approaches,convective,fruits,herbs,review,vegetables
+[206] 10.3390/foods10040778 | change,deformation,overview,processes,products,volume
+[211] 10.1016/j.jfoodeng.2018.09.018 | boundary,general,isothermal,moving,setting,shrinkage
+[212] 10.1016/j.jfoodeng.2018.09.030 | boundary,estimating,factor,isothermal,method,moving
+[214] 10.1155/2019/3926897 | boundary,chayote,discoid,isothermal,moving,samples
+[215] 10.1111/jfpe.13178 | approaches,boundary,dimensional,isothermal,moving,shrinkage
+[216] 10.1016/S0260-8774(98)00095-8 | bodies,cylinder,shaped,shrinking
+[217] 10.1080/07373930008917728 | application,boundary,general,media,moving,porous
+[221] 10.1111/j.1365-2621.1996.tb14748.x | boundary,grapes,moisture,movement,moving,simulating
+[223] 10.1080/07373937.2021.1904411 | alba,experimental,paeoniae,process,radix,shrinkage
+[224] 10.1081/DRT-100105299 | deformation,isotropic,shrinkage,simultaneous,undergoing
+[225] 10.11301/jsfe2000.2.67 | characteristics,convection,mechanical,potato,shrinkage,undergoing
+[226] 10.1016/j.jfoodeng.2013.09.014 | convective,fresh,influence,shrinkage,theoretical,vegetables
+[228] 10.1016/j.tca.2025.180024 | approach,arbitrary,banana,convective,element,eulerian
+[229] 10.1111/jfpe.14545 | algorithm,arbitrary,artificial,dehydration,element,eulerian
+[230] 10.1039/D4FB00343H | approach,cylinders,moisture,multiphysics,okra,shrinkage
+[231] 10.3390/pr12081564 | element,finite,hydrogels,mathematical,method,texture
+[234] 10.1080/07373930008917772 | cauliflower,potato,shape,shrinkage
+[235] 10.1111/jfpe.70594 | characterization,convection,potato,shrinkage,slabs,solanum
+[236] 10.1007/s43153-024-00472-w | approach,coefficient,considering,diffusion,estimator,identification
+[239] 10.2202/1556-3758.1352 | bodies,coefficient,considering,convection,cylindrical,diffusion
+[240] 10.1080/07373937.2018.1549565 | apples,convective,dehydrated,described,diffusion,diffusivity
+[241] 10.1080/07373937.2016.1218891 | apple,considering,dehydration,description,diffusion,dimensional
+[242] 10.1080/07373937.2018.1431274 | apple,dehydration,described,diffusion,dimensional,equation
+[243] 10.25165/j.ijabe.20231601.6736 | carrot,deformation,experimental,numerical,shrinkage,slices
+[244] 10.1016/j.ijthermalsci.2018.10.042 | apple,deformation,experimental,numerical,process,shrinkage
+[246] 10.1016/j.ijthermalsci.2023.108226 | distribution,high,insights,mechanism,media,moisture
+[249] 10.1016/j.jfoodeng.2015.05.031 | case,development,hardening,mechanistic,texture,understanding
+[252] 10.1016/B978-0-444-59520-1.50072-5 | case,collapse,explained,hardening,investigation,mathematical
+[253] 10.1016/j.crfs.2025.101074 | buckling,core,cylindrical,edible,geometry,matter
+[254] 10.1016/j.crfs.2025.101238 | breaking,foods,morphing,programmable,shape,symmetry
+[261] 10.1016/j.jfoodeng.2024.112346 | foods,integrating,kinetics,matrix,mechanistic,mobility
+[263] 10.1016/j.ijheatmasstransfer.2025.128286 | almonds,considering,convective,diffusivity,hull,isotropic
+[264] 10.3390/agriculture15050484 | carrots,experimental,simulation,strain,stress,studies
+[267] 10.1016/j.crfs.2025.101013 | assisted,characteristics,computer,coupled,influence,microwave
+[269] 10.1111/jfpe.13497 | boundary,kinetics,moisture,moving,prediction,problem
+[270] 10.1016/j.jfoodeng.2019.07.010 | boundary,diffusivity,estimation,fruit,isothermal,method
+[271] 10.1007/s00231-019-02771-2 | characteristics,convective,cylindrical,determination,image,potato
+[272] 10.1016/j.fbp.2008.06.003 | application,approximation,banana,cylindrical,kinetics,mathematical
+[273] 10.1080/07373937.2026.2686407 | apricot,boundary,convective,dependent,diffusivity,element
+[274] 10.1201/9781482234213 | flow,fluid,numerical
+[276] 10.1007/978-3-319-99693-6 | computational,dynamics,fluid,methods
+[277] 10.1016/S1570-8659(00)07005-8 | finite,methods,volume
+[278] 10.1017/CBO9780511791253 | finite,hyperbolic,methods,problems,volume
+[279] 10.1007/978-3-662-09017-6 | advection,dependent,diffusion,equations,numerical,reaction
+[280] 10.1017/9781009275453 | dynamics,element,finite,fluid,methods,volume
+[282] 10.1201/9781003159520 | advanced,computational,processing,techniques
+[284] 10.1017/CBO9780511760396 | computing,scientific,validation,verification
+[286] 10.1115/1.2910291 | grid,method,perspective,refinement,reporting,studies
+[287] 10.1146/annurev.fluid.29.1.123 | computational,dynamics,fluid,quantification,uncertainty
+[288] 10.1115/1.1588692 | computations,conservatism,convergence,finite,flow,fluid
+[289] 10.1115/1.2960953 | applications,discretization,estimation,procedure,reporting,uncertainty
+[292] 10.1016/j.jcp.2014.01.006 | calculations,estimation,grid,numerical,procedure,refinement
+[293] 10.1115/1.4053854 | interpretation,scope,standard,validation,verification
+[294] 10.2172/759450 | code,manufactured,method,solutions,verification
+[295] 10.2478/bpasts-2013-0010 | application,computation,convergence,grid,index
+[296] 10.1115/1.4037706 | 2009,asme,following,interpretation,results,validation
+[297] 10.1016/j.icheatmasstransfer.2025.109114 | assembly,liquid,metal,plus,quantification,simulation
+[298] 10.1080/10407789208944882 | coefficients,diffusion,interfaces,numerical,treatment
+[300] 10.1177/17442591261447478 | averaging,comparison,conductivity,cultural,deterioration,induced
+[301] 10.1016/0168-9274(86)90006-1 | accuracy,compressible,flows,fluid,meshes,nonuniform
+[302] 10.1016/j.advwatres.2012.06.016 | accuracy,classic,flow,formations,heterogeneous,numerical
+[303] 10.1016/j.jhydrol.2013.07.036 | analytical,approximation,axisymmetric,dimensional,equation,finite
+[305] 10.1016/j.icheatmasstransfer.2015.01.010 | conduction,cylindrical,finite,method,problems,volume
+[306] 10.1016/j.anucene.2006.04.011 | application,cathena,code,conduction,finite,method
+[307] 10.1016/0017-9310(81)90184-8 | boundary,control,difference,finite,immobilization,moving
+[308] 10.1002/num.1690100608 | lines,method,solvers
+[309] 10.1002/num.20212 | almost,arising,lines,method,numerical,odes
+[310] 10.1007/s10543-016-0641-x | implicit,interface,linearly,methods,nonlinear,parabolic
+[311] 10.1007/978-3-642-05221-7 | differential,equations,ordinary,solving
+[312] 10.1145/1089014.1089020 | sundials
+[313] 10.1063/1.4822377 | cvode,nonstiff,solver,stiff
+[314] 10.1145/3539801 | algebraic,differential,enabling,equation,flexibility,nonlinear
+[316] 10.1137/S1064827594276424 | matlab,suite
+[317] 10.1038/s41592-019-0686-2 | algorithms,computing,fundamental,python,scientific,scipy
+[318] 10.1016/j.cam.2014.10.006 | dependent,differential,equations,numerical,partial,simulations
+[319] 10.1016/j.ijheatmasstransfer.2025.128128 | biomaterial,convective,experimental,hygroscopic,multiphysics,paper
+[320] 10.1016/0021-8634(85)90116-7 | agricultural,computer,grain,mathematical,review,simulation
+[321] 10.1016/j.ijheatmasstransfer.2020.119704 | combined,frequency,kiwifruit,numerical,radio,slices
+[322] 10.1007/s00231-018-2492-2 | carrot,experimental,investigation,numerical,slices,solar
+[323] 10.1080/10407782.2018.1444868 | boltzmann,conjugate,coupled,finite,lattice,media
+[324] 10.1007/s00231-018-2337-z | advanced,clothing,protective,validation,verification
+[325] 10.1080/07373937.2023.2213767 | coupled,discrete,element,finite,grain,method
+[326] 10.1080/07373937.2023.2283877 | experimental,grain,numerical,piles,research,simulation
+[330] 10.3389/fnut.2024.1382296 | design,glycyrrhiza,infrared,licorice,optimization,processing
+[333] 10.1081/DRT-120038738 | constant,critical,existing,falling,hypotheses,period
+[334] 10.1016/0017-9310(87)90084-6 | bodies,complete,curve,experimental,porous,studies
+[335] 10.1080/07373930500209830 | capillary,distribution,influence,kinetics,pore,simple
+[336] 10.1081/DRT-120023178 | characterization,falling,first,period,porous,rate
+[337] 10.1007/BF00139842 | distribution,formation,inhomogeneous,moisture,stress,temperature
+[339] 10.1016/j.ijheatmasstransfer.2019.119231 | carrot,control,convective,cubes,efficiency,energy
+[340] 10.1080/07373937.2019.1597373 | american,convective,down,efficiency,enhance,ginseng
+[341] 10.1080/07373937.2022.2099416 | consumption,down,efficient,energy,humidity,improvements
+[342] 10.3390/foods11060888 | application,paddy,rice,stage,temperature,variable
+[343] 10.1007/s11947-024-03729-x | citri,control,exocarpium,followed,frequency,grandis
+[349] 10.1515/phys-2017-0045 | convective,intermittent,microwave,parameter,sensitivity
+[350] 10.1080/07373937.2024.2414387 | fields,flow,large,optimization,room,scale
+[351] 10.1080/07373930903517458 | application,computational,dynamics,fluid,processes,review
+[352] 10.2298/TSCI240408251Z | computational,dynamics,field,flow,fluid,improving
+[362] 10.1002/htj.23371 | lentils,methodology,optimization,process,properties,quality
+[365] 10.1080/10942912.2020.1754233 | algorithm,corn,genetic,methodology,optimization,process
+[366] 10.3389/fnut.2024.1523078 | combined,frequency,jujube,optimization,parameters,properties
+[367] 10.1002/jsfa.14383 | composite,desirability,methods,mushroom,optimization,taguchi
+[382] 10.1080/07373937.2015.1036288 | anns,application,artificial,comprehensive,networks,neural
+[384] 10.3390/foods15020245 | attention,case,control,convolutional,integrating,long
+[387] 10.1016/j.foodres.2025.116873 | artificial,comprehensive,fruit,intelligence,multi,objective
+[388] 10.1080/07373937.2025.2510760 | applications,progress,recent
+[389] 10.1111/jfpe.70300 | control,driven,evolution,foundations,learning,machine
+[390] 10.1111/1541-4337.70194 | advances,empirical,informed,multiscale,networks,neural
+[391] 10.1080/07373937.2025.2550602 | application,enhanced,freeze,progress,prospects,research
+[394] 10.3390/app142210587 | carbon,control,development,dryer,grain,intelligentization
+[395] 10.1111/jfpe.70724 | artificial,assisted,comparative,foam,kinetics,linear
+[400] 10.1016/j.fbp.2024.02.004 | accelerated,controlled,coupled,diffusion,informed,moisture
+[402] 10.1016/j.jfoodeng.2026.113041 | aware,digital,framework,graph,media,networks
+[403] 10.1016/j.cherd.2012.06.011 | convective,influence,moisture,numerical,porous,properties
+[404] 10.1155/2024/5887654 | evaluation,hybrid,mechanistic,probabilistic,system
+[407] 10.1016/B978-0-444-63576-1.50065-0 | comprehensive,milk,process,sensitivity,uncertainty
+[409] 10.1016/S0951-8320(03)00058-9 | analyses,complex,hypercube,latin,propagation,sampling
+[415] 10.3390/en19010228 | active,coordinated,distribution,expansion,generation,network
+[419] 10.1007/s11947-025-03971-x | augmentation,data,explainable,intensity,learning,level
+[423] 10.1007/978-1-4614-5541-7 | convection,media,porous
+[426] 10.1155/2022/6195257 | comprehensive,fruits,mathematical,processes,review,vegetables
+[427] 10.1080/07373937.2024.2394125 | advancements,bioactive,chinese,components,energy,influence
+[430] 10.1016/j.jspr.2025.102658 | advances,field,herb,medicinal,physical,recent
+[432] 10.1080/87559129.2024.2427773 | applications,approach,cereals,flow,grains,media
+[433] 10.1007/s11947-024-03627-2 | convective,exploring,fruits,mathematical,review,vegetables
+[434] 10.1111/1541-4337.12380 | multiscale,state
+[436] 10.1088/1755-1315/568/1/012045 | development,medium,porous,review,theory
+[439] 10.1016/j.csite.2023.102986 | applied,classification,dryers,energy,numerical,performance
+[440] 10.1080/07373930600778130 | example,highly,hydrogels,shrinking
+[441] 10.1021/acsomega.5c10016 | biot,diffusivity,effective,evaluating,mathematical,nanoparticle
