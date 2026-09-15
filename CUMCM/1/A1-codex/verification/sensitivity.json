@@ -1,0 +1,65 @@
+[
+  {
+    "case": "PCHIP",
+    "T_max_abs_difference": 0.004202181485364775,
+    "T_center_1800_change": 0.00048594492329812056,
+    "T_surface_1800_change": 0.00022344917382355334,
+    "C_max_abs_difference": 1.8694281824771508e-06,
+    "C_center_1800_change": -1.1219025708442132e-11,
+    "C_surface_1800_change": 1.1891229734217745e-07
+  },
+  {
+    "case": "h_factor_0.95",
+    "T_max_abs_difference": 0.1820019765633063,
+    "T_center_1800_change": -0.13490571966215725,
+    "T_surface_1800_change": -0.1820019765633063,
+    "C_max_abs_difference": 0.0,
+    "C_center_1800_change": 0.0,
+    "C_surface_1800_change": 0.0
+  },
+  {
+    "case": "h_factor_1.05",
+    "T_max_abs_difference": 0.17035571421761375,
+    "T_center_1800_change": 0.12745850765469413,
+    "T_surface_1800_change": 0.17035571421761375,
+    "C_max_abs_difference": 0.0,
+    "C_center_1800_change": 0.0,
+    "C_surface_1800_change": 0.0
+  },
+  {
+    "case": "hm_factor_0.95",
+    "T_max_abs_difference": 0.0,
+    "T_center_1800_change": 0.0,
+    "T_surface_1800_change": 0.0,
+    "C_max_abs_difference": 0.03643473395860086,
+    "C_center_1800_change": 3.266154013914502e-07,
+    "C_surface_1800_change": 0.03643473395860086
+  },
+  {
+    "case": "hm_factor_1.05",
+    "T_max_abs_difference": 0.0,
+    "T_center_1800_change": 0.0,
+    "T_surface_1800_change": 0.0,
+    "C_max_abs_difference": 0.035243271540863486,
+    "C_center_1800_change": -3.2156812190820006e-07,
+    "C_surface_1800_change": -0.035243271540863486
+  },
+  {
+    "case": "d_factor_0.95",
+    "T_max_abs_difference": 0.0,
+    "T_center_1800_change": 0.0,
+    "T_surface_1800_change": 0.0,
+    "C_max_abs_difference": 0.016972413715333978,
+    "C_center_1800_change": 3.4015752499172436e-06,
+    "C_surface_1800_change": -0.016972413715333978
+  },
+  {
+    "case": "d_factor_1.05",
+    "T_max_abs_difference": 0.0,
+    "T_center_1800_change": 0.0,
+    "T_surface_1800_change": 0.0,
+    "C_max_abs_difference": 0.01598642807709094,
+    "C_center_1800_change": -5.3768774535001285e-06,
+    "C_surface_1800_change": 0.01598642807709094
+  }
+]

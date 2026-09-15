@@ -1,0 +1,22 @@
+{
+  "given_h_W_m2K": 25.0,
+  "rho_d_kg_m3": 275.0422535211268,
+  "surface_ambient_gap_max_K": 6.187361233435773,
+  "heat_net_into_rod_J_per_m": 83759.45964105899,
+  "heat_abs_through_surface_J_per_m": 83790.44580666204,
+  "sensible_heat_stored_J_per_m": 69145.2610561683,
+  "latent_heat_required_J_per_m": 967354.6904114527,
+  "latent_over_sensible": 13.990180608699244,
+  "energy_available_for_latent_net_J_per_m": 14614.198584890692,
+  "energy_available_for_latent_abs_J_per_m": 14645.184750493747,
+  "Lv_mean_surface_J_per_kg": 2397340.9935855493,
+  "water_removed_delivered_kg_per_m": 0.40351151254650774,
+  "max_water_evaporable_net_kg_per_m": 0.006096003290309224,
+  "max_water_evaporable_abs_kg_per_m": 0.006108928512747735,
+  "deficit_factor_net": 66.19279769549458,
+  "deficit_factor_abs": 66.05274749974318,
+  "mean_dC_delivered_kg_per_kg": 1.1674724700314285,
+  "max_mean_dC_from_energy_net_kg_per_kg": 0.01763745468807844,
+  "max_mean_dC_from_energy_abs_kg_per_kg": 0.017674850997469377,
+  "conclusion": "The delivered model evaporates far more water than the heat crossing its own surface can pay for, because the surface energy balance omits the latent sink L_v*j.  The bound uses only the delivered temperatures, the delivered moisture means and the problem-given h; no review-side model is involved."
+}

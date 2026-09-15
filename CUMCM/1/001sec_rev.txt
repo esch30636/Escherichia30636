@@ -1,0 +1,216 @@
+\subsubsection{控制方程与定解条件}
+
+预热平衡阶段（$0\sim1800\,\mathrm{s}$）药材与烘房热空气进行非稳态热--质交换：热量经表面对流
+换热进入药材并沿径向传导，水分在浓度梯度作用下向表面扩散、经对流传质进入空气
+\cite{yan2026heat,srikiatden2007moisture}。药材为长 $25\,\mathrm{cm}$、半径 $2\,\mathrm{cm}$
+的圆柱（长径比 $6.25$），侧面受热风均匀吹拂；题目要求以“到药材中心的距离”为输出自变量，故建立
+轴对称一维径向热传导--水分扩散模型。按附录 2，$\rho$、$c_p$、$k$ 为常数，$D$ 仅依赖水分浓度
+（不含温度项），两场仅经边界条件耦合、可分别求解。控制方程与定解条件为
+\begin{equation}
+  \rho c_p\frac{\partial T}{\partial t}
+  =\frac{1}{r}\frac{\partial}{\partial r}\Big(k r\frac{\partial T}{\partial r}\Big),
+  \qquad 0<r<R,\ t>0,
+  \label{eq:heat}
+\end{equation}
+\begin{equation}
+  \frac{\partial C}{\partial t}
+  =\frac{1}{r}\frac{\partial}{\partial r}\Big(D(C)\,r\frac{\partial C}{\partial r}\Big),
+  \qquad 0<r<R,\ t>0,
+  \label{eq:moist}
+\end{equation}
+其中水分扩散系数按附录 2 取经验公式 $D(C)=7\times10^{-9}\exp(-0.89/C)$（指数为 $-0.89/C$）。
+初始条件为 $T(r,0)=28\,^{\circ}\mathrm{C}$、$C(r,0)=2.55\ \mathrm{kg/kg}$；边界条件为圆心处
+$\partial T/\partial r(0,t)=\partial C/\partial r(0,t)=0$，表面为第三类对流换热与对流传质：
+\begin{equation}
+  -k\frac{\partial T}{\partial r}(R,t)=h\big[T(R,t)-T_a(t)\big],
+  \qquad
+  -D(C_s)\frac{\partial C}{\partial r}(R,t)=h_m\big[C_s(t)-C_a(t)\big],
+  \label{eq:bcR}
+\end{equation}
+式中 $T_a(t)$、$C_a(t)$ 为附件 1 的烘房温度与水分浓度时变序列，$C_s(t)=C(R,t)$。
+式~\eqref{eq:moist} 右端的 $D(C)$ 位于散度之内，展开含 $D'(C)(\partial C/\partial r)^2$
+项，写作 $D\Delta C$ 会丢失该非线性效应。
+
+\subsubsection{物性参数与烘房条件}
+
+问题 1 全部物性参数由附录 2 给定（表~\ref{tab:params}），无待定参数，量级与中药材热风干燥以往数据一致\cite{wang2024drying}。烘房环境由附件 1 给出（$0\sim14400\,\mathrm{s}$ 共 241 条、
+间隔 $60\,\mathrm{s}$），本问仅用 $0\sim1800\,\mathrm{s}$ 段，相邻观测点间线性插值，不平滑、
+不外推；表 1/表 2 所要求 7 个时刻处的烘房条件见图~\ref{fig:chamber} 圆点。
+
+\begin{table}[htbp]
+  \centering
+  \caption{问题 1 物性参数（附录 2）}
+  \label{tab:params}
+  \begin{tabular}{lll}
+    \hline
+    参数 & 数值 & 单位 \\
+    \hline
+    密度 $\rho$ & 820 & $\mathrm{kg/m^3}$ \\
+    比热容 $c_p$ & 2600 & $\mathrm{J/(kg\cdot K)}$ \\
+    导热系数 $k$ & 0.36 & $\mathrm{W/(m\cdot K)}$ \\
+    对流换热系数 $h$ & 25 & $\mathrm{W/(m^2\cdot K)}$ \\
+    对流传质系数 $h_m$ & $8\times10^{-7}$ & $\mathrm{m/s}$ \\
+    水分扩散系数 $D$ & $7\times10^{-9}\exp(-0.89/C)$ & $\mathrm{m^2/s}$ \\
+    半径 $R$／长度 $L$ & 0.02／0.25 & $\mathrm{m}$ \\
+    初始温度／水分浓度 & 28／2.55 & $^{\circ}\mathrm{C}$／$\mathrm{kg/kg}$ \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.5\textwidth]{fig01_chamber.png}
+  \caption{附件 1 烘房条件（阴影为 30 min 考察窗，圆点为表 1/表 2 要求时刻）}
+  \label{fig:chamber}
+\end{figure}
+
+\subsubsection{特征时间与量级分析}
+
+求解前由特征时间与 Biot 数进行量级分析。热扩散率与初始扩散系数分别为
+$\alpha=k/(\rho c_p)=1.6886\times10^{-7}\ \mathrm{m^2/s}$ 与
+$D(C_0)=7\times10^{-9}e^{-0.89/2.55}=4.9377\times10^{-9}\ \mathrm{m^2/s}$，得特征时间
+$\tau_T=\rho c_pR^2/k=2368.9\ \mathrm{s}\approx39.5\ \mathrm{min}$、
+$\tau_C=R^2/D(C_0)=8.10\times10^{4}\ \mathrm{s}\approx22.5\ \mathrm{h}$ 及
+$Bi=hR/k=1.389$、$Bi_m=h_mR/D(C_0)=3.240$。特征时间与 Biot 数是干燥研究中刻画
+温度场/水分场时间尺度与表面控制机制的常用判据\cite{yan2026heat,srikiatden2007moisture}。
+据此：$\tau_C/\tau_T\approx34$，30 min 约为 $0.76\,\tau_T$ 而仅占 $\tau_C$ 的 $2.2\%$，
+故温度场显著建立、水分仅在表面薄层内变化；$Bi=O(1)$，集总参数法不适用，径向温差可达
+数摄氏度；$Bi_m=3.24>1$，失水由对流边界驱动，形成表面干、内部湿的分布。
+
+\subsubsection{数值求解方法}
+
+\textbf{(1) 网格。}在归一化坐标 $\xi=r/R$ 下，采用单元中心有限体积法离散
+式~\eqref{eq:heat}、\eqref{eq:moist}。初始时刻 $C_0\neq C_a(0)$ 使表面出现扩散边界层，
+厚度按自相似估计为 $\delta_\theta(t)=\sqrt{\pi D t}$（$t=10\,\mathrm{s}$ 时
+$3.9\times10^{-4}\,\mathrm{m}$，$t=1800\,\mathrm{s}$ 时 $1.7\times10^{-3}\,\mathrm{m}$），
+取表面加密网格 $\xi_{j+1/2}=1-(1-j/N)^2$（$j=0,1,\dots,N$，$N=800$），最外单元中心距
+表面 $1.25\times10^{-5}\,\mathrm{m}$，约为最薄边界层的 $1/30$；体积权重采用精确环形体积
+$V_i=(\xi_{i+1/2}^2-\xi_{i-1/2}^2)/2$。
+
+\textbf{(2) 界面通量。}界面 $f$ 通量取 $\Phi_f=G_f(u_{f-1}-u_f)$，
+$G_f=\xi_f\bar D_f/\Delta\xi$。对 $D=Ae^{-a/C}$，界面系数的精确形式为对数平均
+$\bar D_{\log}=(D_1-D_2)/\ln(D_1/D_2)$，与调和平均
+$\bar D_{\mathrm{harm}}=2D_1D_2/(D_1+D_2)$ 按 $\varepsilon=\ln(D_2/D_1)$ 展开至
+$\varepsilon^2$ 相同，故采用调和平均；Kirchhoff 变换积分通量作为校核
+\cite{srikiatden2007moisture}。表面按半单元导热与对流传热串联的精确热阻闭性
+$G_N=1/[\ln(1/\xi_{c,N})/k+1/(hR)]$，水分边界同理；表面值由通量一致性反解
+$T_s=T_a+\Phi_N/(hR)$、$C_s=C_a+\Phi_{C,N}/(h_mR)$。
+
+\textbf{(3) 时间推进。}采用全隐式后向 Euler 与阻尼 Newton 迭代（三对角线性化、解析
+Jacobian），以整步与两个半步解之差控制误差并自适应调整步长。温度与水分各取误差预算
+$2.5\times10^{-5}$，最大步长 $1\,\mathrm{s}$，整秒输出点与输入分段节点处截断步长；两场
+解耦、分别推进。
+
+\textbf{(4) 输出。}内部点由单元中心值局部二次插值获得，表面点按 (2) 反解，$t=0$ 行单独
+保留；结果四舍五入至 4 位小数，按附件 3 模板自 $t=1\,\mathrm{s}$ 起将 $1800\times21$时空分布写入 result1.xlsx。
+
+\subsubsection{结果与分析}
+
+表~\ref{tab:T1}、表~\ref{tab:C1} 给出题目要求的 7 个时刻、5 个径向位置处的温度与水分浓度。
+
+\begin{table}[htbp]
+  \centering
+  \caption{表 1\quad 30 分钟内药材的温度（$^{\circ}\mathrm{C}$）}
+  \label{tab:T1}
+  \begin{tabular}{cccccc}
+    \hline
+    时间/s & \multicolumn{5}{c}{到药材中心的距离/cm} \\
+    & 0 & 0.5 & 1 & 1.5 & 2 \\
+    \hline
+    100   & 28.0001 & 28.0003 & 28.0040 & 28.0327 & 28.1801 \\
+    300   & 28.0408 & 28.0635 & 28.1514 & 28.3681 & 28.8489 \\
+    600   & 28.4533 & 28.5360 & 28.8039 & 29.3159 & 30.1652 \\
+    900   & 29.3243 & 29.4583 & 29.8755 & 30.6161 & 31.7304 \\
+    1200  & 30.5427 & 30.7098 & 31.2224 & 32.1126 & 33.4276 \\
+    1500  & 31.9957 & 32.1867 & 32.7660 & 33.7463 & 35.1203 \\
+    1800  & 33.5753 & 33.7720 & 34.3642 & 35.3621 & 36.7856 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \caption{表 2\quad 30 分钟内药材的水分浓度（$\mathrm{kg/kg}$）}
+  \label{tab:C1}
+  \begin{tabular}{cccccc}
+    \hline
+    时间/s & \multicolumn{5}{c}{到药材中心的距离/cm} \\
+    & 0 & 0.5 & 1 & 1.5 & 2 \\
+    \hline
+    100   & 2.5500 & 2.5500 & 2.5500 & 2.5500 & 2.2470 \\
+    300   & 2.5500 & 2.5500 & 2.5500 & 2.5492 & 2.0508 \\
+    600   & 2.5500 & 2.5500 & 2.5500 & 2.5353 & 1.8770 \\
+    900   & 2.5500 & 2.5500 & 2.5497 & 2.5045 & 1.7547 \\
+    1200  & 2.5500 & 2.5500 & 2.5482 & 2.4646 & 1.6586 \\
+    1500  & 2.5500 & 2.5499 & 2.5445 & 2.4206 & 1.5787 \\
+    1800  & 2.5500 & 2.5497 & 2.5383 & 2.3755 & 1.5102 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.47\textwidth]{fig02_temp_map.png}\hfill
+  \includegraphics[width=0.47\textwidth]{fig03_moist_map.png}
+  \caption{30 min 内温度场（左）与水分浓度场（右）的时空演化}
+  \label{fig:fields}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.5\textwidth]{fig04_timeseries.png}
+  \caption{表面与中心温度、水分浓度的时间历程（圆点为表 1/表 2 要求时刻）}
+  \label{fig:series}
+\end{figure}
+
+\textbf{(1) 温度场。}30 min 内表面温度由 $28$ 升至 $36.7856\,^{\circ}\mathrm{C}$
+（$+8.79\,^{\circ}\mathrm{C}$），中心升至 $33.5753\,^{\circ}\mathrm{C}$
+（$+5.58\,^{\circ}\mathrm{C}$），1800 s 径向温差 $3.21\,^{\circ}\mathrm{C}$，与 $Bi=1.39$
+的预估一致，集总参数法不适用；表面仍低于烘房 $4.73\,^{\circ}\mathrm{C}$，预热平衡在 30 min
+内尚未结束，与 $\tau_T\approx39.5\ \mathrm{min}$ 一致。
+
+\textbf{(2) 水分场。}表面水分浓度由 $2.55$ 降至 $1.5102\ \mathrm{kg/kg}$（$-40.8\%$），
+$r=1.5\ \mathrm{cm}$ 处降 $6.8\%$，$r=1.0\ \mathrm{cm}$ 处降 $0.46\%$，中心在 4 位小数
+精度下不变；显著下降（$>1\%$）限于表面 $0.5\ \mathrm{cm}$ 薄层，与
+$\tau_C\approx22.5\ \mathrm{h}\gg1800\ \mathrm{s}$ 及 $Bi_m=3.24$ 的预估一致，呈热风干燥
+中典型的表层先干现象\cite{wang2024drying,nurhaslina2022review}。表面失水速率随时间衰减：
+最初 100 s 内降 $11.9\%$，$1500\sim1800\,\mathrm{s}$ 仅降 $4.3\%$，属对流传质边界驱动的
+指数趋近行为。
+
+\subsubsection{模型验证与精度保证}
+
+\textbf{(1) 温度场模态解验证。}问题 1 物性为常数，对分段线性 $T_a(t)$ 存在解析模态解。
+令 $\lambda_mJ_1(\lambda_m)=Bi\,J_0(\lambda_m)$、
+$A_m=2J_1(\lambda_m)/[\lambda_m(J_0^2(\lambda_m)+J_1^2(\lambda_m))]$，则
+\begin{equation}
+  T(r,t)=T_a(t)-\sum_{m=1}^{\infty}A_mJ_0\Big(\frac{\lambda_mr}{R}\Big)z_m(t),
+  \qquad
+  z_m'=T_a'-\frac{\lambda_m^2\alpha}{R^2}z_m,
+  \label{eq:modal}
+\end{equation}
+$z_m$ 在每个 60 s 线性段内逐段精确积分。该解与数值解在全部 $1801\times21$ 输出点上比对，
+最大绝对差 $5.2916\times10^{-6}\,^{\circ}\mathrm{C}$（$t=780\ \mathrm{s}$、$r=0.4\ \mathrm{cm}$）；
+模态截断（180 项与 360 项）差异 $4.5\times10^{-8}\,^{\circ}\mathrm{C}$。
+
+\textbf{(2) 守恒与物理界。}离散储存量变化与边界交换量的闭合残差：显热相对残差
+$2.0\times10^{-14}$、水分 $5.8\times10^{-13}$；全场温度 $\in[28.0000,36.7856]$、水分浓度
+$\in[1.5102,2.5500]$，无负值、无 NaN。
+
+\textbf{(3) 收敛性与误差预算。}网格 $N$ 逐级加倍，水分场空间收敛阶 $1.9998$；时间误差由
+整步与两个半步解比对控制。误差预算收紧至 $2.5\times10^{-5}$ 后，全场数值误差估计为温度
+$5.336\times10^{-6}\,^{\circ}\mathrm{C}$、水分 $8.105\times10^{-6}\ \mathrm{kg/kg}$，均小于
+4 位小数舍入阈值 $5\times10^{-5}$，故表 1/表 2 与 result1.xlsx 的 4 位小数可靠。上述为
+给定模型与输入下的数值误差估计，非实验预测误差。
+
+\textbf{(4) 短时表面自相似核对。}半无限体对流边界的短时自相似解为
+$C_0-C_s(t)=(C_0-C_a)\cdot2h_m\sqrt{t/(\pi D)}$\cite{srikiatden2007moisture}：
+$t=1\ \mathrm{s}$ 时解析值 $C_s=2.5175$、数值解 $2.5177$，相对差 $8\times10^{-5}$，表明
+初始边界层被网格与时间步长（最小时步 $1.0\times10^{-10}\ \mathrm{s}$）充分分辨。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.47\textwidth]{fig06_convergence.png}\hfill
+  \includegraphics[width=0.47\textwidth]{fig07_conservation.png}
+  \caption{网格收敛性（左）与水分质量守恒（右）}
+  \label{fig:verify}
+\end{figure}

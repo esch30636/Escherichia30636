@@ -1,0 +1,10 @@
+{
+  "moisture_equilibrium_max_error": 4.440892098500626e-16,
+  "heat_equilibrium_max_error": 7.105427357601002e-15,
+  "insulated_moisture_max_error": 4.440892098500626e-16,
+  "insulated_heat_max_error": 7.105427357601002e-15,
+  "report_table_entries_checked": 70,
+  "workbook_values_checked": 75600,
+  "source_files_unchanged": true,
+  "all_passed": true
+}

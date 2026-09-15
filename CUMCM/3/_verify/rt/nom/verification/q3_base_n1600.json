@@ -1,0 +1,53 @@
+{
+  "name": "q3_base_n1600",
+  "question": 3,
+  "n": 1600,
+  "rtol": 1e-11,
+  "method": "BDF",
+  "shrink": false,
+  "appendix": 3,
+  "interp": "linear",
+  "scenario": "base",
+  "order": 3,
+  "max_step": 300.0,
+  "backend": "production",
+  "sha256": {
+    "_verify\\rt\\engcode\\drying_common\\core.py": "791337d2ffc5fd9b3f3efbfe4d51124e8211723b3d045e5b600d7facee86feec",
+    "_verify\\rt\\engcode\\drying_common\\engine.py": "bc96ee9aa52312e275e7d5ca14560916fe8da5b4bc53b7da61139f5fc81a484b",
+    "_verify\\rt\\engcode\\drying_common\\independent.py": "494dbd3572f2d66be9f9fb87d2234f29cfab0b0c1b2dc18eb153a9152a49e92c",
+    "_verify\\rt\\engcode\\drying_common\\__init__.py": "30f14d9b38ec488167ed7ecf750cccd373a19876cc1cf44cb77d43d5f7ea3f09",
+    "_verify\\rt\\nom\\data\\ambient.csv": "ded075b1002efc0180558927058c11656a4aef5a6e3e220b015010368879641d",
+    "_verify\\rt\\nom\\data\\radius.csv": "3921506b7eabe35727cdac412fa57dc1665ad169c570a8507403ab352beff0a9"
+  },
+  "crossing_s": 206900.4272421522,
+  "minute_s": 206940.0,
+  "seconds": 107.6878740999964,
+  "integrals": [
+    1.2128502767437326,
+    -13378.142459357896,
+    -20386.314187106742,
+    0.0
+  ],
+  "balance": [
+    -1.1587197867868326e-10,
+    -3.78887853003107e-06
+  ],
+  "relative_balance": [
+    9.087998327739865e-11,
+    2.0289276635880455e-10
+  ],
+  "identity_abs": [
+    8.131516293641283e-20,
+    4.440892098500626e-16
+  ],
+  "radial_increase_max": 1.3322676295501878e-15,
+  "minimum": 0.05266122173810249,
+  "maximum": 2.5500000000000007,
+  "radius_extended": false,
+  "tail": [
+    50.0,
+    0.05
+  ],
+  "steps": 29955,
+  "nfev": 60781
+}

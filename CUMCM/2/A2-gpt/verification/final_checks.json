@@ -1,0 +1,14 @@
+{
+  "numerical_checks_pass": true,
+  "workbook_values_checked": 453600,
+  "workbook_rounding_exact": true,
+  "visual_review": {
+    "workbook_sheets": 2,
+    "workbook_start_end_previews": 4,
+    "scientific_figures": 6,
+    "profile_label_clipping_fixed": true
+  },
+  "input_hashes_unchanged": true,
+  "references": "reference_access.json contains actual access levels and failed entries",
+  "completed": true
+}

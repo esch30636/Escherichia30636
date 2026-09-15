@@ -1,0 +1,983 @@
+\documentclass{ctexart}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{float}
+
+\title{这是一个标题}
+
+
+\begin{document}
+
+\maketitle
+\begin{abstract}
+    下面是这篇论文的摘要
+\end{abstract}
+\section{问题背景与问题需求}
+
+\subsection{问题背景}
+
+中药材在采收及初加工过程中通常含有较高水分，若不能及时、合理地降低其含水量，
+可能对后续储藏、运输及品质稳定性产生不利影响。因此，干燥是中药材产地初加工过程中的
+重要环节之一。当前中药材干燥方式主要包括自然干燥、热风干燥、真空干燥、微波干燥以及
+多种联合干燥技术。其中，热风干燥由于设备结构相对简单、技术成熟且适用范围较广，
+在实际生产中具有重要应用价值\cite{wang2024drying,nurhaslina2022review}。
+已有研究表明，合理选择干燥工艺及相关装备，对于提高中药材干燥效率和保障成品品质
+具有重要意义\cite{wang2024drying}。
+
+在热风干燥过程中，药材与周围热空气之间持续进行热量和水分交换。一方面，
+热量通过对流换热由环境传递至药材表面，并进一步通过热传导向药材内部传递；
+另一方面，药材内部水分在浓度梯度作用下向表面迁移，并通过表面对流传质进入周围空气。
+因此，药材烘干本质上属于具有明显时间和空间变化特征的非稳态热--质传递过程。
+现有干燥理论通常以能量守恒、Fourier 热传导定律和 Fick 扩散定律等作为建立
+热质传递模型的重要理论基础\cite{yan2026heat,srikiatden2007moisture}。
+
+药材内部水分迁移过程受到干燥温度、环境湿度、材料结构、水分浓度以及有效扩散系数
+等多种因素共同影响。随着干燥过程持续进行，药材内部水分不断减少，其热物性参数及
+几何尺寸也可能发生变化，使热量和水分传递表现出较强的非线性特征
+\cite{yan2026heat,srikiatden2007moisture}。
+因此，仅依靠传统试验方法寻找适宜的烘干条件通常需要大量实验和较长周期，而利用
+数学模型描述药材内部温度场和水分浓度场的动态变化，可以为烘干时间预测、
+工艺参数分析以及烘干过程优化提供理论依据。
+
+基于上述背景，本文针对题目所给近似圆柱形中药材，综合考虑热传导、水分扩散、
+表面对流换热与传质以及干燥过程中尺寸变化等因素，建立药材烘干过程温度场和
+水分浓度场的数学模型。通过数值计算研究温度与水分浓度随时间和空间位置的变化规律，
+并进一步确定满足规定水分浓度要求时所需的烘干时间。
+
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.96\textwidth]
+    {背景.png}
+    \caption{热风烘干过程中中药材的热质传递机理示意}
+    \label{fig:drying-mechanism}
+\end{figure}
+
+
+\subsection{问题需求}
+
+研究对象为一根近似圆柱形的中药材，其初始长度为 $25\,\mathrm{cm}$，
+半径为 $2\,\mathrm{cm}$，初始温度为 $28\,^{\circ}\mathrm{C}$，
+初始干基水分浓度为 $2.55\,\mathrm{kg/kg}$。
+在给定烘房温度、水分浓度以及相关热物性和传质参数的条件下，
+需要研究药材内部温度和水分浓度随时间及空间位置的变化规律。
+结合题目要求，需要依次解决以下四个问题。
+
+\textbf{问题一：预热平衡阶段的温度和水分浓度变化规律。}
+
+根据烘房温度和水分浓度随时间的变化数据，建立药材预热阶段的非稳态传热与
+传质模型。在给定初始条件和边界条件下，求解药材不同径向位置处的温度
+$T(r,t)$ 和水分浓度 $C(r,t)$，获得 $1800\,\mathrm{s}$ 内药材内部
+温度场和水分浓度场的时空变化规律。
+
+\textbf{问题二：完整烘干过程的温度和水分浓度变化规律。}
+
+在问题一模型的基础上，将研究范围扩展至预热平衡和恒温干燥全过程。
+考虑密度 $\rho$、比热容 $c_p$、热传导系数 $k$ 以及水分扩散系数 $D$
+随药材温度和水分浓度发生变化，建立具有变物性参数的热--质传递模型，
+研究完整烘干过程中温度场和水分浓度场的动态演化规律。
+
+\textbf{问题三：确定满足烘干要求的最短烘干时间。}
+
+以药材内部各位置的水分浓度均低于
+$0.15\,\mathrm{kg/kg}$ 作为烘干完成条件。
+利用问题二建立的数学模型计算不同时间和不同径向位置处的水分浓度，
+通过判断药材内部最大水分浓度是否满足给定阈值，确定满足烘干要求所需的
+最短烘干时间。
+
+\textbf{问题四：考虑尺寸收缩后的烘干过程。}
+
+在实际烘干过程中，随着水分不断流失，药材会发生尺寸收缩。
+因此，在前三问模型基础上进一步引入药材半径随时间的变化关系 $R(t)$，
+建立具有移动边界特征的水分迁移模型，重新计算药材内部水分浓度分布和最终
+烘干时间，并分析尺寸变化对药材烘干过程的影响。
+\subsection{我们的工作}
+\section{模型假设}
+\section{符号说明}
+\section{模型建立与问题求解}
+
+
+
+
+\subsection{问题1：预热平衡阶段药材温度、水分浓度变化模型}
+\subsubsection{控制方程与定解条件}
+
+预热平衡阶段（$0\sim1800\,\mathrm{s}$）药材与烘房热空气进行非稳态热--质交换：热量经表面对流
+换热进入药材并沿径向传导，水分在浓度梯度作用下向表面扩散、经对流传质进入空气
+\cite{yan2026heat,srikiatden2007moisture}。药材为长 $25\,\mathrm{cm}$、半径 $2\,\mathrm{cm}$
+的圆柱（长径比 $6.25$），侧面受热风均匀吹拂；题目要求以“到药材中心的距离”为输出自变量，故建立
+轴对称一维径向热传导--水分扩散模型。按附录 2，$\rho$、$c_p$、$k$ 为常数，$D$ 仅依赖水分浓度
+（不含温度项），两场仅经边界条件耦合、可分别求解。控制方程与定解条件为
+\begin{equation}
+  \rho c_p\frac{\partial T}{\partial t}
+  =\frac{1}{r}\frac{\partial}{\partial r}\Big(k r\frac{\partial T}{\partial r}\Big),
+  \qquad 0<r<R,\ t>0,
+  \label{eq:heat}
+\end{equation}
+\begin{equation}
+  \frac{\partial C}{\partial t}
+  =\frac{1}{r}\frac{\partial}{\partial r}\Big(D(C)\,r\frac{\partial C}{\partial r}\Big),
+  \qquad 0<r<R,\ t>0,
+  \label{eq:moist}
+\end{equation}
+其中水分扩散系数按附录 2 取经验公式 $D(C)=7\times10^{-9}\exp(-0.89/C)$（指数为 $-0.89/C$）。
+初始条件为 $T(r,0)=28\,^{\circ}\mathrm{C}$、$C(r,0)=2.55\ \mathrm{kg/kg}$；边界条件为圆心处
+$\partial T/\partial r(0,t)=\partial C/\partial r(0,t)=0$，表面为第三类对流换热与对流传质：
+\begin{equation}
+  -k\frac{\partial T}{\partial r}(R,t)=h\big[T(R,t)-T_a(t)\big],
+  \qquad
+  -D(C_s)\frac{\partial C}{\partial r}(R,t)=h_m\big[C_s(t)-C_a(t)\big],
+  \label{eq:bcR}
+\end{equation}
+式中 $T_a(t)$、$C_a(t)$ 为附件 1 的烘房温度与水分浓度时变序列，$C_s(t)=C(R,t)$。
+式~\eqref{eq:moist} 右端的 $D(C)$ 位于散度之内，展开含 $D'(C)(\partial C/\partial r)^2$
+项，写作 $D\Delta C$ 会丢失该非线性效应。
+
+\subsubsection{物性参数与烘房条件}
+
+问题 1 全部物性参数由附录 2 给定（表~\ref{tab:params}），无待定参数，量级与中药材热风干燥以往数据一致\cite{wang2024drying}。烘房环境由附件 1 给出（$0\sim14400\,\mathrm{s}$ 共 241 条、
+间隔 $60\,\mathrm{s}$），本问仅用 $0\sim1800\,\mathrm{s}$ 段，相邻观测点间线性插值，不平滑、
+不外推；表 1/表 2 所要求 7 个时刻处的烘房条件见图~\ref{fig:chamber} 圆点。
+
+\begin{table}[htbp]
+  \centering
+  \caption{问题 1 物性参数（附录 2）}
+  \label{tab:params}
+  \begin{tabular}{lll}
+    \hline
+    参数 & 数值 & 单位 \\
+    \hline
+    密度 $\rho$ & 820 & $\mathrm{kg/m^3}$ \\
+    比热容 $c_p$ & 2600 & $\mathrm{J/(kg\cdot K)}$ \\
+    导热系数 $k$ & 0.36 & $\mathrm{W/(m\cdot K)}$ \\
+    对流换热系数 $h$ & 25 & $\mathrm{W/(m^2\cdot K)}$ \\
+    对流传质系数 $h_m$ & $8\times10^{-7}$ & $\mathrm{m/s}$ \\
+    水分扩散系数 $D$ & $7\times10^{-9}\exp(-0.89/C)$ & $\mathrm{m^2/s}$ \\
+    半径 $R$／长度 $L$ & 0.02／0.25 & $\mathrm{m}$ \\
+    初始温度／水分浓度 & 28／2.55 & $^{\circ}\mathrm{C}$／$\mathrm{kg/kg}$ \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.5\textwidth]{fig01_chamber.png}
+  \caption{附件 1 烘房条件（阴影为 30 min 考察窗，圆点为表 1/表 2 要求时刻）}
+  \label{fig:chamber}
+\end{figure}
+
+\subsubsection{特征时间与量级分析}
+
+求解前由特征时间与 Biot 数进行量级分析。热扩散率与初始扩散系数分别为
+$\alpha=k/(\rho c_p)=1.6886\times10^{-7}\ \mathrm{m^2/s}$ 与
+$D(C_0)=7\times10^{-9}e^{-0.89/2.55}=4.9377\times10^{-9}\ \mathrm{m^2/s}$，得特征时间
+$\tau_T=\rho c_pR^2/k=2368.9\ \mathrm{s}\approx39.5\ \mathrm{min}$、
+$\tau_C=R^2/D(C_0)=8.10\times10^{4}\ \mathrm{s}\approx22.5\ \mathrm{h}$ 及
+$Bi=hR/k=1.389$、$Bi_m=h_mR/D(C_0)=3.240$。特征时间与 Biot 数是干燥研究中刻画
+温度场/水分场时间尺度与表面控制机制的常用判据\cite{yan2026heat,srikiatden2007moisture}。
+据此：$\tau_C/\tau_T\approx34$，30 min 约为 $0.76\,\tau_T$ 而仅占 $\tau_C$ 的 $2.2\%$，
+故温度场显著建立、水分仅在表面薄层内变化；$Bi=O(1)$，集总参数法不适用，径向温差可达
+数摄氏度；$Bi_m=3.24>1$，失水由对流边界驱动，形成表面干、内部湿的分布。
+
+\subsubsection{数值求解方法}
+
+\textbf{(1) 网格。}在归一化坐标 $\xi=r/R$ 下，采用单元中心有限体积法离散
+式~\eqref{eq:heat}、\eqref{eq:moist}。初始时刻 $C_0\neq C_a(0)$ 使表面出现扩散边界层，
+厚度按自相似估计为 $\delta_\theta(t)=\sqrt{\pi D t}$（$t=10\,\mathrm{s}$ 时
+$3.9\times10^{-4}\,\mathrm{m}$，$t=1800\,\mathrm{s}$ 时 $1.7\times10^{-3}\,\mathrm{m}$），
+取表面加密网格 $\xi_{j+1/2}=1-(1-j/N)^2$（$j=0,1,\dots,N$，$N=800$），最外单元中心距
+表面 $1.25\times10^{-5}\,\mathrm{m}$，约为最薄边界层的 $1/30$；体积权重采用精确环形体积
+$V_i=(\xi_{i+1/2}^2-\xi_{i-1/2}^2)/2$。
+
+\textbf{(2) 界面通量。}界面 $f$ 通量取 $\Phi_f=G_f(u_{f-1}-u_f)$，
+$G_f=\xi_f\bar D_f/\Delta\xi$。对 $D=Ae^{-a/C}$，界面系数的精确形式为对数平均
+$\bar D_{\log}=(D_1-D_2)/\ln(D_1/D_2)$，与调和平均
+$\bar D_{\mathrm{harm}}=2D_1D_2/(D_1+D_2)$ 按 $\varepsilon=\ln(D_2/D_1)$ 展开至
+$\varepsilon^2$ 相同，故采用调和平均；Kirchhoff 变换积分通量作为校核
+\cite{srikiatden2007moisture}。表面按半单元导热与对流传热串联的精确热阻闭性
+$G_N=1/[\ln(1/\xi_{c,N})/k+1/(hR)]$，水分边界同理；表面值由通量一致性反解
+$T_s=T_a+\Phi_N/(hR)$、$C_s=C_a+\Phi_{C,N}/(h_mR)$。
+
+\textbf{(3) 时间推进。}采用全隐式后向 Euler 与阻尼 Newton 迭代（三对角线性化、解析
+Jacobian），以整步与两个半步解之差控制误差并自适应调整步长。温度与水分各取误差预算
+$2.5\times10^{-5}$，最大步长 $1\,\mathrm{s}$，整秒输出点与输入分段节点处截断步长；两场
+解耦、分别推进。
+
+\textbf{(4) 输出。}内部点由单元中心值局部二次插值获得，表面点按 (2) 反解，$t=0$ 行单独
+保留；结果四舍五入至 4 位小数，按附件 3 模板自 $t=1\,\mathrm{s}$ 起将 $1800\times21$时空分布写入 result1.xlsx。
+
+\subsubsection{结果与分析}
+
+表~\ref{tab:T1}、表~\ref{tab:C1} 给出题目要求的 7 个时刻、5 个径向位置处的温度与水分浓度。
+
+\begin{table}[htbp]
+  \centering
+  \caption{表 1\quad 30 分钟内药材的温度（$^{\circ}\mathrm{C}$）}
+  \label{tab:T1}
+  \begin{tabular}{cccccc}
+    \hline
+    时间/s & \multicolumn{5}{c}{到药材中心的距离/cm} \\
+    & 0 & 0.5 & 1 & 1.5 & 2 \\
+    \hline
+    100   & 28.0001 & 28.0003 & 28.0040 & 28.0327 & 28.1801 \\
+    300   & 28.0408 & 28.0635 & 28.1514 & 28.3681 & 28.8489 \\
+    600   & 28.4533 & 28.5360 & 28.8039 & 29.3159 & 30.1652 \\
+    900   & 29.3243 & 29.4583 & 29.8755 & 30.6161 & 31.7304 \\
+    1200  & 30.5427 & 30.7098 & 31.2224 & 32.1126 & 33.4276 \\
+    1500  & 31.9957 & 32.1867 & 32.7660 & 33.7463 & 35.1203 \\
+    1800  & 33.5753 & 33.7720 & 34.3642 & 35.3621 & 36.7856 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \caption{表 2\quad 30 分钟内药材的水分浓度（$\mathrm{kg/kg}$）}
+  \label{tab:C1}
+  \begin{tabular}{cccccc}
+    \hline
+    时间/s & \multicolumn{5}{c}{到药材中心的距离/cm} \\
+    & 0 & 0.5 & 1 & 1.5 & 2 \\
+    \hline
+    100   & 2.5500 & 2.5500 & 2.5500 & 2.5500 & 2.2470 \\
+    300   & 2.5500 & 2.5500 & 2.5500 & 2.5492 & 2.0508 \\
+    600   & 2.5500 & 2.5500 & 2.5500 & 2.5353 & 1.8770 \\
+    900   & 2.5500 & 2.5500 & 2.5497 & 2.5045 & 1.7547 \\
+    1200  & 2.5500 & 2.5500 & 2.5482 & 2.4646 & 1.6586 \\
+    1500  & 2.5500 & 2.5499 & 2.5445 & 2.4206 & 1.5787 \\
+    1800  & 2.5500 & 2.5497 & 2.5383 & 2.3755 & 1.5102 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.47\textwidth]{fig02_temp_map.png}\hfill
+  \includegraphics[width=0.47\textwidth]{fig03_moist_map.png}
+  \caption{30 min 内温度场（左）与水分浓度场（右）的时空演化}
+  \label{fig:fields}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.5\textwidth]{fig04_timeseries.png}
+  \caption{表面与中心温度、水分浓度的时间历程（圆点为表 1/表 2 要求时刻）}
+  \label{fig:series}
+\end{figure}
+
+\textbf{(1) 温度场。}30 min 内表面温度由 $28$ 升至 $36.7856\,^{\circ}\mathrm{C}$
+（$+8.79\,^{\circ}\mathrm{C}$），中心升至 $33.5753\,^{\circ}\mathrm{C}$
+（$+5.58\,^{\circ}\mathrm{C}$），1800 s 径向温差 $3.21\,^{\circ}\mathrm{C}$，与 $Bi=1.39$
+的预估一致，集总参数法不适用；表面仍低于烘房 $4.73\,^{\circ}\mathrm{C}$，预热平衡在 30 min
+内尚未结束，与 $\tau_T\approx39.5\ \mathrm{min}$ 一致。
+
+\textbf{(2) 水分场。}表面水分浓度由 $2.55$ 降至 $1.5102\ \mathrm{kg/kg}$（$-40.8\%$），
+$r=1.5\ \mathrm{cm}$ 处降 $6.8\%$，$r=1.0\ \mathrm{cm}$ 处降 $0.46\%$，中心在 4 位小数
+精度下不变；显著下降（$>1\%$）限于表面 $0.5\ \mathrm{cm}$ 薄层，与
+$\tau_C\approx22.5\ \mathrm{h}\gg1800\ \mathrm{s}$ 及 $Bi_m=3.24$ 的预估一致，呈热风干燥
+中典型的表层先干现象\cite{wang2024drying,nurhaslina2022review}。表面失水速率随时间衰减：
+最初 100 s 内降 $11.9\%$，$1500\sim1800\,\mathrm{s}$ 仅降 $4.3\%$，属对流传质边界驱动的
+指数趋近行为。
+
+\subsubsection{模型验证与精度保证}
+
+\textbf{(1) 温度场模态解验证。}问题 1 物性为常数，对分段线性 $T_a(t)$ 存在解析模态解。
+令 $\lambda_mJ_1(\lambda_m)=Bi\,J_0(\lambda_m)$、
+$A_m=2J_1(\lambda_m)/[\lambda_m(J_0^2(\lambda_m)+J_1^2(\lambda_m))]$，则
+\begin{equation}
+  T(r,t)=T_a(t)-\sum_{m=1}^{\infty}A_mJ_0\Big(\frac{\lambda_mr}{R}\Big)z_m(t),
+  \qquad
+  z_m'=T_a'-\frac{\lambda_m^2\alpha}{R^2}z_m,
+  \label{eq:modal}
+\end{equation}
+$z_m$ 在每个 60 s 线性段内逐段精确积分。该解与数值解在全部 $1801\times21$ 输出点上比对，
+最大绝对差 $5.2916\times10^{-6}\,^{\circ}\mathrm{C}$（$t=780\ \mathrm{s}$、$r=0.4\ \mathrm{cm}$）；
+模态截断（180 项与 360 项）差异 $4.5\times10^{-8}\,^{\circ}\mathrm{C}$。
+
+\textbf{(2) 守恒与物理界。}离散储存量变化与边界交换量的闭合残差：显热相对残差
+$2.0\times10^{-14}$、水分 $5.8\times10^{-13}$；全场温度 $\in[28.0000,36.7856]$、水分浓度
+$\in[1.5102,2.5500]$，无负值、无 NaN。
+
+\textbf{(3) 收敛性与误差预算。}网格 $N$ 逐级加倍，水分场空间收敛阶 $1.9998$；时间误差由
+整步与两个半步解比对控制。误差预算收紧至 $2.5\times10^{-5}$ 后，全场数值误差估计为温度
+$5.336\times10^{-6}\,^{\circ}\mathrm{C}$、水分 $8.105\times10^{-6}\ \mathrm{kg/kg}$，均小于
+4 位小数舍入阈值 $5\times10^{-5}$，故表 1/表 2 与 result1.xlsx 的 4 位小数可靠。上述为
+给定模型与输入下的数值误差估计，非实验预测误差。
+
+\textbf{(4) 短时表面自相似核对。}半无限体对流边界的短时自相似解为
+$C_0-C_s(t)=(C_0-C_a)\cdot2h_m\sqrt{t/(\pi D)}$\cite{srikiatden2007moisture}：
+$t=1\ \mathrm{s}$ 时解析值 $C_s=2.5175$、数值解 $2.5177$，相对差 $8\times10^{-5}$，表明
+初始边界层被网格与时间步长（最小时步 $1.0\times10^{-10}\ \mathrm{s}$）充分分辨。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.47\textwidth]{fig06_convergence.png}\hfill
+  \includegraphics[width=0.47\textwidth]{fig07_conservation.png}
+  \caption{网格收敛性（左）与水分质量守恒（右）}
+  \label{fig:verify}
+\end{figure}
+
+\subsection{问题2：完整烘干过程药材温度、水分浓度变化模型}
+
+\subsubsection{问题分析}
+
+针对问题2，需建立预热平衡与恒温干燥构成的完整烘干过程（持续约 2–3 天）中药材
+温度场与水分浓度场的数学模型，按表 3、表 4 的格式给出 3 h 内每隔 0.5 h、到
+药材中心距离 0、0.5、1、1.5、2 cm 处的结果，并将每隔 1 s、每隔 0.1 cm 的完整结果
+保留 4 位小数写入 result2.xlsx（模板见附件 3）。
+
+题目指出两阶段参数有所不同，又明确"为简化问题，相关经验公式统一采用附录 3 中的
+公式"。据此，物性本构全流程统一采用附录 3，两阶段差异由烘房环境体现：附件 1 中前
+2 h 烘房温度由约 $29\,^{\circ}\mathrm{C}$ 爬升（预热平衡），2 h 后维持约
+$50\,^{\circ}\mathrm{C}$（恒温干燥），3 h 考察窗恰横跨切换过渡段；附件 1 数据截止
+于 14400 s，其后按末值（$50.1650\,^{\circ}\mathrm{C}$、$0.04986\ \mathrm{kg/kg}$）
+维持，这是全流程唯一需要外推的假设。
+
+与问题 1 的关键差异在于变物性：$\rho$、$c_p$、$k$ 随含水率变化，$D$ 同时依赖含水率
+与温度（附录 3），控制方程成为两场双向耦合的拟线性抛物方程。求解前先做量级分析：
+按初始状态物性，热平衡特征时间
+$\tau_T=R^2/\alpha_0=2761.9\ \mathrm{s}\approx46.0\ \mathrm{min}$，水分柱对称基模
+衰减常数
+$\tau_1=R^2/(\lambda_1^2D_0)\approx3.4\ \mathrm{h}$，Biot 数为
+$Bi=hR/k_0=1.0353$、$Bi_m=h_mR/D_0=2.8360$。据此：$3\ \mathrm{h}\approx3.9\tau_T$，
+温度场在考察窗内基本建立并进入准稳态；$Bi=O(1)$，集总参数法不适用；$\tau_1\approx
+3.4\ \mathrm{h}$ 与考察窗同量级，3 h 是水分场"由表及里"的转折窗；此外 $C$ 由 2.55
+降至 0.15 时 $D$ 衰减 16.8 倍——后期"越烘越慢"（自锁效应），松弛时间常数增至约
+24 h，"2–3 天"的干燥周期正是其宏观表现。
+
+\subsubsection{模型建立}
+
+完整烘干过程中，药材与烘房热空气持续进行非稳态热--质交换。在轴对称一维径向假设
+下，温度场与水分浓度场的控制方程与问题 1 同形，但物性均为场变量：
+\begin{equation}
+  \rho(C)c_p(C)\frac{\partial T}{\partial t}
+  =\frac{1}{r}\frac{\partial}{\partial r}\Big(k(C)\,r\frac{\partial T}{\partial r}\Big),
+  \qquad 0<r<R,\ t>0,
+  \label{eq:heat2}
+\end{equation}
+\begin{equation}
+  \frac{\partial C}{\partial t}
+  =\frac{1}{r}\frac{\partial}{\partial r}\Big(D(C,T)\,r\frac{\partial C}{\partial r}\Big),
+  \qquad 0<r<R,\ t>0,
+  \label{eq:moist2}
+\end{equation}
+式中 $C$ 为干基含水率，干物质守恒下密度在水分方程中自动约去。按附录 3，物性本构为
+\begin{equation}
+  \rho(C)=650+128C,
+  \qquad
+  c_p(C)=1450+\frac{2736C}{C+1},
+  \qquad
+  k(C)=0.21+\frac{0.38C}{C+1},
+  \label{eq:props2}
+\end{equation}
+\begin{equation}
+  D(C,T)=2.4\times10^{-3}\exp\Big(-\frac{0.45}{C}\Big)\exp\Big(-\frac{3850}{T}\Big),
+  \label{eq:propsD2}
+\end{equation}
+其中式~\eqref{eq:propsD2} 中 $T$ 为热力学温度（K）。各物性在初始含水率与烘干末段
+（$C=0.15$）处的取值见表~\ref{tab:props2}，变化曲线如图~\ref{fig:props2} 所示。
+
+\begin{table}[htbp]
+  \centering
+  \caption{附录 3 物性在初始含水率与烘干末段（$C=0.15$）处的取值
+  （$D$ 分别按 28\,$^{\circ}\mathrm{C}$ 与 50.17\,$^{\circ}\mathrm{C}$ 计）}
+  \label{tab:props2}
+  \begin{tabular}{lccc}
+    \hline
+    参数 & $C=2.55$（初始） & $C=0.15$（末段） & 变化幅度 \\
+    \hline
+    $\rho$（$\mathrm{kg/m^3}$） & 976.4 & 669.2 & $-31.5\%$ \\
+    $c_p$（$\mathrm{J/(kg\cdot K)}$） & 3415.30 & 1806.87 & $-47.1\%$ \\
+    $k$（$\mathrm{W/(m\cdot K)}$） & 0.4830 & 0.2596 & $-46.3\%$ \\
+    $D$（$\mathrm{m^2/s}$） & $5.6417\times10^{-9}$ & $8.07\times10^{-10}$ & 净衰减 $7.0$ 倍 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig04_params.png}
+  \caption{附录 3 物性随含水率的变化：（a）密度、比热容、导热系数；
+  （b）扩散系数 $D(C,T)$ 在三个温度下的衰减}
+  \label{fig:props2}
+\end{figure}
+
+初始条件为 $T(r,0)=28\,^{\circ}\mathrm{C}$、$C(r,0)=2.55\ \mathrm{kg/kg}$；圆心处
+为轴对称边界 $\partial T/\partial r=\partial C/\partial r=0$，表面为第三类对流
+换热与对流传质：
+\begin{align}
+  -k(C_s)\frac{\partial T}{\partial r}(R,t)&=h\big[T(R,t)-T_a(t)\big], \notag\\
+  -D(C_s,T_s)\frac{\partial C}{\partial r}(R,t)&=h_m\big[C_s(t)-C_a(t)\big],
+  \label{eq:bcR2}
+\end{align}
+式中 $T_a(t)$、$C_a(t)$ 为附件 1 的烘房温度与水分浓度时变序列（相邻观测点间线性
+插值），$C_s(t)=C(R,t)$、$T_s(t)=T(R,t)$；$h=25\ \mathrm{W/(m^2\cdot K)}$、
+$h_m=8\times10^{-7}\ \mathrm{m/s}$ 仍按附录 2 取常数。附件 1 中恒温干燥段
+（$7200\sim14400\,\mathrm{s}$）的烘房统计为
+$T_a=49.9685\pm0.1641\,^{\circ}\mathrm{C}$、
+$C_a=0.04987\pm0.00029\ \mathrm{kg/kg}$，表 3/表 4 各时刻的烘房
+条件见表~\ref{tab:chamber2}。
+
+\begin{table}[htbp]
+  \centering
+  \caption{表 3/表 4 各时刻的烘房条件（附件 1，线性插值）}
+  \label{tab:chamber2}
+  \begin{tabular}{ccc}
+    \hline
+    时间/h & 烘房温度 $T_a$/$^{\circ}\mathrm{C}$ & 烘房水分浓度 $C_a$/(kg/kg) \\
+    \hline
+    0.5 & 41.5130 & 0.03307 \\
+    1.0 & 47.4850 & 0.04272 \\
+    1.5 & 49.1160 & 0.04728 \\
+    2.0 & 49.8520 & 0.04894 \\
+    2.5 & 50.1630 & 0.04981 \\
+    3.0 & 50.1950 & 0.04977 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\subsubsection{模型求解}
+
+本问沿用问题 1 的单元中心有限体积法框架\cite{taowenquan2001}，数值上仅两处差别：
+物性每步按当前状态更新、时间积分改用 BDF。在归一化坐标 $\xi=r/R$ 下取 $N=400$ 个
+均匀单元，界面通量 $\Phi_f=G_f(u_{f-1}-u_f)$、$G_f=\xi_f\bar k_f/\Delta\xi$，界面
+物性取调和平均（水分侧同理）；表面按半单元导热与对流传热串联的精确热阻装配
+\begin{equation}
+  G_N=\frac{1}{\dfrac{\ln(1/\xi_{c,N})}{k_N}+\dfrac{1}{hR}},
+  \label{eq:GN2}
+\end{equation}
+水分侧同理（以 $D_N$ 与 $h_mR$ 串联），表面值由边界条件反解
+$T_s=T_a+\Phi_N/(hR)$、$C_s=C_a+\Phi_{C,N}/(h_mR)$。0.5 h 时表面扩散边界层约
+$5.6\times10^{-3}\ \mathrm{m}$，远超最外半单元 $2.5\times10^{-5}\ \mathrm{m}$，
+均匀网格足以分辨；半离散方程组采用 BDF 变阶变步长积分。
+
+按附件 3 模板，result2.xlsx 含"温度""水分浓度"两个工作表，自 $t=1\,\mathrm{s}$
+起间隔 $1\,\mathrm{s}$ 至 $10800\,\mathrm{s}$，共 10800 行 $\times$ 21 列
+（$0\sim2\ \mathrm{cm}$、间隔 $0.1\ \mathrm{cm}$）453600 个结果值，保留 4 位小数；
+完整烘干过程（至 57.1833 h）的结果另存 60 s 间隔版本，供问题 3 使用。本问取
+$R=2\ \mathrm{cm}$ 常数，尺寸收缩由问题 4 处理。
+
+\subsubsection{结果与分析}
+
+按表 3、表 4 的格式整理求解结果，如表~\ref{tab:T2}、表~\ref{tab:C2} 所示。
+
+\begin{table}[htbp]
+  \centering
+  \caption{3 小时内药材的温度（$^{\circ}\mathrm{C}$）}
+  \label{tab:T2}
+  \begin{tabular}{cccccc}
+    \hline
+    时间/h & \multicolumn{5}{c}{到药材中心的距离/cm} \\
+    & 0 & 0.5 & 1 & 1.5 & 2 \\
+    \hline
+    0.5 & 32.1892 & 32.3821 & 32.9659 & 33.9608 & 35.4130 \\
+    1.0 & 40.3815 & 40.5536 & 41.0605 & 41.8782 & 42.9975 \\
+    1.5 & 45.8468 & 45.9348 & 46.1930 & 46.6051 & 47.1401 \\
+    2.0 & 48.4503 & 48.4881 & 48.5985 & 48.7736 & 49.0034 \\
+    2.5 & 49.4670 & 49.4792 & 49.5137 & 49.5653 & 49.6607 \\
+    3.0 & 49.8495 & 49.8553 & 49.8746 & 49.9101 & 49.9664 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \caption{3 小时内药材的水分浓度（$\mathrm{kg/kg}$）}
+  \label{tab:C2}
+  \begin{tabular}{cccccc}
+    \hline
+    时间/h & \multicolumn{5}{c}{到药材中心的距离/cm} \\
+    & 0 & 0.5 & 1 & 1.5 & 2 \\
+    \hline
+    0.5 & 2.5499 & 2.5489 & 2.5256 & 2.3257 & 1.6486 \\
+    1.0 & 2.5257 & 2.4948 & 2.3578 & 2.0230 & 1.4711 \\
+    1.5 & 2.3861 & 2.3256 & 2.1344 & 1.8020 & 1.3476 \\
+    2.0 & 2.1709 & 2.1084 & 1.9236 & 1.6259 & 1.2311 \\
+    2.5 & 1.9566 & 1.9006 & 1.7360 & 1.4720 & 1.1166 \\
+    3.0 & 1.7662 & 1.7165 & 1.5702 & 1.3333 & 1.0081 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+6 个时刻的径向剖面如图~\ref{fig:profiles2} 所示，表面与中心的时间历程如图
+~\ref{fig:series2} 所示。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig2_p2.png}
+  \caption{烘干前 3 h 的径向温度（a）与水分浓度（b）分布（0.5–3.0 h，6 个时刻）}
+  \label{fig:profiles2}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.5\textwidth]{fig05_timeseries.png}
+  \caption{表面与中心温度、水分浓度的时间历程（圆点为输出时刻）}
+  \label{fig:series2}
+\end{figure}
+
+\textbf{(1) 温度场：快速升温后进入准稳态。}3 h 内表面温度由 $28\,^{\circ}\mathrm{C}$
+升至 $49.9664\,^{\circ}\mathrm{C}$，中心升至 $49.8495\,^{\circ}\mathrm{C}$，径向温差由
+3.22\,$^{\circ}\mathrm{C}$ 单调收敛至 0.12\,$^{\circ}\mathrm{C}$，3 h 末
+表面仅比烘房低 $0.2286\,^{\circ}\mathrm{C}$——与 $\tau_T\approx46.0\ \mathrm{min}$
+的预估一致（$3\ \mathrm{h}\approx3.9\tau_T$），进入准稳态。
+
+\textbf{(2) 水分场：表面耗竭 → 干燥锋推进 → 整体松弛。}表面水分浓度由
+$2.55\ \mathrm{kg/kg}$ 降至 $1.0081\ \mathrm{kg/kg}$（下降 $60.5\%$），中心降至
+$1.7662\ \mathrm{kg/kg}$（下降 $30.7\%$）。首 0.5 h 完成表面总降幅的 $58.5\%$，
+中心几乎不变，呈"干壳湿芯"；干燥锋约 1 h 推进到中心，此后中心加速下降；3 h 末
+全场已无"湿芯"，径向剖面由中心到表面平滑过渡，水分场进入整体松弛，与
+$\tau_1\approx3.4\ \mathrm{h}$ 的预估一致，呈热风干燥中典型的表层先干现象
+\cite{wang2024drying,nurhaslina2022review}。
+
+\textbf{(3) 与问题 1 的对比（同一时刻 1800 s）。}对比表~\ref{tab:T1}、表~\ref{tab:C1}
+与表~\ref{tab:T2}、表~\ref{tab:C2} 的对应行：问题 2 升温更慢（附录 3 体积热容
+$\rho c_p$ 比附录 2 大 $56\%$、热惯性更大），表面水分更高（附录 3 的 $D$ 大
+1.14–1.6 倍、内部补给更快），即附录 3 相对附录 2 呈"热更慢、湿更快"。
+
+\textbf{(4) 全流程与自锁效应。}将模型推进至整个烘干过程（图~\ref{fig:drying2}）：
+水分浓度单调下降，在 \textbf{57.1833 h = 2.3827 天}处全场降至判据
+$0.15\ \mathrm{kg/kg}$ 以下（该数字由问题 3 正式求解）；有效扩散系数
+$D(C_c,T_c)$ 先因升温略增、后因浓度衰减近 17 倍——自锁效应使后期松弛时间常数增至
+约 24 h，与题目给出的"2–3 天"一致。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig06_drying.png}
+  \caption{全流程（60 h）水分浓度与有效扩散系数：烘干在 57.1833 h 完成；
+  $D$ 先升温加速、后自锁衰减近 17 倍}
+  \label{fig:drying2}
+\end{figure}
+
+\subsubsection{模型检验}
+
+为保证 4 位小数结果的可靠性，本文从以下四方面对模型进行检验。
+
+\textbf{(1) 质量守恒。}离散储存量变化与边界通量积分闭合（图~\ref{fig:verify2}
+右）：3 h 内水分质量相对残差最大 $1.1\times10^{-7}$。
+
+\textbf{(2) 收敛性与误差预算。}网格 $N$ 逐级加倍（100/200/400/800），以 Richardson
+外推为基准，空间收敛阶 $p\approx2.1$；$N=400$ 的表面水分误差 $7.3\times10^{-8}$、
+中心温度误差 $9.6\times10^{-6}$，分别为 4 位小数舍入阈值（$5\times10^{-5}$）的
+$0.1\%$ 与 $19\%$（图~\ref{fig:verify2} 左），故表~\ref{tab:T2}、表~\ref{tab:C2}
+与 result2.xlsx 的 4 位小数可靠。
+
+\textbf{(3) 短时表面自相似核对。}初始时刻表面出现扩散边界层，半无限体对流边界的
+自相似解为 $C_s=C_a+(C_0-C_a)e^{\lambda^2}\mathrm{erfc}(\lambda)$、
+$\lambda=h_m\sqrt{t/D_0}$\cite{crank1975}。$t=1\ \mathrm{s}$ 时解析值 2.51987、
+数值解 2.5190，偏差 $8.7\times10^{-4}$，与平面近似忽略曲率的误差量级
+$\sqrt{D_0t}/R\approx4\times10^{-3}$ 一致，初始边界层被充分分辨。
+
+\textbf{(4) 独立实现交叉验证。}另一套独立代码（表面聚簇网格 $N=800$）复算同一
+模型，两工作簿共 453600 个结果值逐格比对：温度最大差
+$2.0\times10^{-4}\,^{\circ}\mathrm{C}$、水分最大差 $8.0\times10^{-4}\ \mathrm{kg/kg}$，
+无一超过 $10^{-3}$；表~\ref{tab:C2} 的 30 个值逐位一致，表~\ref{tab:T2} 仅 8 个值
+在末位相差 1–2 个单位，进一步保证 4 位小数可靠。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.47\textwidth]{fig07_convergence.png}\hfill
+  \includegraphics[width=0.47\textwidth]{fig08_conservation.png}
+  \caption{网格收敛性（左）与水分质量守恒（右）}
+  \label{fig:verify2}
+\end{figure}
+
+\subsubsection{模型讨论：显热近似与相变潜热}
+
+本文沿用问题 1 的显热近似（能量方程不含蒸发潜热汇），其合理性由能量收支审计论证：
+3 h 内表面接收的对流总热量为
+$\int_0^{3\mathrm{h}}h(T_a-T_s)\cdot2\pi R\,\mathrm{d}t=8.38\times10^{4}\ \mathrm{J/m}$，
+其中显热升温用 $6.91\times10^{4}\ \mathrm{J/m}$、结余 $1.47\times10^{4}\ \mathrm{J/m}$；
+同期水分场排出水量 $\rho_d\Delta\bar C\pi R^2=0.4035\ \mathrm{kg/m}$（干物质密度
+$\rho_d=\rho(C_0)/(1+C_0)=275.04\ \mathrm{kg/m^3}$）。若按自由水蒸发计（潜热
+$L\approx2.4\times10^{6}\ \mathrm{J/kg}$），所需潜热达 $9.67\times10^{5}\
+\mathrm{J/m}$，为总输入热量的 11.5 倍、结余的 66 倍，显然不可能。这说明题目参数不能按物理传输系数
+叠加满潜热理解：按热质类比
+$h_m\approx h/(\rho_a c_{p,a}Le^{2/3})\approx2.45\times10^{-2}\ \mathrm{m/s}$，比
+题目给定的 $h_m=8\times10^{-7}\ \mathrm{m/s}$ 大 $3.1\times10^{4}$ 倍，题目参数实为吸收
+相变效应后的表观参数，显热近似正是"为简化问题"的本意。反向检验亦证实：若强行
+计入潜热汇（$\rho_d=275.04\ \mathrm{kg/m^3}$），0.5 h 时表面温度将跌至
+$13.6\,^{\circ}\mathrm{C}$，比该工况湿球温度（约 $35\,^{\circ}\mathrm{C}$）低约
+21 K，违背热力学；且即便按此口径，烘干时间仅增至 60.2–61.1 h
+（$+5.2\%\sim+6.8\%$），仍落在"2–3 天"内。综上，显热近似与题目参数口径自洽，本问
+模型与结果可靠，可直接支撑问题 3、问题 4。
+
+% ============================================================
+% 问题3 小节（国赛风格）—— 插入 001sec.txt 问题2 小节之后。
+% 数据口径：3/A3-codex/A3-codex（tight800 最终交付，与问题2 A2-gpt 同源）。
+% 主结果：末值维持口径（与4.2一致）连续临界 57.169466 h、
+%         首次严格达标整分钟 57.1833 h（205860 s）。
+% 图片：fig4-3-1.png（含水率时空分布）、fig4-3-2.png（径向剖面）、
+%       fig4-3-3.png（干燥曲线）、fig4-3-4.png（外推敏感性），
+%       取自 A3-codex/figures/01~04，复制到论文图片目录后按此名引用。
+% ============================================================
+\subsection{问题3：满足烘干要求的最短烘干时间}
+
+\subsubsection{问题分析}
+
+按烘干要求，药材\textbf{各处}水分浓度应低于 $0.15\ \mathrm{kg/kg}$。数值上两问的“最大
+含水率”始终位于中心（表面先干、中心最后干，后文给出数值印证），故判据等价于中心判据，
+烘干时间可写成事件时刻
+\begin{equation}
+  t^*=\min\big\{\,t:\ \max_r C(r,t)<0.15\ \mathrm{kg/kg}\,\big\}.
+  \label{eq:event}
+\end{equation}
+本问是问题 2 模型的全流程版本：控制方程、本构（附录 3）、边界条件（附件 1）与数值框架
+均与 4.2 节相同，唯一区别是考察窗由固定 3 h 变为由判据事件终止的长时间积分。
+
+先做量级判断。水分柱对称基模时间常数 $\tau_1=R^2/(\lambda_1^2D_0)\approx3.4\ \mathrm{h}$；
+若扩散系数恒为初值，基模衰减 $2.55\to0.15$ 仅需
+$\tau_1\ln(2.55/0.15)\approx9.6\ \mathrm{h}$。而由 $D\propto e^{-0.45/C}$，$C$ 从 2.55
+降至 0.15 时浓度因子衰减 16.8 倍（温度项在恒温段仅给出约 2.4 倍加速，净衰减约 7 倍），
+$\tau_1$ 随之增至约 24 h——后期“越烘越慢”的自锁效应把过程拉长约 6 倍，题面“2–3 天”的
+干燥周期正是其宏观表现。
+
+\subsubsection{模型建立}
+
+控制方程与定解条件同式~\eqref{eq:heat2}--\eqref{eq:propsD2}、\eqref{eq:bcR2}：
+物性按附录 3 取 $\rho=650+128C$、$c_p=1450+2736C/(C+1)$、$k=0.21+0.38C/(C+1)$、
+$D=2.4\times10^{-3}\exp(-0.45/C)\exp(-3850/T)$；初值 $T=28\,^{\circ}\mathrm{C}$、
+$C=2.55\ \mathrm{kg/kg}$；烘房条件由附件 1 时变序列给定（相邻观测点线性插值），
+$14400\,\mathrm{s}$ 后\textbf{按末值维持}（$T_a=50.1650\,^{\circ}\mathrm{C}$、
+$C_a=0.04986\ \mathrm{kg/kg}$）——这是全流程唯一需要外推的假设，其影响在模型讨论中量化。
+半径取 $R=2\ \mathrm{cm}$ 常数，收缩由问题 4 处理。
+
+\subsubsection{模型求解}
+
+沿用 4.2 节的单元中心有限体积框架并作两点强化：表面加密网格
+$\xi_{j+1/2}=1-(1-j/N)^2$（$N=800$），界面系数沿相邻状态线性路径作三点 Gauss 积分，真实
+表面由耦合不动点迭代解出（残差阈值 $2\times10^{-13}$）；时间积分取 BDF
+（`scipy.solve_ivp`，$\mathrm{rtol}=10^{-11}$、$\mathrm{atol}_T=10^{-12}$、
+$\mathrm{atol}_C=10^{-13}$，块三对角稀疏 Jacobian），前 4 h 每 60 s 数据节点重启
+（$\max\Delta t=10\ \mathrm{s}$），此后连续积分（$\max\Delta t=300\ \mathrm{s}$）。
+烘干时间以终止型事件函数 $g(t)=\max_r C(r,t)-0.15$ 直接根搜索（式~\eqref{eq:event}），
+由 BDF 积分器收缩步长做 Brent 定位，不引入后处理插值误差；事件函数取按 $r^2$ 二次重构的
+中心值、全部单元值与真实表面值的最大者。先搜索 72 h，未达标按 24 h 延长，30 天仍未穿越
+则报错而不伪造时长。
+
+输出按题面要求：result3.xlsx 自 $t=60\,\mathrm{s}$ 起每隔 60 s、到中心距离每隔 0.1 cm
+（$0\sim1.9\ \mathrm{cm}$ + 表面列），至首次严格达标整分钟为止，共 3431 行、四位小数。
+
+\subsubsection{结果与分析}
+
+烘干时间的求解结果：连续临界时刻为 \textbf{57.169466 h}（此时最大含水率恰等于 0.15，
+严格低于阈值需略晚）；按题目 60 s 采样精度，首次全场严格达标为 \textbf{57.1833 h，
+即 57 小时 11 分钟（205860 s）}。论文可写约 57.18 h（2.38 天），与题面“2–3 天”一致。
+表~\ref{tab:C5} 给出题面表 5 格式的水分浓度。
+
+\begin{table}[htbp]
+  \centering
+  \caption{表 5\quad 药材烘干过程的水分浓度（$\mathrm{kg/kg}$）}
+  \label{tab:C5}
+  \begin{tabular}{cccccc}
+    \hline
+    时间/h & \multicolumn{5}{c}{到药材中心的距离/cm} \\
+    & 0 & 0.5 & 1.0 & 1.5 & 2.0 \\
+    \hline
+    6  & 1.0156 & 0.9868 & 0.9006 & 0.7546 & 0.5335 \\
+    12 & 0.4548 & 0.4418 & 0.4019 & 0.3289 & 0.1639 \\
+    18 & 0.2979 & 0.2906 & 0.2679 & 0.2247 & 0.0842 \\
+    24 & 0.2371 & 0.2321 & 0.2161 & 0.1851 & 0.0663 \\
+    30 & 0.2053 & 0.2013 & 0.1887 & 0.1637 & 0.0597 \\
+    36 & 0.1854 & 0.1821 & 0.1714 & 0.1500 & 0.0565 \\
+    42 & 0.1717 & 0.1687 & 0.1593 & 0.1404 & 0.0547 \\
+    48 & 0.1615 & 0.1588 & 0.1504 & 0.1332 & 0.0536 \\
+    54 & 0.1535 & 0.1511 & 0.1433 & 0.1275 & 0.0528 \\
+    57.1833（烘干结束） & 0.1500 & 0.1477 & 0.1402 & 0.1249 & 0.0525 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{4-3pic/fig4-3-3.png}
+  \caption{表面/中心水分浓度全流程时间历程：虚线为 0.15 判据，烘干在 57.18 h 完成}
+  \label{fig:drying3}
+\end{figure}
+
+\textbf{(1) 温度场全程准稳态。}预热平衡结束时（2 h）表面温度已达 $49.85\,^{\circ}\mathrm{C}$，
+3 h 后表面与烘房仅差 $0.23\,^{\circ}\mathrm{C}$；整个恒温干燥段（2–57.2 h）全场温度维持
+$50.1650\,^{\circ}\mathrm{C}$、径向温差可忽略，与 $\tau_T\approx46\ \mathrm{min}$ 的预估
+一致——热学参数对烘干时间几乎无影响（后文敏感性）。
+
+\textbf{(2) 水分场三阶段。}表~\ref{tab:C5} 中心列给出阶段划分的直接证据：① \textbf{快速失水}
+（0–6 h）：中心降幅 $1.5344$，完成中心总降幅的 $63.9\%$，对应表面耗竭与干燥锋推进；
+② \textbf{恒温降速干燥}（6–30 h）：每 6 h 中心降幅由 $0.5608$ 递减至 $0.0318$，剖面整体
+下移；③ \textbf{末段自锁}（30–57.2 h）：降幅按固定比率衰减（$0.69\sim0.84$），末 3.18 h
+中心仅降 $0.0035$，接近指数尾——这是 $D\propto e^{-0.45/C}$ 自锁效应的数学表现：末段
+$\tau_1$ 增至约 24 h，松弛极慢。
+
+\textbf{(3) 表面动力学。}表面水分 6 h 已降至 0.5335、12 h 降至 0.1639，此后 45 h 仅再降
+0.11（至 0.0525），缓慢逼近烘房平衡值 $C_a=0.04986$（结束差 0.0026，为维持内部出水的
+有限通量所需）；中心–表面差由 6 h 的 0.4821 收窄到结束的 0.0975，中心始终是全场最大含水率
+位置——“各处低于 0.15”等价于中心判据得到数值印证。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.62\textwidth]{4-3pic/fig4-3-1.png}
+  \caption{水分浓度时空演化（57.2 h × 0–2 cm）：虚线为判据前沿 $C=0.15$，
+  约 13 h 自表面出发、57.18 h 到达中心}
+  \label{fig:moistmap3}
+\end{figure}
+
+\subsubsection{模型检验}
+
+\textbf{(1) 网格与容差收敛。}空间 $N=400/800/1600$、容差收紧与 Radau 时间算法对照的结果
+见表~\ref{tab:verify3}：含水率观测收敛阶 2.0000；以 800/1600 原始差、容差差与 BDF/Radau
+差之和作保守误差估计，含水率 $1.771\times10^{-6}\ \mathrm{kg/kg}$、临界时刻差 $0.239\ \mathrm{s}$，
+远小于四位小数阈值 $5\times10^{-5}$，表~\ref{tab:C5} 与 result3.xlsx 的四位小数可靠。
+
+\begin{table}[htbp]
+  \centering
+  \caption{问题 3 数值对照（共同 60 s × 0.1 cm 输出网格）}
+  \label{tab:verify3}
+  \begin{tabular}{lccc}
+    \hline
+    对照 & 含水率最大差/(kg/kg) & 温度最大差/$^{\circ}\mathrm{C}$ & 临界时刻差/s \\
+    \hline
+    400$\to$800 单元 & $7.074\times10^{-6}$ & $1.388\times10^{-5}$ & 0.9535 \\
+    800$\to$1600 单元 & $1.769\times10^{-6}$ & $3.474\times10^{-6}$ & 0.2385 \\
+    容差收紧 & $1.042\times10^{-9}$ & $1.404\times10^{-8}$ & 0.0000 \\
+    BDF vs Radau & $1.151\times10^{-9}$ & $1.601\times10^{-8}$ & 0.0000 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\textbf{(2) 守恒与离散恒等式。}水分积分量 $M=\sum V_iC_i$ 满足 $\dot M=-Q_C(R)$：以三点
+Gauss 法积分真实边界通量后相对闭合误差 $2.668\times10^{-11}$；显热诊断量
+$E=\sum V_iA(C_i)T_i$ 按链式法则 $\dot E=-Q_T(R)+\sum V_iA'(C_i)T_i\dot C_i$（第二项为变
+热容的导数修正）闭合相对误差 $3.011\times10^{-10}$；质量与热方程的离散恒等式残差分别为
+$6.6\times10^{-24}$、$1.4\times10^{-17}$。这些验证说明所选有效 PDE 被正确离散，不代表
+完整蒸发质量—能量模型守恒（见 4.2 节显热近似讨论）。
+
+\textbf{(3) 与问题 2 的衔接。}与问题 2 已保存的 tight800 轨迹逐段核对，0–10800 s 每 60 s
+采样最大差为含水率 $5.775\times10^{-12}$、温度 $6.641\times10^{-10}$，第三问准确承接
+第二问；全程单元含水率沿径向不增（最大向外增量 $8.9\times10^{-16}$，舍入误差量级），
+中心最湿判据成立。
+
+\subsubsection{模型讨论：环境外推的敏感性}
+
+附件 1 只采到 14400 s，其后“维持末值”是全流程最大不确定度。表~\ref{tab:scen3} 给出
+外推口径与恒温段扰动的敏感性（N=400，与同网格基准相比）：末小时时间加权均值使临界时刻
+推迟 0.31 h；恒温段温度 $\pm1\,^{\circ}\mathrm{C}$ 引起 $\pm1.8\ \mathrm{h}$
+（$\mp3.1\%$），湿度 $\pm10\%$ 仅 $\mp0.1\ \mathrm{h}$；按恒温段设定值
+$50.0\,^{\circ}\mathrm{C}$ 维持则为 57.48 h（$+0.5\%$，问题 4 同口径并列给出）。机理是
+$D$ 的 Arrhenius 因子 $e^{-3850/T}$：温度每升 1 K，$D$ 增大约 $3.7\%$。即便取最不利的
+$\pm5\,^{\circ}\mathrm{C}$ 系统偏移，烘干时间区间 $48.9\sim67.6\ \mathrm{h}$ 仍整体落在
+“2–3 天”（48–72 h）内，答案对该假设稳健。
+
+\begin{table}[htbp]
+  \centering
+  \caption{4 h 后烘房条件维持口径对问题 3 烘干时间的影响}
+  \label{tab:scen3}
+  \begin{tabular}{lcc}
+    \hline
+    外推情景 & 临界时长/h & 相对同网格基准变化/h \\
+    \hline
+    末值维持（主口径） & 57.17 & — \\
+    恒温段设定值 $50\,^{\circ}\mathrm{C}$ & 57.47 & $+0.30$ \\
+    末小时时间加权均值 & 57.48 & $+0.31$ \\
+    恒温段温度 $-1\,^{\circ}\mathrm{C}$ & 59.02 & $+1.85$ \\
+    恒温段温度 $+1\,^{\circ}\mathrm{C}$ & 55.40 & $-1.77$ \\
+    恒温段环境含水率 $-10\%$ & 57.08 & $-0.09$ \\
+    恒温段环境含水率 $+10\%$ & 57.28 & $+0.11$ \\
+    \hline
+  \end{tabular}
+\end{table}
+
+综上，固定几何下药材烘干所需时间为 \textbf{57.1833 h（2.38 天）}；完整结果按模板输出至
+result3.xlsx（60 s $\times$ 0.1 cm，3431 行，4 位小数），末行中心显示 0.1500 为四位小数
+舍入所致（未舍入值 $0.14999\ldots$，严格达标按未舍入值判定）。与问题 4 的收缩模型交叉
+（中心水分曲线约 41.0 h 相交、两问干时同落“2–3 天”）见 4.4 节。
+
+% ============================================================
+% 问题4 小节（国赛风格）—— 追加到 001sec.txt 模型建立与问题求解节末尾。
+% 数据口径：4-Q4deep 深度求解（tight800，与第三问 A3-codex 同架构）。
+% 主结果：末值维持口径（与问题3一致）50.8243 h / 首整分钟 50.8333 h（183000 s）；
+%         50°C 设定值口径（并列）51.0875 h / 51.1 h（183960 s）。
+% 图片：figures/q4_drying_50°C设定值口径.png、q4_cross.png、
+%       q4_convergence.png、q4_scenarios.png、q4_latent.png（复制到论文图片目录后按需改名）。
+% ============================================================
+\subsection{问题4：考虑尺寸收缩的烘干过程模型}
+
+\subsubsection{问题分析与移动边界变换}
+
+实际烘干中药材因失水而收缩，附件 2 给出烘干过程半径实测序列：半径由
+$2.0\ \mathrm{cm}$ 单调收缩至 $1.198\ \mathrm{cm}$（72 h 后维持）。本问在问题 2/3 模型的
+基础上引入移动边界 $R(t)$，物性按附录 4 取
+\begin{equation}
+  \rho(C)=760+90C,\qquad
+  c_p(C)=1850+\frac{2150C}{C+1},\qquad
+  k(C)=0.12+\frac{0.20C}{C+1},
+  \label{eq:props4}
+\end{equation}
+\begin{equation}
+  D(C,T)=4.2\times10^{-4}\exp\Big(-\frac{0.30}{C}\Big)\exp\Big(-\frac{3850}{T}\Big),
+  \label{eq:propsD4}
+\end{equation}
+其中式~\eqref{eq:propsD4} 的 $T$ 为热力学温度。与附录 3 相比，附录 4 扩散前置因子为
+其 $1/5.71$、浓度依赖指数更弱（$0.30$ 对 $0.45$），且收缩使有效扩散系数按 $1/R^2$
+放大——三者共同决定问题 4 与问题 3 的差异。
+
+引入曲线坐标 $\xi=r/R(t)\in[0,1]$。在\textbf{仿射（均匀）收缩}假设下每个材料点固定在
+自身 $\xi$ 上，材料导数即 $\xi$ 坐标下的偏导数，表观对流项恒为零。以随体控制体
+$[\xi_1,\xi_2]$ 对水分作衡算：水的内含量为 $2\pi H R^2\int\rho_d C\,\xi d\xi$，跨
+$\xi R$ 处的水分总流量为 $-2\pi H\rho_d\,\xi D\,\partial C/\partial\xi$，其中 $\rho_d$ 为
+干物质密度；由干物质守恒 $\rho_dR^2=\mathrm{const}$，$R$ 变化引起的项与干物质“压缩项”
+严格抵消，$\rho_d$ 完全约去，得
+\begin{equation}
+  \frac{\partial C}{\partial t}
+  =\frac{1}{R^2(t)\,\xi}\frac{\partial}{\partial\xi}\Big(\xi D(C,T)\frac{\partial C}{\partial\xi}\Big),
+  \qquad
+  \rho(C)c_p(C)\frac{\partial T}{\partial t}
+  =\frac{1}{R^2(t)\,\xi}\frac{\partial}{\partial\xi}\Big(\xi k(C)\frac{\partial T}{\partial\xi}\Big),
+  \label{eq:mov}
+\end{equation}
+收缩使内部方程获得 $R^{-2}(t)$ 因子，\textbf{有效扩散系数 $D/R^2(t)$ 随 $R$ 减小而增大}
+（最大放大 $(2/1.198)^2=2.79$ 倍），同时改变边界条件、表面面积与固定物理距离的采样
+位置——不能表述为“全部影响仅为扩散系数放大”。边界条件为
+\begin{equation}
+  \xi=0:\ \frac{\partial T}{\partial\xi}=\frac{\partial C}{\partial\xi}=0,\qquad
+  \xi=1:\ -\frac{k}{R}\frac{\partial T}{\partial\xi}=h(T_s-T_a),\quad
+  -\frac{D}{R}\frac{\partial C}{\partial\xi}=h_m(C_s-C_a),
+  \label{eq:movbc}
+\end{equation}
+初始条件同前两问。$R(t)$ 由附件 2 逐段线性插值给定，超过末观测（259200 s）后维持
+$1.198\ \mathrm{cm}$。
+
+\subsubsection{求解方法与烘干时间的确定}
+
+数值离散与问题 3 的 tight800 架构完全一致：表面加密网格
+$\xi_{j+1/2}=1-(1-j/N)^2$、$N=800$，界面系数沿相邻状态线性路径三点 Gauss 积分，
+真实表面由耦合不动点迭代（半单元与对流串联，残差阈值 $2\times10^{-13}$）解出，表面
+通量为 $R\,h(T_s-T_a)$ 与 $R\,h_m(C_s-C_a)$；时间积分用 BDF（`scipy.solve_ivp`，
+$\mathrm{rtol}=10^{-11}$、$\mathrm{atol}_T=10^{-12}$、$\mathrm{atol}_C=10^{-13}$，
+交错排列块三对角稀疏 Jacobian），前 4 h 每 60 s 数据节点重启，此后以 300 s 为步长上限
+连续积分。烘干时间定义为事件时刻
+$t^*=\min\{t:\max_r C(r,t)<0.15\ \mathrm{kg/kg}\}$，由终止型事件函数直接根搜索；事件函数取
+全场含水率最大值——按 $r^2$ 二次重构的中心值、全部单元值与真实表面值的最大者。由于
+全场最大含水率始终位于中心，判据等价于中心判据（已数值印证）。
+
+4 h 后烘房条件的维持方式直接影响长时结果。本文与问题 2/3 保持一致，将附件 1 观测序列
+\textbf{按末值维持}（$T_a=50.1650\,^{\circ}\mathrm{C}$、$C_a=0.04986\ \mathrm{kg/kg}$）；
+另将“按恒温段设定值 $50.0\,^{\circ}\mathrm{C}$ 维持”作为并列口径给出（恒温段统计
+$49.97\pm0.16\,^{\circ}\mathrm{C}$，末点为控制器波动序列的瞬时采样），两种口径相差仅
+$0.5\%$，全部结果均落于题面“2–3 天”区间。
+
+\subsubsection{结果与分析}
+
+烘干时间求解结果（末值维持口径）：连续临界时刻为 \textbf{50.8243 h}，按题目 60 s 采样
+精度，首次全场严格达标为 \textbf{50.8333 h，即 50 小时 50 分钟（183000 s）}；按恒温段
+设定值 $50\,^{\circ}\mathrm{C}$ 维持则为 51.0875 h（首整分钟 51.1 h）。$N=800\to1600$
+临界时刻差仅 0.216 s，均匀网格与加密网格相差 0.2 s，数值收敛到秒级。烘干终点半径
+$1.2000\ \mathrm{cm}$（附件 2 观测末值 $1.198\ \mathrm{cm}$ 为 72 h 时刻值，非本方案终点）。
+表~\ref{tab:C4} 给出题面表 6 格式的水分浓度，图~\ref{fig:drying4} 给出表面与中心的全流程
+干燥曲线与半径收缩曲线。
+
+\begin{table}[htbp]
+  \centering
+  \caption{表 6\quad 药材烘干过程的水分浓度（$\mathrm{kg/kg}$）}
+  \label{tab:C4}
+  \begin{tabular}{ccccc}
+    \hline
+    时间/h & \multicolumn{4}{c}{到药材中心的距离/cm} \\
+    & 0 & 0.5 & 1.0 & 药材表面 \\
+    \hline
+    6  & 1.7172 & 1.5357 & 1.0217 & 0.4217 \\
+    12 & 0.7343 & 0.6518 & 0.4069 & 0.1667 \\
+    18 & 0.4066 & 0.3668 & 0.2388 & 0.0889 \\
+    24 & 0.2837 & 0.2599 & 0.1783 & 0.0671 \\
+    30 & 0.2253 & 0.2085 & 0.1488 & 0.0593 \\
+    36 & 0.1921 & 0.1790 & 0.1312 & 0.0558 \\
+    42 & 0.1706 & 0.1598 & 0.1196 & 0.0539 \\
+    48 & 0.1556 & 0.1463 & 0.1113 & 0.0529 \\
+    50.8333（烘干结束） & 0.1500 & 0.1412 & 0.1081 & 0.0525 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{4-4pic/q4_drying.png}
+  \caption{问题 4 全流程干燥曲线（末值维持口径）：表面/中心水分浓度
+  与 0.15 判据（左）；附件 2 半径收缩曲线（右，烘干终点半径 1.2000 cm）}
+  \label{fig:drying4}
+\end{figure}
+
+\textbf{(1) 与问题 3 的交叉：前期更慢、后期更快，约 41.0 h 处交叉。}附录 4 的扩散前置因子
+（$4.2\times10^{-4}$）在 $C=2.55$ 时比附录 3（$2.4\times10^{-3}$）小 $5.4$ 倍，故高含水率
+阶段问题 4 更慢（6 h 中心 $1.7172$ 对问题 3 的 $1.0156$）；此后收缩使有效系数按
+$1/R^2$ 放大（最大 2.79 倍）且附录 4 的浓度依赖 $e^{-0.30/C}$ 弱于附录 3 的
+$e^{-0.45/C}$，低含水率阶段反超，中心水分曲线在约 $41.0\ \mathrm{h}$ 处与问题 3 相交
+（图~\ref{fig:cross4}）。两个独立模型（不同物性、不同几何处理）给出同量级干时，构成模型族
+层面的自洽检验。
+
+\textbf{(2) 收缩的单因素对照。}问题 3 与问题 4 的干时差（57.2 h 对 50.8 h）由物性口径与
+几何收缩两项变化共同构成，不能归结为收缩净效应。同为附录 4 物性、固定半径的控制试验
+（N=400，末值环境）给出 129.09 h，采用附件 2 收缩半径后为 50.82 h——只改变半径规律的
+条件性变化为 $-60.6\%$，该对照不等于与第三组物性模型的比较。表面水分 12 h 即降至
+0.1667，此后缓慢逼近烘房平衡值 0.04986。
+
+\textbf{(3) 维持口径的敏感性（最大不确定度）。}4 h 后烘房条件的不同维持口径对烘干时间的
+影响为：末值维持（$50.165\,^{\circ}\mathrm{C}$，本文主口径）$50.82$ h、设定值
+$50\,^{\circ}\mathrm{C}$ $51.09$ h、末小时均值 $51.10$ h、恒温段均值 $51.14$ h——同一
+400 单元网格下最大相对变化 $+0.62\%$（图~\ref{fig:scen4}），小于烘房
+$\pm1\,^{\circ}\mathrm{C}$ 引起的 $\mp3.2\%$。两种口径的完整 result4.xlsx 均已交付。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.62\textwidth]{4-4pic/q4_cross.png}
+  \caption{问题 3 与问题 4 中心水分浓度交叉（约 41.0 h 处）}
+  \label{fig:cross4}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{4-4pic/q4_scenarios.png}
+  \caption{4 h 后烘房条件维持口径对问题 4 烘干时间的影响（N=400，相对末值维持基准）}
+  \label{fig:scen4}
+\end{figure}
+
+\subsubsection{模型检验}
+
+\textbf{(1) 移动边界守恒。}储存量 $M=\sum v_iR^2C_i$ 满足
+$\dot M=2R\dot R\sum v_iC_i-R\,j_C$：以三点 Gauss 法积分真实边界通量与体积变化项后，全流程
+质量闭合相对残差 $8.90\times10^{-6}$；能量闭合（含变热容链式项与 $2R\dot R$ 项）相对残差
+$8.95\times10^{-6}$；离散恒等式
+$\sum v_iR^2\dot C_i+q_C=0$、$\sum v_iR^2\rho c_p\dot T_i+q_T=0$ 在全部积分点上达到机器
+精度（最大 $4.4\times10^{-16}$）。这些验证说明移动边界变换与通量装配的离散一致性，不替代
+未建模物理（端面、吸附等温线等）的讨论。
+
+\textbf{(2) 网格收敛。}$N=400/800/1600$ 表面加密网格的临界时刻为
+$182968.1/182967.4/182967.2$ s（$800\to1600$ 差 0.216 s），均匀网格与加密网格相差 0.2 s
+（图~\ref{fig:conv4}），临界时刻收敛到秒级；输出列误差小于四位小数阈值
+$5\times10^{-5}$，但四位小数的末位仍受舍入分界影响，不作逐位收敛宣称。
+
+\textbf{(3) 与第三问求解器的交叉验证。}同一代码路径切换到附录 3、固定半径后，复现第三问
+tight800 的临界时刻 $205810.077$ s（与第三问交付逐位一致），说明移动边界实现未扰动
+固定半径路径；全程单元含水率沿径向不增（最大向外增量 $1.3\times10^{-15}$），中心最湿
+判据成立。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.62\textwidth]{4-4pic/q4_convergence.png}
+  \caption{问题 4 烘干时间的网格收敛（表面加密与均匀网格，末值维持口径）}
+  \label{fig:conv4}
+\end{figure}
+
+\textbf{(4) 潜热项对照。}在表面能量边界补入蒸发潜热流 $L_v\rho_d h_m(C_s-C_a)$（换算密度取
+干物质密度锚定值 $\rho_d=\rho(C_0)/(1+C_0)=278.7\ \mathrm{kg/m^3}$，$L_v=2383\ \mathrm{kJ/kg}$）
+后，烘干时间为 56.16 h（$+10.5\%$，末值口径），体积型汇为 58.25 h（$+14.6\%$）；单位
+系数试验仅为人工敏感性分析，不是物理标定值。目前没有证据表明潜热已被题面经验参数吸收，
+不含潜热是基准简化假设、含潜热是明确密度换算后的替代模型，二者并列呈现；不能仅凭某组
+数值接近参考值来选择模型。潜热对照仅作为模型讨论，不作为正式答案。
+
+综上，考虑尺寸收缩后药材烘干所需时间为 \textbf{50.8333 h（2.12 天）}，烘干终点半径
+$1.2000\ \mathrm{cm}$（72 h 观测末值 $1.198\ \mathrm{cm}$ 非本方案终点半径）；与问题 3 的
+差异为物性口径与几何收缩两项变化之和（见上文单因素对照）。完整结果按模板输出至
+result4.xlsx（60 s $\times$ 0.1 cm，列 0–1.1 cm + 药材表面，3050 行，4 位小数），末行
+中心显示 0.1500 为四位小数舍入所致（未舍入值 $0.14999\ldots$，严格达标按未舍入值判定）。
+
+\bibliographystyle{IEEEtran}
+\bibliography{ref}
+\end{document}

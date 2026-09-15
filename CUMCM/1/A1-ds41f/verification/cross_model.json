@@ -1,0 +1,26 @@
+{
+  "温度": {
+    "max_abs_diff": 0.0020000000000024443,
+    "n_cells_diff_gt_5e-5": 36597,
+    "n_cells_diff_gt_1e-4": 36067,
+    "n_cells_diff_gt_1e-3": 27061,
+    "fraction_within_5e-5": 0.03236297295153486,
+    "max": 0.0020000000000024443,
+    "max_diff_at": [
+      880,
+      0
+    ]
+  },
+  "水分浓度": {
+    "max_abs_diff": 0.0019999999999997797,
+    "n_cells_diff_gt_5e-5": 8670,
+    "n_cells_diff_gt_1e-4": 4112,
+    "n_cells_diff_gt_1e-3": 9,
+    "fraction_within_5e-5": 0.7707622749266281,
+    "max": 0.0019999999999997797,
+    "max_diff_at": [
+      1,
+      20
+    ]
+  }
+}

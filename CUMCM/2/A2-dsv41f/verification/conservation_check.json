@@ -1,0 +1,13 @@
+{
+  "rho_d_kg_m3": 275.0422535211268,
+  "volume_mean_loss_kg_per_m": 0.40351151254650774,
+  "coded_flux_integral_kg_per_m": 0.0014670898074538772,
+  "ratio_volume_over_coded": 275.0421347734661,
+  "rho_d_corrected_flux_integral_kg_per_m": 0.40351168675999044,
+  "ratio_volume_over_corrected": 0.9999995682566617,
+  "dCbar_dt_final": -7.667034378333604e-05,
+  "surface_dCdr_reported_per_m": -72.54533654730938,
+  "D_at_surface_m2_s": 1.0271724082255021e-08,
+  "km_relation_gas_side": "j = h_m rho_a (Y_sat(T_s) - Y_a) is the dimensionally consistent alternative",
+  "conclusion": "the volumetric water loss equals the surface-flux integral only when the flux carries rho_d = 275.04 kg/m3; as coded it is short by exactly rho_d"
+}

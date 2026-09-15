@@ -1,0 +1,101 @@
+{
+  "environment": {
+    "python": "3.13.9 | packaged by Anaconda, Inc. | (main, Oct 21 2025, 19:11:29) [Clang 20.1.8 ]",
+    "executable": "/opt/anaconda3/bin/python",
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "numpy": "2.3.5",
+    "scipy": "1.16.3",
+    "numba": "0.62.1"
+  },
+  "selected_run": "tight800",
+  "settings": {
+    "n": 800,
+    "end": 10800,
+    "rtol": 1e-11,
+    "method": "BDF",
+    "q1": false,
+    "hfactor": 1.0,
+    "hmfactor": 1.0,
+    "dfactor": 1.0,
+    "interp": "linear",
+    "audit": true,
+    "seconds": 12.99647220800398,
+    "nfev": 38013,
+    "njev": 180,
+    "nlu": 4394,
+    "steps": 18820
+  },
+  "space_differences_200_400_800": [
+    {
+      "T": 5.544130820567261e-05,
+      "C": 3.288324417471955e-05
+    },
+    {
+      "T": 1.3897654966399386e-05,
+      "C": 8.226301423164273e-06
+    }
+  ],
+  "observed_order": {
+    "T": 1.9961198310267747,
+    "C": 1.9990367982750876
+  },
+  "space_difference_800_1600": {
+    "T": 3.4768371577342805e-06,
+    "C": 2.056498851654709e-06
+  },
+  "time_tightening_difference": {
+    "T": 1.675638969800275e-07,
+    "C": 7.767348986220668e-09
+  },
+  "BDF_Radau_difference": {
+    "T": 2.7473845420900034e-09,
+    "C": 2.3243584834631292e-10
+  },
+  "estimated_errors": {
+    "T": 4.806094158501158e-06,
+    "C": 2.749998253707512e-06
+  },
+  "target": 2e-05,
+  "numerical_target_pass": true,
+  "a1_regression": {
+    "T": 5.74695026500649e-06,
+    "C": 4.966706635745055e-06
+  },
+  "q2_vs_a1_first1800": {
+    "T": 1.4019757997249016,
+    "C": 0.13837864844943448
+  },
+  "balances": {
+    "mass_abs": 2.4809798312985798e-15,
+    "mass_relative": 1.0625431840827172e-11,
+    "heat_identity_abs": 9.126360964728519e-07,
+    "heat_identity_relative": 6.846106374302928e-11,
+    "note": "Balances omit common 2*pi*length. Heat identity includes the integral of A_prime(C)*T*C_t; it is not total physical energy."
+  },
+  "unit_checks": {
+    "equilibrium_rhs_max": 5.3269613972931604e-14,
+    "capacity_derivative_relative_error": 2.617461802856269e-12,
+    "sampled_final_face_quadrature_max_relative_error": 1.4432899320127035e-15,
+    "heat_residual_W_m2": 3.571872753127536e-08,
+    "moisture_residual_m_s": 4.089877409993708e-17
+  },
+  "input_hashes_unchanged": true,
+  "range": {
+    "T": [
+      27.999999999999993,
+      49.96641281425293
+    ],
+    "C": [
+      1.0081229144775348,
+      2.550000000000001
+    ]
+  },
+  "final": {
+    "T_center": 49.84949525516748,
+    "T_surface": 49.96641281425293,
+    "C_center": 1.7661780270957317,
+    "C_surface": 1.0081229144775348,
+    "volume_mean_T": 49.90432834384478,
+    "volume_mean_C": 1.3825275299685713
+  }
+}

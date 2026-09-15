@@ -1,0 +1,6 @@
+# Tested with Python 3.13.9; scientific computation uses the existing Anaconda runtime.
+numpy==2.3.5
+scipy==1.16.3
+numba==0.62.1
+matplotlib==3.10.6
+openpyxl>=3.1,<4

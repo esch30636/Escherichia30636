@@ -1,0 +1,58 @@
+{
+  "note": "独立求解器在均匀网格 n=200 上复现 A2-gpt 的水分边界闭合；仅用于确认其数值解可信，不作为修正方案的数值结论。",
+  "runs": [
+    {
+      "id": "uni_latent_n200_p1.0.npz",
+      "physics": "latent",
+      "n": 200,
+      "seconds": 16.603737400000682,
+      "T_surface": 28.37690210697757,
+      "C_surface": 2.498949277354303,
+      "C_at_1cm": 2.5346996595329863,
+      "mean_C": 2.5231017322243696,
+      "mean_T": 28.363019880737543,
+      "max_dC_vs_delivered": 1.4908263628767684,
+      "max_dT_vs_delivered": 21.589510707275355,
+      "water_loss_kg_per_m": 3.3233102600622346e-05,
+      "convective_heat_in_J_per_m": 1548.816425973636
+    },
+    {
+      "id": "uni_psychro_n200_p1.0.npz",
+      "physics": "psychro",
+      "n": 200,
+      "seconds": 5.6388707000005525,
+      "T_surface": 28.396722869701115,
+      "C_surface": 2.498962854841114,
+      "C_at_1cm": 2.5346942624755116,
+      "mean_C": 2.5231015999235793,
+      "mean_T": 28.38209569591582,
+      "max_dC_vs_delivered": 1.4908399403635793,
+      "max_dT_vs_delivered": 21.56968994455181,
+      "water_loss_kg_per_m": 3.322560317102281e-05,
+      "convective_heat_in_J_per_m": 1626.9100252064613
+    },
+    {
+      "id": "uni_review_n200_p1.0.npz",
+      "physics": "review",
+      "n": 200,
+      "seconds": 20.73621590001858,
+      "T_surface": 49.966411134023474,
+      "C_surface": 1.0081244543798002,
+      "C_at_1cm": 1.5702001667936565,
+      "mean_C": 1.382533560369919,
+      "mean_T": 49.90432596839265,
+      "max_dC_vs_delivered": 1.9359298188970087e-06,
+      "max_dT_vs_delivered": 1.7375778895711846e-06,
+      "water_loss_kg_per_m": 0.0013872243416462897,
+      "convective_heat_in_J_per_m": 92589.51402181716
+    }
+  ],
+  "delivered": {
+    "T_center": 49.84949525516748,
+    "T_surface": 49.96641281425293,
+    "C_center": 1.7661780270957317,
+    "C_surface": 1.0081229144775348,
+    "mean_T": 49.90432834384478,
+    "mean_C": 1.3825275299685713
+  }
+}

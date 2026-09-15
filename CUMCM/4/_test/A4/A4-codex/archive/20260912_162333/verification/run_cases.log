@@ -1,0 +1,12 @@
+cached base400
+{"name": "base800", "crossing_s": 182967.41147986904, "minute_s": 183000.0, "seconds": 26.760701915976824, "relative_balance": [1.2365719777117015e-09, 1.2752934584036402e-09]}
+{"name": "tight800", "crossing_s": 182967.41713686116, "minute_s": 183000.0, "seconds": 35.523160667013144, "relative_balance": [5.019949597618845e-12, 4.1001302664099825e-11]}
+{"name": "fine1600", "crossing_s": 182967.20122709285, "minute_s": 183000.0, "seconds": 55.569971167016774, "relative_balance": [1.3141383406304266e-11, 6.254945935580482e-11]}
+{"name": "radau400", "crossing_s": 182968.28040941796, "minute_s": 183000.0, "seconds": 23.18053533299826, "relative_balance": [6.269494727295002e-15, 4.642040092641581e-15]}
+{"name": "q3_regression800", "crossing_s": 205810.07717871142, "minute_s": 205860.0, "seconds": 31.062864708015695, "relative_balance": [9.120425547690484e-11, 2.8705142166941304e-10]}
+{"name": "fixed4_800", "crossing_s": 464735.12784643256, "minute_s": 464760.0, "seconds": 34.078095625009155, "relative_balance": [1.6030923865062006e-11, 1.1850161264828011e-11]}
+{"name": "s_pchip", "crossing_s": 182955.70313630113, "minute_s": 183000.0, "seconds": 18.88618449997739, "relative_balance": [1.4426476571084184e-09, 1.1838622893922718e-09]}
+{"name": "s_temp_low", "crossing_s": 188819.61804364863, "minute_s": 188820.0, "seconds": 20.265799375018105, "relative_balance": [1.4060531388430916e-09, 8.315449856443794e-10]}
+{"name": "s_temp_high", "crossing_s": 177369.34111263687, "minute_s": 177420.0, "seconds": 19.453384541993728, "relative_balance": [1.0953362835478259e-09, 1.3490416460646033e-09]}
+{"name": "s_humid_low", "crossing_s": 182617.9147287501, "minute_s": 182640.0, "seconds": 19.529873249994125, "relative_balance": [1.4244008151625203e-09, 1.3344712493054874e-09]}
+{"name": "s_humid_high", "crossing_s": 183419.92290676644, "minute_s": 183420.0, "seconds": 19.31359204198816, "relative_balance": [1.1708486903328367e-09, 1.1956228012578108e-09]}

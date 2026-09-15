@@ -1,0 +1,216 @@
+{
+  "cases": [
+    {
+      "name": "q4_tight800",
+      "samples": 3051,
+      "status": "PASS"
+    },
+    {
+      "name": "q4_t50_tight800",
+      "samples": 3067,
+      "status": "PASS"
+    },
+    {
+      "name": "q4_t50_tight1600",
+      "samples": 53,
+      "status": "PASS"
+    },
+    {
+      "name": "conv_graded400",
+      "samples": 52,
+      "status": "PASS"
+    },
+    {
+      "name": "conv_graded800",
+      "samples": 52,
+      "status": "PASS"
+    },
+    {
+      "name": "conv_graded1600",
+      "samples": 52,
+      "status": "PASS"
+    },
+    {
+      "name": "conv_uniform400",
+      "samples": 52,
+      "status": "PASS"
+    },
+    {
+      "name": "conv_uniform800",
+      "samples": 52,
+      "status": "PASS"
+    },
+    {
+      "name": "q3_x800",
+      "samples": 345,
+      "status": "PASS"
+    },
+    {
+      "name": "q3_x1600",
+      "samples": 59,
+      "status": "PASS"
+    },
+    {
+      "name": "scen3_t50",
+      "samples": 59,
+      "status": "PASS"
+    },
+    {
+      "name": "scen_final",
+      "samples": 52,
+      "status": "PASS"
+    },
+    {
+      "name": "scen_last_hour_mean",
+      "samples": 53,
+      "status": "PASS"
+    },
+    {
+      "name": "scen_last_hour_meanT_finalC",
+      "samples": 53,
+      "status": "PASS"
+    },
+    {
+      "name": "scen_t50",
+      "samples": 53,
+      "status": "PASS"
+    },
+    {
+      "name": "scen_t50c05",
+      "samples": 53,
+      "status": "PASS"
+    },
+    {
+      "name": "scen_stage_mean",
+      "samples": 53,
+      "status": "PASS"
+    },
+    {
+      "name": "scen_last2h_mean",
+      "samples": 53,
+      "status": "PASS"
+    },
+    {
+      "name": "lat_surf_dry0",
+      "samples": 58,
+      "status": "PASS"
+    },
+    {
+      "name": "lat_vol_dry0",
+      "samples": 60,
+      "status": "PASS"
+    },
+    {
+      "name": "lat_surf_unit",
+      "samples": 52,
+      "status": "PASS"
+    },
+    {
+      "name": "lat_vol_unit",
+      "samples": 52,
+      "status": "PASS"
+    },
+    {
+      "name": "q3_lat_surf_dry0_t50",
+      "samples": 62,
+      "status": "PASS"
+    },
+    {
+      "name": "q4_lat_surf_dry0_t50",
+      "samples": 58,
+      "status": "PASS"
+    },
+    {
+      "name": "q4_fixed_props_control",
+      "samples": 131,
+      "status": "PASS"
+    }
+  ],
+  "workbooks": [
+    {
+      "name": "result4.xlsx",
+      "rows": 3050,
+      "numeric_cells": 42700,
+      "mismatches": 0
+    },
+    {
+      "name": "result4_50度设定值.xlsx",
+      "rows": 3066,
+      "numeric_cells": 42924,
+      "mismatches": 0
+    }
+  ],
+  "figures": [
+    {
+      "name": "fig01_drying.png",
+      "size": [
+        3300,
+        1290
+      ],
+      "dpi": [
+        299.9994,
+        299.9994
+      ]
+    },
+    {
+      "name": "fig02_drying_t50.png",
+      "size": [
+        3300,
+        1290
+      ],
+      "dpi": [
+        299.9994,
+        299.9994
+      ]
+    },
+    {
+      "name": "fig03_cross_p3.png",
+      "size": [
+        2100,
+        1350
+      ],
+      "dpi": [
+        299.9994,
+        299.9994
+      ]
+    },
+    {
+      "name": "fig04_convergence.png",
+      "size": [
+        2100,
+        1350
+      ],
+      "dpi": [
+        299.9994,
+        299.9994
+      ]
+    },
+    {
+      "name": "fig05_scenarios.png",
+      "size": [
+        2700,
+        1440
+      ],
+      "dpi": [
+        299.9994,
+        299.9994
+      ]
+    },
+    {
+      "name": "fig06_latent.png",
+      "size": [
+        2700,
+        1440
+      ],
+      "dpi": [
+        299.9994,
+        299.9994
+      ]
+    }
+  ],
+  "status": "PASS",
+  "limitations": [
+    "Screenshotted Q1/Q2 temperatures not independently recomputed.",
+    "Numerical checks do not validate physical density or phase-change closure."
+  ]
+}

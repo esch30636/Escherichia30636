@@ -1,0 +1,197 @@
+% ============================================================
+% A题第四问子节，可直接插入现有论文正文。
+% 建议主文档已加载：amsmath、graphicx；中文排版由主模板统一处理。
+% 配套参考文献：sec44_guosai.bib
+% 配套图片：figures/fig01_drying.pdf ... figures/fig05_scenarios.pdf
+% ============================================================
+
+\subsection{问题四：考虑尺寸收缩的移动边界烘干模型}
+\label{subsec:q4_shrink}
+
+\subsubsection{问题分析与模型假设}
+
+问题三将药材半径视为常数，而实际烘干会随失水发生径向收缩。第四问要求结合附件2的半径--时间数据和附录4物性重新确定烘干时长，因此需将固定区域模型改写为移动边界传热传质模型。
+
+第四问仍从初始状态
+\[
+T_0=28\,^{\circ}\mathrm C,\qquad C_0=2.55\ \mathrm{kg/kg},\qquad R_0=2.0\ \mathrm{cm}
+\]
+重新计算，不承接第三问终态。将药材近似为均质长圆柱，忽略轴向梯度、端面效应、辐射和长度变化，并假设横截面保持圆形、内部均匀仿射收缩。附件1中的烘房温度与水分浓度在前4 h内逐段线性插值，主方案在4 h后保持观测末值
+\[
+T_a=50.165\,^{\circ}\mathrm C,\qquad C_a=0.04986\ \mathrm{kg/kg}.
+\]
+附件2给出的半径数据同样采用分段线性插值。附录4物性为
+\begin{equation}
+\rho(C)=760+90C,\qquad
+c_p(C)=1850+\frac{2150C}{1+C},\qquad
+k(C)=0.12+\frac{0.20C}{1+C},
+\label{eq:q4_props}
+\end{equation}
+\begin{equation}
+D(C,T)=4.2\times10^{-4}
+\exp\!\left(-\frac{0.30}{C}-\frac{3850}{T+273.15}\right),
+\label{eq:q4_diff}
+\end{equation}
+其中程序中温度以摄氏度存储，仅在Arrhenius项中换算为开尔文。径向扩散方程及有限体积离散参考经典扩散理论与有限体积方法\cite{crank1975,patankar1980}。
+
+\subsubsection{移动边界模型}
+
+设物理径向坐标为$r$，瞬时半径为$R(t)$。均匀比例收缩下材料点速度为
+\begin{equation}
+u(r,t)=\frac{r}{R(t)}\dot R(t).
+\end{equation}
+记$\rho_d$为干物质密度，干物质守恒与水分守恒分别为
+\begin{equation}
+\frac{\partial \rho_d}{\partial t}
++\frac{1}{r}\frac{\partial}{\partial r}(r\rho_d u)=0,
+\label{eq:q4_drymass}
+\end{equation}
+\begin{equation}
+\frac{\partial (\rho_d C)}{\partial t}
++\frac{1}{r}\frac{\partial}{\partial r}(r\rho_d C u)
+=\frac{1}{r}\frac{\partial}{\partial r}
+\left(r\rho_d D\frac{\partial C}{\partial r}\right).
+\label{eq:q4_watermass}
+\end{equation}
+均匀收缩时$\rho_d$仅随时间变化，联立上式可消去干物质压缩项，得到
+\begin{equation}
+\frac{\partial C}{\partial t}+u\frac{\partial C}{\partial r}
+=\frac{1}{r}\frac{\partial}{\partial r}
+\left(rD\frac{\partial C}{\partial r}\right).
+\end{equation}
+引入材料坐标
+\begin{equation}
+\xi=\frac{r}{R(t)},\qquad 0\leq\xi\leq1,
+\end{equation}
+仿射收缩下同一材料点的$\xi$不变，坐标变换产生的对流项与$uC_r$抵消，从而得到固定域上的热湿耦合方程
+\begin{equation}
+\frac{\partial C}{\partial t}
+=\frac{1}{R^2(t)\xi}\frac{\partial}{\partial \xi}
+\left(\xi D(C,T)\frac{\partial C}{\partial \xi}\right),
+\label{eq:q4_c_pde}
+\end{equation}
+\begin{equation}
+\rho(C)c_p(C)\frac{\partial T}{\partial t}
+=\frac{1}{R^2(t)\xi}\frac{\partial}{\partial \xi}
+\left(\xi k(C)\frac{\partial T}{\partial \xi}\right).
+\label{eq:q4_t_pde}
+\end{equation}
+收缩不仅改变方程中的$R^{-2}(t)$项，也会改变表面边界和固定物理距离对应的材料坐标位置。
+
+中心满足对称条件，表面采用对流换热与对流传质边界：
+\begin{equation}
+\left.\frac{\partial T}{\partial\xi}\right|_{\xi=0}=0,
+\qquad
+\left.\frac{\partial C}{\partial\xi}\right|_{\xi=0}=0,
+\end{equation}
+\begin{equation}
+-\frac{k}{R}\left.\frac{\partial T}{\partial\xi}\right|_{\xi=1}
+=h(T_s-T_a),\qquad
+-\frac{D}{R}\left.\frac{\partial C}{\partial\xi}\right|_{\xi=1}
+=h_m(C_s-C_a),
+\label{eq:q4_bc}
+\end{equation}
+其中$h=25\ \mathrm{W/(m^2\!\cdot\!K)}$，$h_m=8.0\times10^{-7}\ \mathrm{m/s}$，初始条件为$T(\xi,0)=28\,^{\circ}\mathrm C$、$C(\xi,0)=2.55\ \mathrm{kg/kg}$。
+
+\subsubsection{数值方法与终点判定}
+
+在$\xi\in[0,1]$上采用单元中心有限体积法，并在表面附近加密：
+\begin{equation}
+\xi_j=1-\left(1-\frac{j}{N}\right)^2,\qquad j=0,1,\ldots,N.
+\end{equation}
+主计算取$N=800$。界面$k$与$D$沿相邻温湿状态的线性路径作三点Gauss平均；真实表面$T_s$和$C_s$由半单元传导/扩散与外部对流条件耦合迭代得到。
+
+离散后形成刚性常微分方程组，采用SciPy的BDF隐式积分器\cite{virtanen2020}，相对容差取$10^{-11}$；前4 h最大步长10 s，此后300 s。题目要求的60 s结果由连续数值解采样获得。
+
+烘干结束必须满足药材各处水分浓度均低于$0.15\ \mathrm{kg/kg}$，故定义连续临界时刻
+\begin{equation}
+t_*=\inf\left\{t:\max_{0\le r\le R(t)}C(r,t)<0.15\right\}.
+\label{eq:q4_target}
+\end{equation}
+定位连续根后继续积分至下一个整分钟，并取
+\begin{equation}
+t_{60}=\min\left\{60k:\max_r C(r,60k)<0.15\right\}.
+\label{eq:q4_minute}
+\end{equation}
+判定采用未舍入值，因此表格中显示$0.1500$时仍可能已经严格达标。
+
+\subsubsection{结果分析}
+
+主方案下连续临界时刻为$50.8243\ \mathrm h$，首个严格达标整分钟为
+\[
+t_{60}=50.8333\ \mathrm h=183000\ \mathrm s,
+\]
+约为$2.12$ d，此时半径为$1.2000\ \mathrm{cm}$。附件2中的$1.198\ \mathrm{cm}$对应72 h观测末值，不是本方案终点半径。若4 h后温度取$50\,^{\circ}\mathrm C$、水分浓度仍保持末值，则连续临界时刻为$51.0875\ \mathrm h$，首个严格达标整分钟为$51.1000\ \mathrm h$。两种外推口径下的中心/表面含水率与半径变化见图\ref{fig:q4_main}和图\ref{fig:q4_t50}。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{figures/fig01_drying.pdf}
+  \caption{主方案下的水分浓度与半径变化。}
+  \label{fig:q4_main}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{figures/fig02_drying_t50.pdf}
+  \caption{4 h后温度取$50\,^{\circ}\mathrm C$时的水分浓度与半径变化。}
+  \label{fig:q4_t50}
+\end{figure}
+
+表\ref{tab:q4_table6}给出每6 h及烘干终点的典型径向水分浓度。表面首先降低，中心始终最湿：30 h时表面仅为$0.0593$，中心仍为$0.2253$；48 h时中心仍有$0.1556$。因此烘干终点由中心区域控制。
+
+\begin{table}[htbp]
+\centering
+\caption{问题四药材烘干过程的水分浓度（单位：$\mathrm{kg/kg}$）}
+\label{tab:q4_table6}
+\small
+\begin{tabular}{ccccc}
+\hline
+时间/h & 0 cm & 0.5 cm & 1.0 cm & 药材表面 \\
+\hline
+6       & 1.7172 & 1.5357 & 1.0217 & 0.4217 \\
+12      & 0.7343 & 0.6518 & 0.4069 & 0.1667 \\
+18      & 0.4066 & 0.3668 & 0.2388 & 0.0889 \\
+24      & 0.2837 & 0.2599 & 0.1783 & 0.0671 \\
+30      & 0.2253 & 0.2085 & 0.1488 & 0.0593 \\
+36      & 0.1921 & 0.1790 & 0.1312 & 0.0558 \\
+42      & 0.1706 & 0.1598 & 0.1196 & 0.0539 \\
+48      & 0.1556 & 0.1463 & 0.1113 & 0.0529 \\
+50.8333（结束） & 0.1500 & 0.1412 & 0.1081 & 0.0525 \\
+\hline
+\end{tabular}
+\end{table}
+
+完整60 s、0.1 cm固定距离结果保存于\texttt{result4.xlsx}。药材收缩后，部分固定距离会落在实际区域外，因此真实表面应单独记录，不能等同于某一固定距离列。
+
+\subsubsection{模型检验与敏感性}
+
+图\ref{fig:q4_cross}比较固定半径+附录3物性与收缩半径+附录4物性两种模型组合，其连续临界时刻分别约为$57.17\ \mathrm h$和$50.82\ \mathrm h$。由于几何和物性同时变化，该图仅用于展示两问整体模型差异，不能将时间差全部归因于收缩。若保持附录4物性和环境条件不变，在同为400单元的控制试验中，固定半径与实测收缩对应的连续临界时刻分别为$129.0938\ \mathrm h$和$50.8245\ \mathrm h$，收缩单因素下时长缩短约$60.63\%$。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.60\textwidth]{figures/fig03_cross_p3.pdf}
+  \caption{不同几何与物性组合下的中心水分浓度比较。}
+  \label{fig:q4_cross}
+\end{figure}
+
+以1600单元表面加密网格的连续临界时刻为共同参考，比较400和800单元的表面加密网格与均匀网格。800单元加密至1600单元后临界时刻仅变化约$0.216\ \mathrm s$，说明主结果对进一步空间加密已不敏感。该误差只反映数值离散差异，不代表实验预测误差。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.60\textwidth]{figures/fig04_convergence.pdf}
+  \caption{以1600单元表面加密结果为参考的网格收敛性。}
+  \label{fig:q4_conv}
+\end{figure}
+
+附件1只覆盖前4 h，因此进一步对4 h后环境外推方式进行敏感性分析。统一采用400单元，分别考察数据末值、末小时均值、末小时均温与末值湿度、$50\,^{\circ}\mathrm C$与末值湿度、$50\,^{\circ}\mathrm C$与$0.05\ \mathrm{kg/kg}$、恒温段均值和末两小时均值。各方案相对数据末值基准的时间变化均小于$0.7\%$，最大约为$0.619\%$，表明主结论对这些外推方式较稳定，但该范围仅表示情景敏感性。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{figures/fig05_scenarios.pdf}
+  \caption{4 h后环境外推方式对连续临界时刻的影响。}
+  \label{fig:q4_scen}
+\end{figure}
+
+\subsubsection{本问结论}
+
+综合计算得到，主方案连续临界时刻为$50.8243\ \mathrm h$；按题目60 s输出要求，首个严格达标整分钟为$50.8333\ \mathrm h$（$183000\ \mathrm s$），终点半径约$1.2000\ \mathrm{cm}$。径向水分分布始终表现为中心高、表面低，最终结束时刻由中心区域控制。网格加密和环境外推分析进一步说明该结果在当前数值离散和所考察外推口径下较稳定。

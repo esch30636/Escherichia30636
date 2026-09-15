@@ -1,0 +1,148 @@
+cached base400
+cached base800
+cached tight800
+cached fine1600
+cached radau400
+cached q3_regression800
+cached fixed4_800
+cached s_pchip
+cached s_temp_low
+cached s_temp_high
+cached s_humid_low
+cached s_humid_high
+{
+  "comparisons": {
+    "400_to_800": {
+      "C": 3.030427980421635e-05,
+      "T": 2.136462410362583e-05,
+      "crossing_s": 0.8638881025835872
+    },
+    "800_to_1600": {
+      "C": 7.576392918373642e-06,
+      "T": 5.346536056549667e-06,
+      "crossing_s": 0.2159097683033906
+    },
+    "tolerance": {
+      "C": 2.9400986922833994e-09,
+      "T": 1.2979540997548611e-08,
+      "crossing_s": 0.005656992114381865
+    },
+    "BDF_vs_Radau": {
+      "C": 2.620919592466464e-09,
+      "T": 1.6067886576820456e-08,
+      "crossing_s": 0.0050414463330525905
+    }
+  },
+  "C_error_estimate": 7.581953936658392e-06,
+  "observed_order": 1.9999384993245817,
+  "regression": {
+    "T": 2.6047715095955937e-09,
+    "C": 1.6461310092807935e-10,
+    "crossing_s": 0.0003036019334103912
+  },
+  "uniform_insulated_max_error": 0.0,
+  "independent_operator": [
+    {
+      "max_abs": 6.32965598464864e-12,
+      "relative": 2.4042778218693623e-06
+    },
+    {
+      "max_abs": 7.453586359229547e-14,
+      "relative": 2.5829193841883732e-17
+    }
+  ],
+  "sensitivity": [
+    {
+      "name": "s_pchip",
+      "h": 50.821028648972536,
+      "delta_h": -0.003492286575136758
+    },
+    {
+      "name": "s_temp_low",
+      "h": 52.44989390101351,
+      "delta_h": 1.6253729654658349
+    },
+    {
+      "name": "s_temp_high",
+      "h": 49.26926142017691,
+      "delta_h": -1.5552595153707645
+    },
+    {
+      "name": "s_humid_low",
+      "h": 50.72719853576392,
+      "delta_h": -0.09732239978375826
+    },
+    {
+      "name": "s_humid_high",
+      "h": 50.949978585212904,
+      "delta_h": 0.1254576496652266
+    }
+  ],
+  "main": {
+    "name": "tight800",
+    "n": 800,
+    "rtol": 1e-11,
+    "method": "BDF",
+    "shrink": true,
+    "appendix": 4,
+    "interp": "linear",
+    "scenario": "base",
+    "sha256": {
+      "code/core.py": "f8924611ee9fb14ac4c14e075b28ac60e58d3aa81980f34c2ea81234c3a29daa",
+      "code/solve.py": "086bdb3dd95a578cbe2b416430157bcad427b3e4d67b379cbbbc5851f83d8f88",
+      "data/ambient.csv": "142b410f871b645f1f627b9c4a7b12a253fa248359608804a380b3a9fa802333",
+      "data/radius.csv": "3921506b7eabe35727cdac412fa57dc1665ad169c570a8507403ab352beff0a9"
+    },
+    "crossing_s": 182967.41713686116,
+    "minute_s": 183000.0,
+    "seconds": 35.523160667013144,
+    "integrals": [
+      1.2158058339668207,
+      -11529.870356273277,
+      -8654.307155707591,
+      -15903.333671707547
+    ],
+    "balance": [
+      -6.4004357369640275e-12,
+      -7.71187842474319e-07
+    ],
+    "relative_balance": [
+      5.019949597618845e-12,
+      4.1001302664099825e-11
+    ],
+    "identity_abs": [
+      1.4907779871675686e-19,
+      4.440892098500626e-16
+    ],
+    "radial_increase_max": 1.3322676295501878e-15,
+    "radius_extended": false,
+    "steps": 32183,
+    "nfev": 65035
+  },
+  "source_hashes_unchanged": true,
+  "versions": {
+    "python": "3.13.9",
+    "numpy": "2.3.5",
+    "scipy": "1.16.3",
+    "numba": "0.62.1"
+  }
+}
+Generated report, table6, 6 figure pairs and 3050 workbook records.
+Inspect result written to file: /Users/wangxinlei/Desktop/Xinlei/HUST/数模/A4/A4-codex/result4.xlsx.inspect.ndjson
+Saved result4.xlsx: 3050 records, 21 fixed-distance columns + surface
+{
+  "records": 3050,
+  "numeric_moisture_cells": 44063,
+  "domain_outside_blank_cells": 23037,
+  "fixed_distance_columns": 21,
+  "surface_columns": 1,
+  "format": "0.0000",
+  "freeze_panes": "B2",
+  "first_time_s": 60,
+  "last_time_s": 183000,
+  "previous_maxC": 0.15001416791067346,
+  "final_maxC": 0.14998316909906473,
+  "table6_matches": true,
+  "all_cells_match": true,
+  "engine": "openpyxl read-only use; no native Excel launch"
+}

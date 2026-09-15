@@ -1,0 +1,32 @@
+% ============================================================
+% 问题2（4.2 节）新增引用的两条文献 —— 直接追加到 D:\CUMCM\ref.bib 末尾即可
+% 格式与已有 4 条（wang2024drying / nurhaslina2022review / yan2026heat /
+% srikiatden2007moisture）一致（biblatex 字段风格）。
+% 出版信息已于 2026-09-12 经图书馆馆藏目录核实：
+%   Crank 1975 第二版由 Clarendon Press (Oxford) 出版，ISBN 0-19-853344-6
+%   （Oxford University Press 为其所属集团，馆藏记录统一著录 Clarendon Press）；
+%   陶文铨《数值传热学》第 2 版，西安交通大学出版社，2001，ISBN 7-5605-1436-7。
+% 正文引用位置（sec42_guosai.tex）：
+%   \cite{taowenquan2001} —— 模型求解：单元中心有限体积法框架
+%   \cite{crank1975}     —— 模型检验(3)：半无限体对流边界自相似解
+% ============================================================
+
+@book{taowenquan2001,
+  author       = {陶文铨},
+  title        = {数值传热学},
+  edition      = {2},
+  publisher    = {西安交通大学出版社},
+  address      = {西安},
+  isbn         = {7-5605-1436-7},
+  year         = {2001}
+}
+
+@book{crank1975,
+  author       = {Crank, J.},
+  title        = {The Mathematics of Diffusion},
+  edition      = {2},
+  publisher    = {Clarendon Press},
+  address      = {Oxford},
+  isbn         = {0-19-853344-6},
+  year         = {1975}
+}

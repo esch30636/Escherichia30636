@@ -1,0 +1,10 @@
+{
+  "heat_series_180_vs_360": 4.5076092192175565e-08,
+  "heat_constant_max_abs_error": 3.3974773373302014e-05,
+  "heat_constant_balance_max": 4.844125101044483e-12,
+  "moisture_constant_max_abs_error": 1.5264648237423017e-05,
+  "moisture_constant_balance_max": 1.0595690991266338e-14,
+  "end_effect_max_C": 6.346326690900405e-08,
+  "end_effect_refinement_difference_C": 2.8472937344576917e-08,
+  "end_effect_final_center_C": 6.346326690900405e-08
+}

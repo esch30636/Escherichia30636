@@ -1,0 +1,3882 @@
+
+===== PAGE 1 =====
+红外干涉法测量外延层厚度的建模分析
+摘要
+本文通过研究红外于涉法测外延层厚度问题，提出了一种基于牛顿选代反
+演反射率模型参数、同基于波谷周期关系进行数值计算厚度交叉印证的解决
+路径。
+对于问题一，该方案首先基于碳化硅和硅的先验折射率物理模型和双光
+束于涉的反射强度公式，设计了一个基于Drude折射率模型、给出了直接计
+算外延层厚度的公式：
+对于问题二，在基于折射率和反射强度公式建立的模型上，设计了两个求
+解路线（1）周期波谷直接计算法：通过反射率表达式给出的理论震荡周期和厚
+度d的关系建立d的显式表达式，在附件1、2测得的反射率曲线上通过样条
+插值取出准确极值点坐标值，计算多组厚度d并用统计方法给出最终厚度计
+算值为7.544um（2）牛顿选代反演法：以已经建立的反射率表达式R作为依
+赖厚度d参数曲线，通过用牛顿送代拟合R与实验测得的反射率曲线，给
+出厚度d的选代解为；7.295um作为直接计算值7.544um的较好印证值
+对于问题三，解答路线是（A）先建立多光于涉模型，分析多光束效应显
+著的物理必要条件，并给出判断多光束效应对原模型求解精度影响大小的评
+判指标G，（B）基于前两问的建模和给出的波谷直接计算法和牛顿选代反演
+法，代人硅晶片的折射率经验曲线，建立确定硅外延层厚度计算的数学模型和
+算法。给出附件3，4数据的厚度计算值为3.453um（直接计算）和3.414um
+（牛顿选代），最终以3.432um作为附件3、4硅晶片的厚度计算结果（C）通
+过G值检验和机器学习检验，用（B）中初步计算结果和参与计算的量考察多
+光束效应对附件3，4所测数值影响的强弱（D）对附件1，2所测数据评估多
+光束效应，并在波谷直接计算法和牛顿选代反演法上都进行模型修正，以尝试
+消除多光束效应的影响，得出在修正模型下计算得厚度和第二问中计算得到
+结果差距极小，因而判断附件1、2中多光束干涉效应较弱，最终可信的厚度
+值是7.455μum
+dxs.moe
+
+===== PAGE 2 =====
+1问题背景与重述
+2
+关键词：折射率建模，牛顿送代反演，三次样条拟合，机器学习
+1问题背景与重述
+1.1问题的背景
+碳化硅是一种新型半导体材料，在某些碳化硅器件的制备过程中，需要在高掺杂浓度的基底上
+生长一层低掺杂浓度的外慈层。测量碳化硅的外延层厚度对器件的制备至关重要，我们需要一个精
+确易得的碳化硅外延层厚度测量方法。
+红外干涉法利用等倾干涉的原理：由于两束反射光之间的相位差受到光波长影响，红外光入射
+碳化硅晶圆表面的反射谱呈现出交替相消相长的特性，也即干涉条纹，通过该方法可以无损测量碳
+化硅外延层的厚度。在一定条件下，光束可能在外延层表面和衬底表面发生多次折射和反射，进而
+形成多光束干涉，从而降低厚度测量的精度。
+利用红外干涉法计算外延层厚度需要碳化硅的折射率作为参量，而碳化硅的折射率受到掺杂浓
+度和人射光的波长等参数的影响，能否对碳化硅折射率进行精确建模直接影响到厚度测量精度和可
+靠性。在固体物理研究中，通常基于Drude模型对不同掺杂浓度碳化硅的复介电常数建立数学模型，
+进而得出一定掺杂浓度下碳化硅的折射率-波数曲线。
+1.2问题的重述
+间题1：（1）仅考虑光在外延层和衬底之间的单次反射、透射，基于红外光的反射率光谱情形，
+建立确定外延层厚度的数学模型。
+问题2：（1）使用问题1建立的模型，设计算法，用红外光反射率光谱计算碳化硅外延层的厚
+度，（2）对附件提供的不同入射角的碳化硅片的光谱实测数据进行分析计算，给出计算结果（3）评
+估结果的可靠性。
+间题3：（1）实际情况中，光波可以在外慈层和空气界面以及外延层和衬底界面多次反射和透
+射，推导产生多光束干涉的必要条件，（2）分析多光束干涉是否会影响外延层厚度的计算精度。（3）
+根据必要条件分析附件3和附件4的硅晶圆片数据是否体现出多光束干涉，建立数学模型和算法，
+计算硅外延层厚度。（4）分析碳化硅晶圆片中是否存在多光束干涉，如果存在，则消除多光束干涉
+的影响，并给出新的计算结果。
+2问题分析
+2.1问题一：双光束干涉模型与厚度计算公式
+本题首先需要建立红外干涉法下的物理模型。在假设仅有空气/外延层与外延层/衬底两界面的
+单次反射时，可用双光束干涉模型描述反射率。其关键是基于菲涅尔公式写出反射振辐，结合外延
+层厚度d与相位延迟6的关系，得到反射率R（i，d）的解析式。这样，膜厚d就成为反射率曲线的
+决定性参数。间题一的核心是将折射率模型n（i，M）与干涉公式结合，推导出外延层厚度的计算表
+达式。
+
+===== PAGE 3 =====
+3模型假设
+2.2问题二：两种厚度反演方法与可靠性分析
+在间题一模型基础上，需要从实际反射率光谱数据反推出膜厚。为此设计了两条路线：
+1.周期波谷直接计算法：利用干涉极值点之间的相位差恒为2的特征，推导出厚度d与相邻波
+谷波数间隔的显式关系。通过样条插值获取精确极值点，再逐对计算出多个d，最后用统计方
+法得出平均厚度及置信区间。
+2.牛顿选代反演法：将反射率表达式R（，dN，N2）与实测曲线Rxp（)拟合，构造残差平方和
+作为目标函数，以dN，N2为变量进行送代优化。通过网格疫索设定初值，避免局部极值陷
+阱。最终得到稳定的选代解，输出厚度d。
+两种方法相互验证，并结合统计指标（标准差、置信区间、变异系数）来评估厚度求解结果的可靠
+性。
+2.3问题三：多光束干涉效应与修正
+实际情况中，光在外延层内会发生多次往返反射，形成多光束干涉。相比双光束模型，多光束
+干涉在反射率表达式中引人分母几何级数项。向题三的思路是：
+1.推导多光束干涉的等效反射率公式R（)，并定义表征效应显著性的参数G。
+2.通过比较多光束与双光束模型的差异，判断多光束效应对厚度计算精度的影响，特别是在外延
+层折射率较大、吸收较弱时，G值增大，效应显著。
+3.对附件数据，先用双光束模型计算厚度，再引入修正公式
+Rs(8) =R(5) [1 + ro112e|²
+还原得到双光束等效反射率，重新进行厚度反演，从而减弱多光束效应带来的系统偏差。
+这样既能解释多光束效应的物理条件，也能通过修正得到更接近真实的厚度值。
+3模型假设
+模型假设主要包括
+3.1碳化硅和硅固体物理特性假设
+（1）掺杂浓度假设：题目所指向的现实背景中，碳化硅和硅在衬底和外延层上都有一定的参杂
+浓度，面掺杂浓度对折射率造成影响。为尽可能简化模型，我们假设衬底和外延层的掺杂浓度分别
+为常数，且在衬底和外延的交界面上突变
+（2）极性假设：晶体的光学声子与光波的精合现象受到品体极性的显著影响，为了简化模型的
+同时贴合现实情况，做如下假设：硅作为非极性材料，即使在高参杂浓度下我们仍假设其LO/TO
+光学声子兼并，在折射率模型建立中也不考虑相关效应：碳化硅作为极性较强的材料，我们将在数
+dxs.mo2
+
+===== PAGE 4 =====
+4本文符号约定
+3.2人射光偏振情况假设
+反射光束干涉模型的建立依赖于介质表面的Fresnel公式，面不同偏振光在斜人射情况下得到
+的结果有所不同，为得到具有一般意义的答案，并尽可能简化求解过程，我们假设人射光为完全偏
+振光，即s光和p光的光照强度各占50%。
+4本文符号约定
+符号表
+拉丁字母
+入
+真空波长，单位：cm
+Om
+以m-1计的波数，m=100
+i=n+in膜层复折射率（实部n，消光系数k）
+波数（常用cm-1），与入关系：=1/入
+d
+薄膜厚度，单位：m
+E/E。反射/入射电场的复振辐比
+入射介质折射率（通常为空气=1）
+n2
+基底折射率（可复数）
+Texat
+多光束（Airy）等效反射振辐
+T2-bram两光束（单次往返）等效反射振幅
+频率，单位：Hz
+希腊字母
+β
+单程相位，β=ndcosθ
+往返相位，=23
+qd/
+声子阻尼
+μ
+载流子迁移率（cm²V-1s-1或m²V-1g-1）
+wp，。Drude等离子角频率、载流子阻尼
+WT，WLTO/LO声子角频率（或对应波数，L）
+=0入射角（在介质0中）
+01
+dxs.moe.gov.cn
+
+===== PAGE 5 =====
+5模型建立与求解
+00
+高频介电常数
+N
+掺杂/自由载流子浓度（cm-3）
+N
+外延层掺杂浓度
+N2
+衬底掺杂浓度
+运算符与常量
+虚数单位，i²=-1（与条纹阶差i∈Z区分）
+圆周率
+C
+真空光速，c=299792458m/s
+下标与上标
+（s)，（p）偏振标记：s偏振/p偏振
+0,1,2介质编号：人射介质/薄膜/基底
+R（，3{}复数的实部/虚部（或K=Sn）
+5模型建立与求解
+5.1问题1模型建立：
+5.1.1折射率模型建立
+红外干涉法测量碳化硅外延层厚度依赖于碳化硅的折射率作为参量，而碳化硅材料的折射率同
+时受到载流子掺杂浓度、人射光波数等因素的影响，为了精确计算题目情景下的碳化硅折射率曲线，
+我们查阅资料，借助固体物理的先验知识建立了折射率n关于载流子掺杂浓度N和人射波波数
+的数学模型，即：
+n =n(i,N)
+(1)
+光束的折射率由材料的复介电常数确定：
+n=√R（e(i)）
+(2)
+在固体物理中，通常应用Drude经典模型研究载流子对材料电磁特性的影响，进而求出复介电
+常数eDrudk、与此同时，考虑到碳化硅晶体具有较强极性，在题目所求的中远红外波段（2.5pm25um）
+下，碳化硅晶体光学声子与红外光耦合而产生的强吸收峰不可忽略，因此加人以LO/TO光学声子
+频率为参量的修正项corrected对复介电常数计算进行修正。从而给出复介电常数的计算公式：
+(）=EDrude + Ecorrected = oo
+[ 1 +
+(3)
+
+===== PAGE 6 =====
+上述企式中, D 等其广部本, 和我了期  由组死企式排排列
+(4)
+= mK(N)
+()
+Toeo 起) 进8:
+Ps
+1+ ()
+（这里的折本家然是发数，用于者波元学中行计算）
+职立上述各式，我们期排别了碳化班指射事n天下元来波款及现于排身除度的数学核
+(F.N) *
+率随人制光波款的变化南线，风典线中可以后判，在烟目情最的红济光流没下，碳化折率数
+积探上述理立的关于获化硅制料的折射本数学模型。我们取一热业定的接是浓度经排出了折能
+持合常见的些典，共在波数一73处出既是增的失明，去现出静价元学声于对红外元
+图 1 要化班材在给定排余抹度下折射率(实部)随人程能波数的变化自线
+中国大子
+
+===== PAGE 7 =====
+根型武立与永院
+图2 要化硅材析在给定接业指度下折射本 (虚部) 随人射光波数的变化盘线
+5.1.2反射光来于净模型
+让降膜折指率为,，加发为4,人排他为 ，原内指时  由 S1定排
+n,sin = k, siof
+维出, 通过小量近世法治出, 光在薄度中一次在运的相化延这为
+(18)
+在仅考虑允求在外通层和村鼠发生一优通射，反转时情况下，实际及生干涉的光家为及光症，也
+1. 从及易面01直接反射的光 指最表示为;
+2. 通射进人界度, 在男面 1|2及射后剂次适据出的光 指指表示为心2°
+ +
+)  +
+极保模型很设，考非人新光为完业编报光，因此最原反
+手均,对在公次为
+(13)
+
+===== PAGE 8 =====
+5模型建立与求解
+综合上述各式，并结合5.1.1中的折射率模型，我们建立了双光束干涉的近似反射模型，Ravg（）
+表现为以外延层厚度d、外延层掺杂浓度N1、衬底掺杂浓度N为参数的参数曲线，可用于薄膜厚
+度的反演计算。
+5.1.3外延层厚度确定方法（周期波谷直接计算法）
+由反射谱强度公式知在弱吸收情况下，反射谱谷（或峰）之间相邻极值的相位差恒为2π。由
+式(10)可知相位延迟为
+(c) = 4π d (100 ) /n²(i)—n² sin² ,
+其中为波数（单位cm-），n（）为折射率，为人射角。
+若在两个反射谱谷（或峰）处波数分别为i，i，且对应干涉级次差为整数i=mg-m，则有
+8（）-8（）=2πi
+由此解得薄膜厚度：
+d =
+(14)
+2n2(0)n²sin²n²(in)ngsin²
+该公式给出了在已知折射率曲线与人射角的条件下，通过反射频谱极值位置直接计算膜厚d的
+方法。
+5.1.4模型总结
+综上，闫题1通过对碳化硅折射率的物理建模与双光束干涉模型的推导，建立了红外反射率与
+外延层厚度之间的数学联系。首先，利用包含Drude自由载流子项与LO/TO光学声子修正项的介
+电函数模型，得到折射率函数n（，N），保证了模型在中远红外波段下的物理合理性。其次，基于非
+涅尔公式与相位延迟关系，推导出双光束干涉的反射率表达式R（；d，N，N2，），明确了反射率
+曲线由厚度、掺杂浓度和入射角等物理参量共同决定。最后，通过分析相邻极值点间的相位差关系，
+给出了外慈层厚度d的直接计算公式，为后续的数值求解与实验数据拟合提供了基础。该模型兼具
+物理解释力与计算可操作性，是后续问题2和问题3的出发点。
+5.2问题2模型建立与求解
+在问题1给定的模型上求解具体的d值，我们给出两条可行的路径：
+（1）周期波谷直接计算法该方法直接用d的显示表达式，通过在反射谱上取出多组相邻的周期
+波谷极值点，代人数据直接计算得相应的厚度值，再对计算结果进行统计分析，结合公式误差来源
+（其证明在”模型检验与合理性分析“中）舍弃计算误差较大的结果，接着给出直接计算法的误差限、
+结果可信水平、置信区间
+cn
+(2）牛顿选代反演模型法该方法观点下，我们在给定掺杂浓度NN2后将唯一确定衬底和外延
+层的折射率函数n（i），进而对于每一个厚度d，我们能计算出唯一的反射率曲线R（d，n（i）n（c）），
+dxs.m
+
+===== PAGE 9 =====
+5模型建立与求解
+对于一个接近真实值的厚度d，其对应的反射率曲线R（d，n（），n（））会非常接近于观测到的反
+射率曲线R
+我们以（R（,p)-Re（)）²作为需要极小化的损失函数F其中，M是真实测得
+的参数点的数量，因外延层和衬底折射率是掺杂浓度N，N2为参量的曲线，给定N，N2和d后
+R（o）被完全确定。我们以这三个量为训练参数最优化损失函数F。
+当F极小的时候，理论计算的反射率曲线最贴近于附件1，2给出的真实反射率曲线。此时输
+出的参数N，N是此块碳化硅材料外延层和衬底的渗杂浓度一个好的近似，d是接近于真值厚度的
+一个值
+方法1：周期波谷直接计算法
+5.2.1数据预处理
+通过三次样条插值平滑化函数并通过对样条函数求数值导数找到其局部最小值点，样条函数的
+引入是为了：（1）重建反射率函数滤去毛刺高频噪声，便于识别曲线大劳趋上的周期波动，（2）提
+供一个确定的平滑函数表达式，便于通过求导找到更准确波谷频数的参考值：
+如图所示，被标出的点是样条函数上取出表征反射率周期波谷的点（绿色是后续经计算得到可
+信厚度d值的点，红色是计算得到偏差较大的厚度d，且经过误差限分析（在模型检验及合理性分
+析部分给出证明）认为和前后波谷点用于计算会有较大误差的点）。
+ f() eri
+=- f(x) trend
+geints en f(x)
+ereng poirts on f(x)
+图3：附件2滑动窗口样条函数和极值点-全局情况
+中国大学生在线
+
+===== PAGE 10 =====
+5模型建立与求解
+10
+700
+800
+图4：附件2滑动窗口样条和极值点-局部情况
+5.2.2厚度计算及结果
+用滑动窗口样条拟合碳化硅的反射率随波数的变化便于取出极值点，对所有取出的波谷按照顺
+序，用相邻两波谷频数来计算外延层厚度，得到多个外延层厚度，利用3原则剔除差距较大可疑
+值之后对其进行统计分析。最终用直接计算法的厚度将是通过统计方法处理以上数据的结果：
+表1：计算得到的厚度d（标准偏差大于3a的异常值标记黑体）
+厚度d值（μum）
+入射角10°
+入射角15°
+7.6298
+7.6100
+7.4837
+7.5434
+162'↓
+7.370
+7.4360
+7.4237
+7.3104
+7.9480
+7.4515
+7.7617
+7.4367
+1.1918
+7.4464
+7.6774
+7.2732
+1.4167 7.3153
+7.8101
+7.8501
+7.81627.3767
+20.5125
+7.6394
+7.78247.7172
+10.7028
+7.56197.0561
+6.8970
+d=
+d/o + d/0²
+1/α + 1
+中国大学生在线
+dx's:
+
+===== PAGE 11 =====
+5模型建立与求解
+11
+得
+d =7.544,α = 0.170
+5.2.3可靠性分析
+对厚度组进行了统计分析，计算了平均值、标准差、不确定度、置信区间和变异系数等量。
+表2：剔除异常值之后修正模型碳化硅外延层厚度值的统计值
+统计量
+人射角10°
+人射角150
+数据点数L
+11
+15
+自由度n
+10
+14
+平均厚度
+7.575856
+7.48711
+标准偏差d
+0.212318
+0.284504
+标准误差
+0.067141
+0.076037
+tera(95%)
+2.262157
+2.160369
+CIss (low)
+7.423973
+7.322842
+Clss(high)
+7.727739
+7.651377
+离散系数CV(%）
+2.802562
+3.799922
+均值计算别除可疑点并认为剩余样本近似独立同分布，记样本数为L，
+d)2
+f=1
+其中自由度v一般取v=L-1
+不确定度计算
+标准偏差：
+d}
+(33)
+标准误差：
+Po
+置信区间计算在未知方差的小样本条件下，
+d-μd
+T=
+sa/√L
+从而真实平均厚度μ的100（1-a）%置信区间为
+中国大学生在线
+Cl-
+(15)
+
+===== PAGE 12 =====
+5模型建立与求解
+12
+当L>30或正态性检验（如Shapiro-Wilk）通过时，t分布可近似为标准正态，式（15）中的分位
+数可换用x1-a/2
+变异系数检查为表征相对离散程度，使用变异系数
+经验阔值：CV<3%为优秀重复性，3%~5%为良好，5%~10%为基本可接受；若CV>10%则
+提示离歌性较高，宜复测或检查模型与数据处理（例如在折射率色散陡区dn/du较大时，厚度
+解对额率/波数扰动更敏感）。
+根据表2的计算结果，利用两个人射角下得到的平均厚度和标准偏差，用逆方差公式计算得最
+终结果
+d = 7.455, α = 0.170
+方法2：牛顿迭代反演参数法
+5.2.4选代反演参数方法介绍
+在材料科学与工程领域，用观测到的实验数据反演材料的物理参数是重要的任务。通常需要构
+建非线性物理模型，使用最优化算法拟合实验数据。
+而本研究需要利用红外反射光谱的数据，确定薄膜厚度及各层掺杂的浓度。我们采用网格搜索
+和牛顿选代结合的疫索优化算法，实现非线性空间内的最优参数索。
+5.2.5问题构建
+我们的目标是找到一组参数p=dN1，N2（分别代表外延层厚度、外延层掺杂浓度和衬底掺杂
+浓度），通过同时优化掺杂浓度（进而调整折射率随频数变化的参数曲线形状）和参考的外延层厚度
+使得理论计算的反射率Rcalc（，p）与实验测量的反射率Rrea（o）之间的残差平方和最小，此即，当
+在选代输出的厚度和掺杂浓度下，若理论计算反射曲线接近于实验测量曲线，则认为送代得到的厚
+度较好的反肤了真实的厚度值。这是一个非线性最小二乘优化间题：
+min F(p) = 2
+2
+（Rele(o，p)-Rexp（oi)）²
+其中，M是真实测得的参数点的数量。因为材料的折射率和掺杂浓度之间，反射率模型与厚度
+之间存在非线性关系，为了提高算法的数值稳定性与收敛效率，我们将掺杂浓度参数转换为其对数
+形式logn（N）进行优化。
+dxs.moe.gov.cn
+
+===== PAGE 13 =====
+5模型建立与求解
+13
+确定搜索空问，
+建立网格划分
+搜索网格中另一组初值
+初始参数p[d,N1,N2]
+进入数学模型
+与实际反射率计算
+平方损失
+香
+求解最小二乘
+更新最优参数
+优化的参数p
+平方损失更优
+是否收效或达到选代次数
+是
+与当前最优参数比较
+图5：结合高斯牛顿优化的网格搜索算法流程
+5.2.6搜索过程
+为了克服非线性最小二乘容易陷人高部最优的问题，本研究采用了网格搜索来设定参数的初值。
+我们为薄膜厚度d、薄膜掺杂浓度logo（N）和衬底掺杂浓度log1o（N2）各自设定了搜索范围，在参
+数空间表现为网格格点。初始参数从这些格点出发，进行高斯-牛顿法优化，可以防止算法停留在某
+个初值对应的局部最优点。
+5.2.7选代优化过程和结果
+在网络搜索给出参数初值之后，我们采用高斯-牛顿法对参数进行精细优化。高斯-牛顿法是一种
+用于解决非线性最小二乘问题的选代算法，其优势在于利用一阶导数信息近似二阶导数信息，从而
+避免了计算和存储复杂的二阶导数Hessian矩阵。
+高斯-牛顿法的选代更新公式可表示为：：
+J(px）△p=-f（p）
+其中，pk是当前选代的参数向量，f（pk）是残差向量（Rcate（o，pk）-Rep（o）、J(pe）是残差向
+量f（pk）对参数pe的雅可比矩阵（JacobianMatrix）。其具体实现步骤如下：
+1.残差计算：在每次选代中，首先根据当前参数p计算理论反射宰，并得到残差向量f（p）。
+目标函数的损失值即为残差向量的平方和。
+2.雅可比矩阵计算：我们采用有限差分法来近似计算雅可比矩阵J（x）中的元素。对于每个参
+
+===== PAGE 14 =====
+5模型建立与求解
+14
+af:(p)
+f:(p+h·e;)-f:(p)
+Ji=
+apj
+h
+其中e是第i个分量为1的单位向量，h是一个小的扰动步长。
+3.参数更新：获得雅可比矩阵J（p）和残差向量f（p）后，求解线性最小二乘问题J（px）△p=
+f（pk），得到参数更新量△p。
+的容许误差来判断是否达到收敛。
+反演得到4H-SiC薄膜的厚度以及薄膜和衬底的掺杂浓度。
+图6：反演参数曲线与真实碳化硅10度入射角反射率曲线的匹配情况
+1. 6 X 10
+选代次数
+学生在线
+图7：高斯-牛顿选代误差收敛情况
+F
+从图6中可以看到，根据模型建立的参数曲线与真实实验数据吻合度极高，反映了我们建立的
+ov.cn
+物理模型和使用的参数的有效性，即碳化硅折射率和双光束干涉模型较好解释了真实反射率曲线的
+dxs.
+
+===== PAGE 15 =====
+5模型建立与求解
+15
+拟合得到的参数：
+表3：反演得到的参数（碳化硅人射角10）
+反演参数
+反演值
+外延层厚度d（m）
+7.295
+外延层掺杂浓度N（cm-3）3.41×1017
+衬底掺杂浓度N2（cm-3）
+2.95 × 101s
+反演得到外延层厚度d=7.295um，与方法1的结果接近，两者相互印证。
+5.2.8问题2模型与求解方法总结
+综上所述，闫题2的求解主要建立在闫题1所提出的反射率物理模型之上。我们提出了两条互
+为印证的计算路径：
+·周期波谷直接计算法：基于反射率极值点的周期性规律，利用相邻波谷频数差与膜厚之间的解
+析关系，直接计算得到外延层厚度。通过样条插值与极值点提取实现对实验噪声的抑制，再结
+合统计方法剔除异常值，从面保证结果的稳定性与可信度。
+·牛顿选代反演法：将外延层厚度与掺杂浓度作为待定参数，构建非线性最小二乘优化间题，通
+过网格索与高斯-牛顿选代相结合实现参数的收敛拟合。该方法能够充分利用整个反射率曲
+线的信息，具有较强的鲁棒性与全局性。
+两种方法各具优劳：直接计算法公式简洁、直观透明，适合快速获得近似厚度值：选代反演法
+则能够在全局范围内优化参数，获得与实验数据高度吻合的结果。二者在数值结果上的接近性也从
+侧面验证了所建物理模型与算法的可靠性，为进一步分析多光束效应奠定了坚实基础。
+5.3问题3模型建立与求解
+5.3.1多光束干涉模型建立
+双光束模型忽略了在外延层内多次反射后透射到空气中的光束分量。在多光束干涉模型中，同
+样Drude模型给出的折射率参数曲线，但修改反射强度R依赖于折射率n1，n2和厚度d的表达式
+如下：
+把在膜内往返的高阶项按几何级数求和，得到
+(pl+(p)s
+1 +r(pl(po） es
+(16)
+式中每一轮回都包含一次1|2反射与一次0|1反射；若考虑吸收，可令e
+
+===== PAGE 16 =====
+5模型建立与求解
+16
+其中界面ii的菲涅尔振幅系数（s/p）为
+r=
+C-gC1
+C+f1
+Co+ig1
+C; = cos0
+(17)
+反射率曲线
+R(pol)(8)
+(18)
+5.3.2多光束干涉效应的强弱讨论
+真实的物理模型更贴近于多光束干涉，而非双光束干涉。本节中通过比对多光束干涉和双光束
+干涉的振辐和反射率曲线，探究什么情况下多光束干涉和双光束干涉模型差异较大，进而多光束干
+涉的影响不可忽略。r（6）对比双光束干涉的反射振幅表达式
+(19)
+由此可知两光束（19）与多光束（16）的差别。在较小人射角下，二者分子项基本相同，多光束
+干涉的分母项多了一项复数，影响了反射率曲线的形状。
+即
+(pom()
+1
+(9)(0)
+1 +rpo(poles
+(20)
+多光束效应显著性表征量的引人描述反射率曲线形状改变可以直接用分母上增加的复数量的模G
+来考量，其中
+(21)
+用G表示的r（8)为
+(Bel)(6)=
+=arg（r(o)(po)
+1 +Ge(+)
+R(po(8)
+1)²
+1
+R(-(6)
+1 +Gei(6+)
+式中只是影响相位，不对反射率大小和其随频数振动的周期（即反射率曲线的振动有贡献），
+而较大的G将显著影响反射率，进而使得多光束和双光束模型产生较大差异。下面考虑较大G值
+的产生
+G表达式中的exp（-dcos9）的物理意义对应在介质中因透射造成的强度损失由于薄膜
+内单程相位为
+β =
+ndcoso1.
+(22)
+dxs.moe
+
+===== PAGE 17 =====
+5模型建立与求解
+LT
+若写出吸收（每一次往返的振辐衰减），则
+e→exp（indcosθ）exp（dcosθ）
+(23)
+相位
+不难知在透射系数（即折射率n1的虚部）较小时多光束模型和双光束差异显著，多光束干涉
+的效应愈发明显
+对于G表达式中的剩余项ron，T12，可由菲涅尔系数读出影响G的关键因素与结论：
+多光束干涉产生必要条件：
+·顶界面（空气→外延层）反射强：近法线时Ro1=（=）。因此n越大（与空气差越大），
+ro越大，更容易G大、出现显著多光束效应。
+·外延层内吸收弱吸收系数x越小或远离强吸收带（如Reststrahlen带），式（23）的衰减越弱，
+高阶往返保留，多光束的更显著；同时需光源相干长度Le≥2ndcos91。
+·指定范围的人射角度（较小的人射角）：s偏振R”随入射角增大而增大，因而对于光，
+较大的人射角造成多光束效应不可忽略；p偏振在布偏斯特角tanB=n/no附近R→0，
+在远离布儒斯特角的位置，多光束效应较强，不能用双光束模型简单替代。。
+·极端角度/全反射：若从膜向空气看满足0>0。=arcsin（no/n1），则r1o≈1，多光束极强
+从式（16）与判据（21）可见：当外延层折射率较大（使Ro1高）、吸收小、相干性足、人射角不
+太大时，反射谱R（入）的峰谷形状、深度与两光束模型（19）相比会出现显著差异，此时应采用多光
+束（Airy）模型进行建模与厚度反演。
+G值大小对多光束干涉效应显著性的描述由
+Rer(6) |o +12a|2
+++()
+α仅是实数相于是给出
+[1 + r12e| ∈ [1  G], 1 + G] =
+故最坏相对偏差2G（当G《1）。故最坏相对偏差mx2G（当G《1）若要求两模型
+相差不超过约2%、10%、20%，对应
+G ≤ 0.01 0.05 0.1
+5.3.3多光束干涉对计算求解精度的影响
+大学生在线
+由反射谱随机噪声引起的计算误差在直接求解厚度d时，我们需要确定反射光谱的极值点位置
+因此求解精度直接取决于参与计算的周期极值谷点亏估算精度、由于实验数据（这里指反射率曲线
+dxs.mo
+
+===== PAGE 18 =====
+5模型建立与求解
+或重建的样条曲线）往往存在随机高频小幅噪声的叠加，这造成了参与计算的极值点和真实极值
+谷点的偏差，进面降低了计算精度。对于实验反射率曲线Ro，我们建立如下模型：
+Ro(c)=f(b) +e(b),
+其中是真实的完全符合理论公式的平滑真反射谱，是小幅随机噪声（近似独立）。对真极值
+附近，泰勒展开
+f(b）f（b)+r"（bo）(θb）²（极值点，f（bo)=0）.
+在“小噪声+局部二次”近似下，极值位置估计的随机误差一阶主导为
+gD
+∈′()
+f"(io))
+Var(b)
+Var(e′(b)]
+(f°(6))
+由此可见，真实反射率曲线的二阶导数直接控制了取值与真值的偏差。即二阶导数越小，随
+机误差传导到v放大的倍数更大。
+真实多光束干涉下建立的模型相比双光束干涉下建立的模型，其求解厚度d时会对反射率曲线
+上非平滑的随机噪声更敏感。原因在于其相对频数的二阶导数更小。
+0.00014
+Fabricated Second Derivative at specified  (with percentage line)
+tao-beam dRd
+0.00012
+exat (fabricated) e°Rid 110
+ratio exact/two-beam (%)
+0.00010
+·90
+0.00006
+0.00004
+0.00002
+0.00000
+500
+1000
+1500
+2000
+2500
+Wavenumber  (cm~1)
+000E
+3500
+图8：在极值点上多/双光束干涉模型给出的二阶导，及其比值
+如图所示是附件3，4参与波谷直接法计算的点上双光束与多光束模型反射率的二阶导数，及其
+比值，表中是其数值比对情况。由图中情况可以看出，在大多数极值点上，多光束模型的二阶导数
+均小于双光束模型，根据前面的分析，多光束干涉模型将因此对随机噪声更敏感，进而降低计算求
+解精度，
+dxs.mo
+
+===== PAGE 19 =====
+5模型建立与求解
+19
+5.3.4附件3、4厚度计算与分析多光束干涉效应显著情况
+本节通过检查附件3，4数据，在利用双光束干涉模型的周期波谷直接计算法和牛顿选代法求解
+厚度值d时，所使用数据的多光束干涉效应显著性，来评估基于双光束干涉对附件3、4数据的两
+个求解是否与真实情况存在较大偏差，即附件3、4硅晶圆片测得数据是否出现明显的多光束干涉
+1利用双光束模型的附件3、4进行厚度计算
+厚度计算：周期波谷直接计算法
+由多光束干涉模型的反射率表达式知，反射率同样随频数存在周期波动，因而周期波谷直接计
+算法同样适用于多光束干涉、这里先以问题2中周期波谷直接计算法的流程对附件3，4数据进行
+计算，再分析多光束干涉效应的显著性
+用滑动窗口样条拟合硅晶片的反射率随波数的变化便于取出极值点，对所有取出的波谷按照顺
+序，用相邻两波谷频数来计算外延层厚度，得到多个外延层厚度，同样利用3r原则剔除差距较大
+可疑值之后对其进行统计分析。
+表4：计算得到的厚度d（标准偏差大于3的异常值标记黑体）
+厚度d值（μm）
+入射角10°
+人射角15°
+4.090459
+4.028401
+3.615786
+3.569042
+3.478762
+3.465043
+3.488981
+3.280644
+3.372371
+3.559969
+3.406687
+3.370166
+3.317398
+3.433889
+最终用直接计算法的厚度将是通过统计方法处理以上数据的结果：
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 20 =====
+5模型建立与求解
+20
+表5：剔除异常值之后硅晶片外延层厚度值的统计值
+统计量
+人射角10°
+人射角15°
+数据点数L
+6
+5
+自由度n
+5
+4
+平均厚度
+3.446664
+3.457267
+标准偏差ad
+0.105120
+0.079039
+标准误差
+0.042915
+0.039519
+tera(95%)
+2.570582
+3.182446
+CIsss (low)
+3.336348
+3.331499
+Clss(high)
+3.556980
+3.583035
+离散系数CV(%)
+3.049892
+2.286157
+在15°入射角CV小于3%，10°人射角CV略大于3%而小于5%，可以发现厚度计算的可靠
+性比较好。并根据表5的计算结果，利用两个人射角下得到的平均厚度和标准偏差，计算得最终的
+值：
+d=3.453,a=0.063
+厚度计算：牛顿选代反演参数法
+牛顿选代反演求解厚度我们首先利用问题2中类似的选代方式，学习到一个收敛厚度值和相应的
+硅掺杂浓度。
+反演得到硅晶片的厚度以及薄膜和衬底的掺杂浓度。
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 21 =====
+5模型建立与求解
+21
+图9：反演参数曲线与真实硅晶片10度入射角反射率曲线的匹配情况
+选代次整
+图10：高斯-牛顿选代误差收敛情况
+这里展示以10度入射时（附件1）的牛顿选代曲线拟合情况以及误差收敛情况，得到外延层厚
+度 d = 3.414μum
+表6：反演得到的参数（硅晶片入射角10）
+反演参数
+反演值
+外延层厚度d（μm)
+3.414
+衬底掺杂浓度N（cm-3）
+3.80×1019
+[2]根据计算结果分析多光束效应显著程度
+dxs.moe.gov.cn
+
+===== PAGE 22 =====
+5模型建立与求解
+22
+显著程度：物理量必要条件和G值检验
+首先考察顶界面（空气→外延层）反射强弱情况，这部分效应随n的模长变的显著
+0.8
+10()
+0.7
+points on f（x)
+wrong points on f(x)
+06
+abs of n(x)
+8.2
+03
+0.2
+0.
+500
+1000
+1500
+2000
+2500
+3000
+3500
+4000
+图11：附件3直接求解数据点对应的外延层折射率情况
+f（x)or1
+0.8
+points on f(x)
+wrong points on f（x)
+abs of n（x)
+500
+1000
+1500
+2000
+2500
+3000
+3500
+4000
+图12:附件4直接求解数据点对应的外延层折射率情况
+生在线
+图中用与问题2相同的样条插值处理法确定极值点，利用周期波谷直接计算厚度值，并通过3
+法则去掉了参与计算所得结果偏差过大的点（红色点，该操作合理性在”模型检验与合理性”中有严
+格推导和检验），可见在两次计算厚度d中，参与计算的多数波谷点的折射率都落在n>3区间内（蓝
+
+===== PAGE 23 =====
+5模型建立与求解
+23
+色区域）
+接着考虑外延层中吸收强度的情况，这直接由吸收系数k=S（n）表征。类似的我们展示在所
+用波谷数据点上吸收系数的大小情况。
+（xor1
+5
+points on f(x)
+wrongpoints on f(x)
+3.0
+abs of n(x)
+imag of n(x)
+25
+06
+abs of n(x)
+imag of n（x)
+2.0
+x=1.3e+03
+= 0.3
+500
+1000
+1500
+2000
+2500
+3000
+3500
+4000
+X
+图13:附件3直接求解数据点对应的外延层吸收率情况
+（x)or1
+15
+0.8
+points on f（x)
+wrong pointsonf（x)
+3.0
+abs of n（x)
+imag of n(x)
+2.5
+abs of n(x)
+imag of n(x)
+2.0
+x=1.3e+03
+y=0.3
+1.5
+0
+500
+1000
+1500
+2000
+2500
+3000
+500
+4000
+图14:附件4直接求解数据点对应的外延层吸收率情况
+gov.cn
+可以明显看出，所有取出的波谷点吸收率都小于0.3（紫色虚线对应右侧横坐标），参与计算的绝
+
+===== PAGE 24 =====
+5模型建立与求解
+24
+大多数点（波数大于1300，紫色区域）吸收率都小于0.05。
+依照以上对两个量的估计（我们取使得多光束干涉效应最小的估计，n=3，k=0.05），我们计
+算出附件3，4对应的G值分别为：
+0.036,0.030这表明多光束和双光束模型在反射率曲线上差距最多不超过5%，认为这个数值较
+大，多光束干涉效应不可忽略
+显著程度：双光束和多光束曲线差异大小及各自反演拟合情况比较
+采用双光束模型，同样得到一组拟合的参数，和所对应的均方误差。
+图15:双光束、多光束的反演拟合情况与真实硅晶片10度入射角反射率曲线的匹配情况
+50
+进代次数
+图16:双光束模型损失函数下高斯-牛顿选代误表
+中国大学生在线
+
+===== PAGE 25 =====
+5模型建立与求解
+25
+表7：两者误差对比
+使用模型
+均方误差（三位有效数字）
+双光束模型
+20.8
+多光束模型
+3.62
+计算得出，收敛后双光束模型的均方误差误差显著大于多光束模型均方误差，可以认为此处适
+合使用多光束模型进行拟合。
+5.3.5附件1、2分析多光束干涉效应显著情况检验
+这里为简洁起见用G值进行判断，代人G表达式计算得
+G≤0.016,G≤0.010
+，查询5.3.2中对G值大小描述的参考中，这意味着多光束模型和双光束模型在反射率谱上的任意
+一点的差距不超过3%
+我们不能简单通过反射率曲线上的最大差距来判断多光束效应对模型求解厚度数值的影响。为
+了进一步探究其差距对求解的影响，下面以修正后的反射谱进行直接计算和牛顿选代修正。
+5.3.6附件1、2多光束干涉影响计算精度修正
+1.周期波谷直接计算法修正多光束效应对周期波谷计算法的影响主要是影响了波谷极值点更精确
+值的确定（前文已经说明），我们考虑从附件1，2的原始反射谱中还原一个更符合双光束模型的反
+射谱，在其上进行的波谷极值取值和厚度计算将更可信，误差限更小。
+在前文多光束效应显著性表征量G的给出时，已经证明了在人射角0取10°，15°范围内近
+似有
+R2b(6) = Re()|1 +r(pol)(ol) e|2
+(24)
+这里我们认为附件1、2所展示的数据是R（6）曲线，因此对该曲线进行修正，得到通过上
+式计算得适用于双光束模型（进而严格适用于周期波谷直接计算）。
+计算结果如下：
+最后用逆方差加权计算得到最终结果为：
+d =7.5461,o = ±0.1801
+(25)
+且可以d=7.544，a=0.170作为附件1，2求解的最终结果。
+2.牛顿选代反演法修正使用多光束干涉给出的反射率公式拟合反射率曲线，进面用于最小二乘损
+失的训练中，以消除选代法中模型存在的系统偏差，结果拟合出了更贴近于原始附件1、2的反射率
+曲线，随之输出了更可信的厚度值d：
+dxs.moe
+
+===== PAGE 26 =====
+5模型建立与求解
+26
+表8:统计结果
+统计量
+入射角10°
+人射角15°
+数据点数L
+11
+15
+自由度n
+10
+14
+平均厚度
+7.575856
+7.48711
+标准偏差
+0.212318
+0.284504
+标准误差a
+0.067141
+0.076037
+tera (95%)
+2.262157
+2.160369
+Cls (low)
+7.423973
+7.322842
+Clos% (high)
+7.651377
+离散系数CV（%）
+2.802562
+f(x) ori
+f (x) trend
+1.0
+500
+600
+700
+800
+图17：更新牛顿选代模型拟合到附件1曲线的局部
+两个输出的d值分别为7.560，7.571，与前一段计算得到的7.546较为吻合，作为直接计算结
+果的一个较好交叉匹配。
+中国大学生仕
+dxs.moe.gov.cn
+
+===== PAGE 27 =====
+6模型检验及合理性分析
+27
+6模型检验及合理性分析
+6.1周期波谷直接计算法去除可疑点
+对于间题2，3，在使用依照周期波谷直接计算法时，面对偏差较大的厚度计算值时，我们用30
+法则去除了偏离均值较大的数据。这个小节里面我们证明，所被去除的值确实存在异常，且降低计
+算得到数值和真值的误差。
+6.1.1直接计算法误差来源分析
+由于在计算厚度d时，使用的两个相邻波谷对应频数值存在较大偏差△（精准找到的极值点较
+难）。d的误差主要由数值的偏差带来，下面分析d对的敏感程度（）和误差的传递情况。
+由
+d =
+2
+2[v√/n²(u)sin²-vn²（u)sin²]
+设
+Ak=√/n²(uk)-sin²，
+nk=n（vk）,
+令F=vA-A（于是d=）。
+对的灵敏度
+等价地，用原式分母D=2vA-vA表示为
+0di
+，A=√n²-sin²，n=
+0vD
+A
+d
+只考虑v的不确定度时，一阶近似
+Ai
+小（人射角较大、或n不高）时，8d8v将显著增大，导致厚度d对v的微小扰动极为敏感。
+6.1.2问题2计算中偏差大数值的解释和处理
+下图展示出附件2（对于附件1有类似的情况，不重复展示示意图）的反射率曲线，对应的碳化
+硅折射率曲线，以及计算多个厚度d值使用并选择性删去的可疑点情况，
+中国大学生
+dxs.moe.gov.cn
+
+===== PAGE 28 =====
+6模型检验及合理性分析
+28
+1.0
+f(x） ori
+points on f(x)
+20
+80
+wrong points on f（x)
+abs of n(x)
+point with large deriavetive
+15
+0.6
+0.
+10
+0.2
+500
+1000
+1500
+2000
+2500
+3000
+3500
+4000
+图18：问题2直接计算法可疑点去除示意图
+图中可见，偏离平均值较远并被删去的点（红点）频数接近于碳化硅折射率共振点，对应有较大
+的n，n值，该店与前后相邻的谷底点（相邻绿点）进行计算时d对额数过于敏感，因此可能造成
+了计算得的厚度d与其他数值偏差过大的情况。
+从误差传递的角度来看，在计算中去除这一类点，或者在其附近多次取频数值进行计算和验证，
+是保证结果接近真值的合理做法。
+6.1.3问题三模型建立与求解方法总结
+本题在问题一、二的基础上，进一步考虑外延层内的多次往返反射，建立了多光束（Airy）干涉
+型进行对比；其次，引人表征多光束效应显著性的无量纲指标G=|reexp（-xdcos9），
+给出何时必须采用多光束模型的定量判据；再次，从误差传播角度说明多光束模型在极值附近使二
+阶导更小、对噪声更敏感，从而影响厚度求解精度；随后在附件3、4上分别用周期波谷直接法与牛
+顿选代法计算厚度，并通过G值与均方误差对比，验证了多光束模型在这些数据上的必要性与优越
+拟合效果；最后，对附件1、2给出基于R2b（6)=Rar（6)1+rlol）e的谱线修正流程，重新
+进行厚度反演，得到与直接法一致且不确定度更合理的结果，表明多光束效应在附件1、2中较弱但
+可量化修正，在附件3、4中则必须显式建模。
+中国大学生在乡
+
+===== PAGE 29 =====
+7模型评价与展望
+29
+7模型评价与展望
+7.1模型优点
+·物理基础扎实：模型从菲涅尔公式出发，结合Drude折射率模型与光学声子修正项，较完整地
+刻画了材料在中远红外波段下的光学性质，保证了物理意义的准确性。
+·方法多样互补：周期波谷直接计算法和牛顿选代反演法各具优势。前者提供厚度的显式公式，
+计算简洁直观；后者通过选代优化拟合实验曲线，精度更高。两者结果能够相互印证，提高了
+计算的可靠性。
+·多光束效应分析全面：引人多光束干涉的等效反射率表达式和表征参数G，不仅揭示了多光束
+效应的物理来源，还建立了定量判断标准，能够清断评估其对厚度计算的影响。
+·修正方法可行：通过推导Rb（6）=R（6）1+ronTn2e的修正关系，对实验反射率进行校
+正，从而降低了多光束效应引起的系统偏差。
+·结果可信度高：计算过程中引入统计分析（均值、标准差、置信区间、变异系数等），确保了厚
+度计算不仅有理论支撑，还有数值可靠性验证。
+7.2模型缺点
+·参数依赖性强：折射率模型所需的材料参数多取自文款，实际样品的温度、缺陷、表面租糙度
+等因素未完全纳人，可能导致与真实情况有偏差。
+·数据处理方法有限：对实验曲线的平滑与极值点提取主要依赖三次样条插值，尚未系统引入鲁
+棒滤波或频域降噪方法，在高操声条件下可能失效。
+·多光束修正仍近似：尽管引入G参数进行修正，但该方法本质上仍是基于近似展开，尚需更
+多实验数据与数值模拟来验证其适用范围。
+7.3未来展望
+未来研究可以在以下方向上进一步完善：
+1.在折射率建模中引入温度效应、缺陷态以及更高精度的实验测量数据，提升模型对实际器件样
+品的适用性；
+2.在数据处理上应用更先进的信号处理与机器学习方法，提高极值点提取的鲁棒性和精度；
+3.在多光束干涉分析上，发展更普适的理论判据，并结合实验数据标定，使修正结果更具可靠性；
+4.推广模型应用到更多半导体材料体系，如GaN、SiGe等，以验证其通用性。
+dxs.moe.gov.cn
+
+===== PAGE 30 =====
+8物理常数与材料参量
+30
+8
+物理常数与材料参量
+表9：物理常数与材料参量表
+符号
+含义与数值
+元电荷，1.602176634×10-19C
+E0
+真空介电常数，8.8541878128×10-12F/m
+me
+电子静止质量，9.1093837015×10-3kg
+Co
+真空光速，2.99792458×10m/s
+0o
+碳化硅高频介电常数，6.56
+碳化硅TO光学声子波数，794.0cm-1
+碳化硅LO光学声子波数，970.0cm-1
+Tpb
+声子阻尼参数，5.5cm-1
+参考文献
+[1]DeepSeek.DeepSeek-R1-671B.深度求索（DeepSeek)，2025.使用日期：2025-09-07
+[2]ChatGPT.ChatGPT-5.OpenAI,2025.使用日期：2025-09-06.
+[3] S. Basu, B. J. Lee, and Z. M. Zhang “Infrared radiative properties of heavily doped sili-
+con at room temperature,” Journal of Heat Trunsfer, vol. 132, no.2, p. 023301, 2010. doi:
+10.1115/1.4000171.
+[4]X. Tang, Y. Zhang, Z. Li, et al, *Thickness determination of 4H-SiC epitaxial films by infrared
+reflectance,”in Proc.IEEE Int.Conf.Electron Devices and Solid-State Circuits (EDSSC),
+2010, pp. 5394259. doi: 10.1109/EDSSC.2009.5394259.
+[5] P. J. Severin, “On the infrared thickness measurement of epitaxially grown silicon layers,”
+Applied Optics, vol. 9, no. 10, p. 23812386, 1970. doi: 10.1364/AO.9.002381.
+[6] S. Hava and M. Auslender, “Theoretical dependence of infrared absorption in bulk-doped
+silicon on carrier concentration,” Applied Optics, vol. 32, no. 7,Pp. 11221125, 1993. doi:
+10.1364/AO.32.001122.
+[7]R. Soref, R. E. Peale, and W. Buchwald, “Longwave plasmonics on doped silicon and silicides,
+Optics Express, vol. 16, no. 9, pp. 65076514, 2008. doi: 10.1364/OE.16.006507.
+[8] E. Pop, S. Sinha, and K. E. Goodson, “Monte Carlo modeling of heat generation in electronic
+nanostructures, in Proc. IMECE' 02, ASME Int. Mech. Eng. Congress anid Exposition, 2002,
+Paper No. IMECE02/HT-32124.
+dxs.moe.g
+
+===== PAGE 31 =====
+参考文献
+[9] M. F. MacMillan, A. Henry, and E. Janzen, *Thickness determination of low doped SiC epi-films
+on highly doped SiC substrates,” Journal of Electronic Materials, vol. 27, no. 4, pp. 300306,
+1998.doi:10.1007/s11664-998-0404-9.
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 32 =====
+附录
+支撑材料
+附件1修正计算筛去异常.cSV
+附件1修正计算筛去异常_统计结果.cSV
+附件2修正计算筛去异常.cSV
+附件2修正计算筛去异常统计结果.cSV
+物理常数和材料参量.cSV
+硅片10度拟合收敛.png
+硅片10度折射率拟合.png
+双光束模型拟合硅片.png
+双光束模型拟合硅片收敛.png
+碳化硅10度拟合.png
+碳化硅10度拟合收敛.png
+反射率计算.py
+问题2碳化硅折射率物理模型.py
+问题2统计数据计算.py
+问题2网格-牛顿法拟合碳化硅数据.py
+问题2样条定位极值点.py
+问题3硅晶片折射率模型py
+AI工具使用详情.pdf
+图1：支撑材料目录
+代码（相似的代码未重复放人）
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 33 =====
+1=port nuspy as np
+i=port atplotlib.pyplot as plt
+i=port pandas as pd
+i=port seaborn as sns
+i=port os
+from 反射率计算i=port R_tvo_bean_sig=a
+设置Seaborn的整体风格和主题
+sns.set_these(style=*vhitegrid*,palette="=uted*)
+11
+sns.set_context ("paper*, font_scale=1.2,
+rc=("1ines . 1inevidth* :  1.5))
+12
+13
+加载数据
+data=pd.read_excel（*附件1.xlsx*)
+IE
+s1g=a_exp=data[*波数（cm-1)·].astype（float）.values
+R_real=data[反射率（%）'].astype（float）.values/100.0
+17
+18
+物理常量（SIunits）
+=1.602176634e-19C
+eps0=8.8541878128e-12 #F/=
+21
+=_e =9.1093837015e-31 #kg
+22
+c0 =299_792_458.0 #=/s
+21
+24
+单位转换输助函数
+def _c=1_to_omega(c=1):
+"将波数[c=-1]转换为角频率
+[rad/s]**.
+27
+-=00=1-_1=（00）▪0▪dduux
+28
+def
+_mu_caughey_thonas(N_cm3, =u_=in, nu_naz, N_c, alpha):
+**Caughey-Thomas迁移率模型***
+return mu_=in +(mu_=ax - mu_nin) / (1.0 +(3_cn3/N_c)**alpha)
+82
+def
+_eps_lorentz_drude_onega(omega, eps_inf , vT, vL, g_ph, v_p, g_e):
+"Lorentz-Drude介电函数模型：（）-o[1+（vL-2-vT2）/（vT²2-²2-1g-ph）
+）
+·….[（08T+）]/z.dn
+omega=np.asarray（omega，dtype=conplex）确保omega是复效
+qd3-**o-**1n）/（**-**）=uouoqd
+37
+drude =v_p**2/（omega*（o=ega +1j*g_e)+0j)
+return eps_inf*(1.0 +phonon)-drude
+中国大学生在线
+
+===== PAGE 34 =====
+n_sic_4H_sig=a(oig=a_c=,N_cn3,=_eff_xel=0.42):
+计算4H-SiC的复折射率（Lorentz+Drude模型），波数
+单位为c=-1
+内置国定参数和Caughoy-Tho=as迁移率棋型。
+返回：n（）+1k（）
+sig=a_cn = np.atleast_1d(sig=a_cm).astype(float)
+4H-SiC国定参数
+eps_1inf = 6.56
+sigma_L_c= = 970.1
+51
+sigma_T_cm = 793.9
+Gassa_ph_cs = 5.501
+53
+54
+Caughey-Thomas迁移率参数
+mu_ax=950.0c=~2/Vs
+nu_=in =40.0 # c=^2/Vs
+$1
+_c=2e17#c-3
+alpha = 0.76
+转换为角频率
+v=_c=1_to_o=ega（sig=a_c=)
+vT =_c=1_to_omega(sig=a_T_c=)
+63
+vL =_c=1_to_omega(signa_L_cn)
+64
+gph =_cu1_to_onega(Ganna_ph_c=)
+计算Drude项的_P和_é
+if_cm3>1e-3:#N_cm3必须大于0，使用小闽值保证数值稳定性
+mu =_=u_caughey_thomas(N_cn3, mu_=in, mu_=ax, N_c, alpha) # cm²2/Vs
+69
+mu_SI = =u 1e-4 #~2/Vs
+=_eff = m_eff_rel * m_e
+v_p =np.sqrt((N_cn3*1e6)*e**2 /（eps0*=_eff))rad/s
+g_e =e/ (=_off *mu_SI) 1/s
+else:
+74
+v_p =0.0
+g_e =0.0
+计算介电函数和复折射率
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 35 =====
+eps "_ops_lorentz_drude_onoga(v,eps_inf,vT,vL,gph, v_p, g_e)
+n_conplex =np.sqrt（eps+0j)
+80
+return n_cosplex
+81
+82
+目标函数
+def objective_function(parans_scaled,sigsa_data,R_exp_data,fixed_params):
+**.
+根据缩放参数讨算残差（R_calc-R_ezp）。
+参数：
+87
+para=s_scaled:[d_scaled,log10_N1.1log10_N2]
+83
+d_scaled：厚度，单位徽米
+89
+log10_N1：第一层杂浓度1og10（N）（c=-3）
+1og10_N2：第二层掺杂浓度1og10（N）（c=-3）
+91
+B1g=a_data：波数数组[cm²-1]
+92
+R_ezp_data：实验反射率数组
+93
+fixed_parans：国定参数字共（n0，1_deg.=_eff_rel）
+返回：
+residuals:R_calc -R_exp
+d_scaled,1og10_N1,1og10_N2 =params_scaled
+98
+99
+缩放参数还原为物理单位
+100
+d=d_scaled*1e-6=微米转换为米
+101
+N1_cn3=10**1og10_N1
+102
+N2_cn3 = 10**1og10_N2
+103
+获取国定参数
+105
+n0 = fixed_parans['no′]
+00
+1_deg = fixed_parans['1_deg′]
+107
+=_eff_rel = fixed_params['=_eff_rel']
+108
+109
+nk1_conplez = n_sic_4H_sig=a(sigma_data,N_cn3=N1_cn3,=_eff_rel==_eff_rel)
+110
+nk2_conplex = n_sic_4H_signa(sigma_data, _cn3=N2_cn3, =_eff_rel=n_eff_re1)
+111
+112
+R_calc = R_tvo_bea=_sig=a(signa_data, n0,nk1_couplex,nk2_complex,1_deg
+d,pol=*avg)
+113
+114
+处理B_calc中可能出现的NaN或Inf值
+
+===== PAGE 36 =====
+returnnp.ones_like（R_exp_data）·1e10#返回一个较大的误差
+117
+118
+return R_calc -R_exp_data
+119
+120
+Jacobian矩阵计算（数值微分）
+121
+def
+calculate_jacobian(parans_scaled,func, h_rel=1e-5, **gvargs):
+122
+123
+124
+125
+nus_parans = len(parans_scaled)
+2
+initial_residuals = func (parans_scaled,
+**kvargs)
+127
+nu=_residuals = len(initial_residuals)
+128
+:29
+J = np.zeros((nus_residuals, nus_parans))
+130
+131
+for 1 in range(nus_parass):
+132
+P_perturb = np.array(parans_scaled,dtype=float)
+.33
+134
+h = h_rel ▪ abs(p_perturb [i])
+135
+1fh0：进免对零参数进行零步长扰动
+h = h_rel
+137
+138
+=+[]qxnxod
+139
+perturbed_residuals = func(p_perturb,
+**kvarg=)
+140
+141
+J[:,i]=(perturbed_residuals
+initial_residuals) / h
+42
+return J
+143
+44
+/Gauss-Eevton
+求解
+def nevton_raphson_fit(initial_parans_scaled, sigsa_data, R_exp_data,
+sax_iter=100,tol=1e-6,learning_rate=0.01,verbose=True
+)：
+ 47
+49
+parans_current = np.array(initial_params_scaled, dtype=float)
+49
+150
+history *
+[parans_current.copy()]
+151
+loss_history -[]
+152
+中国大学生在线
+
+===== PAGE 37 =====
+for iteration in range(=ax_iter):
+154
+residuals -objective_function(parass_current,sig=a_data,R_exp_data,
+fized_parans)
+155
+loss = np.sum(residuals**2)
+156
+loss_history.append(loss)
+157
+158
+J = calculate_jacobian(parans_current,objective_function,
+159
+sigma_data=signa_data, R_exp_data=R_exp_data ,
+fixed_parans=fized_parans)
+160
+161
+）u·du）ue·du xo（（）gue·du）fue·du xo（（r）uudu）ue·du T
+residuals)) or np.any(np.isinf(residuals)):
+162
+if verbose:
+1:61
+print（f"选代（iteration}：Jacobian 或残差中出现NaN 或Inf。停
+止。)
+164
+break
+165
+1:66
+Gauss-Bevton 步长，使用np.linalg.lstsq提高数值稳定性
+167
+try:
+168
+delta_parans = np.linalg.lstsq(J,
+-residuals,rcond=Eone）[0]
+169
+ozcept np.linalg.LinAlgError:
+170
+if verbose:
+171
+print（f"选代（iteration}：遇到奇异矩阵，停止。）
+179
+173
+174
+17s
+176
+#参数边界约束
+177
+[0]xou"suexed
+np.maximum（parans_next[o].0.01）最小厚度0.01 um
+178
+parans_next[1] = np.maxi=us(parans_next[1], 15.0) #N1 景小 1e15 c=~-3
+1:79
+np.maxinun(parans_next[2]，15.0）0N2 最小1e15 c=~-3
+80
+181
+检查收致性
+.82
+183
+if paran_change < tol:
+84
+if verbose:
+8
+print（f"在选代《1teration}收敏。参数交化：《paras
+189
+parass_current * parans_next
+87
+dxs.moe.gov.cn
+
+===== PAGE 38 =====
+break
+190
+parass_current = parans_next
+191
+history.append (parass_current.copy())
+192
+193
+if verbose:
+194
+print（f*选代{iteration），Loss：{loss:.2o}，参数：{parans_current
+[0]:.2f}p=,10{para=s_current[1]:.2f}.10{para=s_current
+[2]:.2f}）
+961
+else:
+196
+if
+verbose:
+197
+print（f*在{=ax_iter）次选代后未收敏。最终参数交化：{para=_change
+:.2e})
+98
+199
+final_loss = np.su=(objective_function(parans_current, signa_data,
+R_exp_data, fixed_params) **2)
+200
+loss_history.append(final_loss)
+201
+if verbose:
+20g
+print（f"最Loss:（final_loss:.2e}）
+203
+return parans_current,np.array(history),np.array(loss_history)
+204
+201
+if
+206
+output_dir="plot_data_for_paper"
+207
+os.nakedirs(output_dir,exist_ok=True)
+208
+209
+国定参数
+210
+n0=1.0#入射介质（空气）
+211
+1_deg=10.0入射角[°]
+212
+=_eff_re1=0.42#有效质量
+（相对于电子质量）
+213
+214
+fized_parass ={
+215
+'n0':n0.
+216
+'1_deg":i_deg.
+21
+'=_off_rel':m_eff_rel
+219
+20
+参数搜索范围和步长
+221
+d_scaled（u=),log10_1（1og10(c=~-3)),
+1og10_N2(
+中国大学生在线
+
+===== PAGE 39 =====
+d_us_start, d_us_end,d_us_steps = 5.0, 12.0,4
+224
+log10_N1_start,1og10_N1_end,1og10_1_steps =16.0,18.0.4
+225
+log10_N2_start,log10_N2_end,1og10_32_steps = 17.0,19.0,4
+226
+227
+d_um_grid = np.linspace(d_un_start, d_u=_end, d_un_steps)
+228
+1og10_N1_grid = np.linspace(1og10_N1_start,1og10_N1_end, 1og10_N1_steps)
+229
+1og10_N2_grid = np.linspace(log10_N2_start,1og10_N2_end,1og10_N2_steps)
+230
+231
+best_1oss * np.inf
+232
+best_parans_scaled = None
+233
+best_history = Mone
+234
+best_loss_history = None
+s5
+best_initial_guess = Bone
+234
+237
+total_runs = d_u=_steps * 1og10_N1_steps * 1og10_N2_steps
+239
+run_count =0
+299
+2.4)
+print（f"n开始对（total_runs}组初始参数进行网格搜索...）
+241
+print（f厚度（p=）范国：{d_u=_grid}"）
+242
+print（f*薄膜M1（log10）范围：{1og10_N1_grid}）
+243
+print（f村底M2（1og10）范围：{1og10_N2_grid}*）
+244
+245
+i=port itertools
+246
+for d_init,N1_init_log10.N2_init_log10 in itertools.product(d_u=_grid,
+log10_N1_grid, log10_N2_grid):
+247
+I+umo>unx
+248
+current_initial_parans = [d_init,N1_init_log10,N2_init_log10]
+249
+print（f*\n---运行第（run_count}/(total_runs）次拟合，权始猜测：d={
+d_init:.2f}y=.1og10（N1）={N1_init_1og10:.2f}.1og10（N2）={
+N2_1nit_1og10:.2f}---*)
+250
+251
+#调用拟合函数，在网格搜索期间不打印详细选代信息
+252
+final_parans_scaled, history, loss_history = nevton_raphson_fit(
+253
+current_initial_parans, signa_exp. R_real, fixed_parans,
+254
+=ax_iter=200,tol=1e-6,learning_rate=0.01,verbose=False
+25
+257
+current_loss = np.su=(objective_function(final_par
+,R_real,fixed_parass)**2)
+中国大学王
+dxs.moe.gov.cn
+
+===== PAGE 40 =====
+print（f第{run_count}/{total_runs}次拟合完成，最终Loss：{
+current_loss:.2e})
+259
+260
+if current_loss < best_loss:
+261
+best_loss = current_loss
+262
+best_parans_scaled = final_parans_scaled
+263
+best_history = history
+264
+best_loss_history = 1oss_history
+265
+best_initial_guess = current_initial_parans
+266
+print（f*-->发现新的最住拟合！Loss：{best_loss：.2e}"）
+267
+268
+print（"\n=
+269
+print(*
+网格搜索完成
+270
+271
+print（f*最佳初始猜测（d_um，log10_N1，log10_N2）：(best_initial_guess}")
+272
+print（f"最小总Loss:（best_loss:.2e})
+273
+274
+显示最住拟合结果
+2rs
+if best_parass_scaled is None:
+276
+print（未我到有效的拟合结果。请检查数据、携型和搜索范围。*）
+277
+exit ()
+278
+279
+final_d_us = best_parans_scaled[o]
+280
+final_N1_cn3 =10**best_parans_scaled[1]
+281
+final_N2_c=3 = 10**best_parans_scaled[2]
+282
+283
+print（"\n---最佳拟合参数---*）
+284
+print（f·厚度d:（final_d_u=:.3f}p=（（final_d_un*1e-6:.3e}=）)
+29!
+print（f*薄膜掺杂M1：（final_1_cm3:.2e}cm-3)
+289
+print（f衬底掺杂N2:（final_M2_cm3:.2e}c=-3*)
+287
+288
+绘制反射率拟合图
+289
+plt.f1gure(figsize=(1o, 6))
+290
+291
+final_d_= = final_d_un * 1e-6
+290
+final_nz1 = n_o1c_4H_sig=a(oigma_oxp. N_c=3=final_N1_cn3,
+=_eff_rel
+=_eff_rel)
+final_nk2 = n_sic_4H_sig=a(sigma_ezp,
+N_cm3-fina1_N2
+=_eff_rel)
+中国大学生在线
+
+===== PAGE 41 =====
+R_fit =R_tvo_bea=_oigma(sig=a_exp, n0,final_nk1, final_nk2, 1_deg,
+final_d_=, pol="avg*)
+295
+296
+plt.plot（sig=a_exp.R_real·100，‘o′，=arkersize=4，label='实验数据，
+color="red")
+plt.plot（sig=a_exp，R_f1t·100，*-，，1inevidth=2，1abel=*拟合结采'，color=
+*blue")
+298
+299
+plt.xlabel（*波数（s\=athr={c=}~(-1}$）'，fontsize=14）
+300
+plt.ylabel（*反射率（%）*，fontsize=14)
+301
+plt.t1ck_parans(axis=*both*,vhich=*major′, labelsize=12)
+102
+plt.legend(fontsize=12,fraseon=True,shadov=True)
+303
+plt .grid (True)
+104
+plt.tight_1ayout ()
+805
+plt.savefig(os.path.join(output_dir,*reflectance_fit.png*),dpi=300)
+306
+plt.shov()
+307
+808
+保存反射率拟合数据
+09
+reflectance_data = pd.DataFrase（{
+310
+Vavenu=ber (c=-1)':sig=a_exp,
+111
+'Experi=ental Refloctance （%)*:R_real▪100,
+112
+Fitted Reflectance (%)':R_fit ▪100
+113
+314
+reflectance_data.to_csv(os.path.join(output_dir,
+'reflectance_fit_data.csv
+）,index=False)
+115
+print（f反射率拟合数据巴保存至{os.path.join（output_dir，
+reflectance_fit_data.csv*)}")
+316
+117
+绘制最佳拟合的LoBB收缴历史
+355
+plt.figure(f1gsize=(8, 5))
+319
+plt.plot(best_loss_history,marzer='o′,linestyle=
+narkersize=4,
+color
+"black")
+820
+plt.xlabel（*选代次数，fontsize=14）
+121
+plt.ylabel（*Loss（我差平方和）·，fontsize=14）
+22
+plt.tick_parans(axis=′both*,vhich=′major′,labelsize=12)
+123
+plt.yscale('1og')
+824
+plt.grid(True)
+325
+plt.tight_layout()
+总牛在线
+plt.savefig(os.path.join(output_dir,
+
+===== PAGE 42 =====
+plt.shov()
+129
+129
+保存Loss历史数据
+130
+loss_history_df = pd.DataFrane({
+331
+'Iteration′:np.arange(len(best_loss_history)),
+332
+'Loss (Su= of Squared Residuals)':best_loss_history
+13
+})
+334
+loss_history_df.to_csv(os.path.join(output_dir,'loss_history_data.csv'),
+index=False)
+print（fLoss 历史数据已保存至{os.path.join（output_dir.*loss_history_data
+csv*)}")
+13
+337
+绘制最住拟合的参数收缴历史
+133
+fig.axes =plt.subplots(3,1，figsize=(10, 8),sharex=True)
+14)
+axes[o].plot（best_history[:,0],=arzer='o′,
+markersize=3,color=sns.
+color_palette(*muted)[3])
+141
+axes[0].set_ylabel（’厚度（$\=u$=），fontsize=14）
+,0
+axes[0].tick_parans（axis=′y′,vhich=′=ajor′,labelsize=12)
+143
+axes [0] . grid(True)
+14
+axes[1].plot（best_history[:，1].marker=*o′,markersize=3.color=sns.
+color_palette(*=uted") [4])
+145
+axes[1].set_ylabel（'logs_(10}s（Ns_1s c=$~(-3}s)',fontsize=14)
+147
+axes[1].tick_parans(axis=′y′,vhich=′ajor′,labelsize=12)
+143
+axes [1] - grid(True)
+149
+350
+axes[2].plot(best_history[:,2],=arker='o',markersize=3,color=sns.
+color_palette("muted")[5])
+351
+axes[2].set_ylabel('1og$_(10}s（N$_2$ cm$(-3}s)*,fontsize=14)
+352
+axes[2].set_xlabel（'选代次数'，fontsize=14）
+153
+axes[2].tick_parans（axis=′both'.which=*ajor′,labelsize=12)
+354
+axes [2] - grid(True)
+155
+356
+plt.tight_1ayout ()
+157
+358
+plt.shov()
+359
+保存参数收致历文数据
+dxs.moe.gov.cn
+
+===== PAGE 43 =====
+parazeter_convergence_df = pd.DataFrase({
+'Iteration': np.arange(len(best_history)),
+363
+Thickness （u=)':best_history[:,o],
+364
+'logio（N1)':best_history[:,1],
+365
+'log10(N2)':best_history[:,2]
+066
+})
+067
+parameter_convergence_df.to_csv(os.path.join(output_dir,
+para=eter_convergence_data.csv').index=False)
+print（f"参数收叙数据已保存至{os.path.join（output_dir，
+paraneter_convergence_data.csv'))")
+Listing1:间题2网格-牛顿法拟合碳化硅数据
+coding: utf-8 -*-
+3.70
+371
+该模块提供了风特定格式的CSV文件加载新射率数据，并基于该数据
+872
+讨算单层薄膜的两光束和严格多光京反射率的功能。
+73
+374
+主要功能：
+从refractiveindez.info格式的cSV文件（包含vl，n和‘vl，x'两部分）
+376
+读取折射率n和消光系数k数据。
+277
+构建一个复数折射率n1（）的插值函数，其中
+为波数（c=-1）。
+178
+计算单层薄膜的两光東反射率和严格多光末反射率。
+6
+180
+i=port re
+181
+du se Edunu rod=y
+182
+fro= pathlib i=port Path
+181
+184
+fro= matplotlib i=port pyplot as plt
+19f
+387
+199
+1）从cSV读取数据并生成n1（）暂值器
+189
+190
+391
+def load_refractive_index_csv_tvo_blocks(path: str):
+290
+193
+解析refractiveindex.info导出的cSV文件。
+文件应包含两段两列表数据：
+-第一段表头vl，n
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 44 =====
+-第二段表头vl，x'：后续为wavelength[μ=]，k
+返回：（vl_n_data，n_values）.（vl_k_data.k_values）
+399
+其中vl_n_data，n_values，vl_k_data，k_values 均为nu=py 数组，
+199
+并按波长升序排列。
+400
+401
+若文件中缺少v1，k段，本函数将抛出错误。
+402
+403
+(ed)e=d
+604
+1f not p.ezists():
+405
+raise FileNotFoundError（f*文件未找到：{path}"）
+406
+407
+处理BOM，并标准化大小写/空白
+408
+rav =p.read_text（encoding=*utf-8*.errors=*ignore).lstrip(*\ufeff)
+409
+lines = rav.splitlines()
+410
+411
+定位表头
+412
+idx_n = idx_k = None
+413
+for 1, ln in enuzerate(lines):
+414
+s=1n.strip().lstrip(*\ufeff*)
+415
+ifre.=atch（r"vl\s*[.:\s]\s*n\s*$*,s,flags=re.IGNORECASE):
+416
+1dx_n = 1
+417
+if re.match（r"v1\s*[.:\s]\s*x\s*$*,s，flags=re.IGNORECASE）:
+418
+1dx_k = 1
+419
+42)
+if idx_n is None:
+421
+raiseValueError（未找到wl.n'表头。清检查CSV文件格式。）
+422
+if idx_k is None:
+423
+ralseValueError（未找到“wl，'表头。对于无k值的场景，请使用
+build_n1_fron_csv函数。)
+424
+425
+def
+_collect_data(start_idx,end_idx):
+vavelengths, values = []. []
+427
+for 1n in lines [start_idz + 1:end_idx]:
+429
+s =1n.strip()
+9
+1f （not s）or s.startsvith（*#）:
+410
+continue
+431
+parts =[t for t in re.split(r*[,\s:]+
+43
+1f len(parts)< 2:
+433
+continue
+中国大学生在线
+
+===== PAGE 45 =====
+try:
+1_=float(parts[o]）
+439
+v = float(parts[1])
+437
+except ValueError:
+439
+continue
+439
+vavelengths append (v1_v)
+440
+values append (v)
+(41
+vavelengths = np.asarray(vavelengths, float)
+642
+values = np.asarray(values, float)
+443
+order = np.argsort(vavelengths)
+644
+return vavelengths[order], values[order]
+445
+44
+v1_n,n_vals =_co1lect_data(idx_n,idx_k)
+n数据段
+447
+vl_k,k_vals =_collect_data(idx_z,len(lines))
+数据段
+44
+449
+1f vl_n.size = 0 or vl_k.size = 0:
+450
+raiseValueError（解析的n或k数据块为空：请检查文件格式。"）
+451
+return (vl_n, n_vals),(v1_k, k_vals)
+453
+454
+def create_n1_interpolator_fro=_tvo_block_csv(csv_path: str,fill_=ode: str =
+edge*):
+455
+...
+456
+基于（w1，n）与（v1.k）两长数据，构造复数折射率n1（）=n（）+i*k（）的折值
+657
+-输入/输出波数
+单位为c=-1
+458
+-fill_=ode='edge*：对于起出数据范国的波数，括值结果钳制到边界值。
+459
+-fi1l_=ode=nan*：对于超出数据范围的波数，哲值结果返回NaN。
+460
+若cSV中不存在*v1，x’段，则自动以k=0理（适用于只有n值的cSV）。
+462
+返回：（n1_of_sigma_func,（sig=a_min_range.big=a_=ax_range）)
+463
+其中n1_of_sigma_func是一个可调用对象，接受波数
+（em-1）并返园n1。
+664
+sigma_min_range和sig=a_max_range 是有效括值范国的波数过界。
+46
+466
+p = Path(csv_path)
+467
+rav -p.read_text（encoding=*utf-S*,errors="ignore").lstrip("\ufeff*
+lines = rav.splitlines()
+469
+nor=_1ines =[1n.strip().1strip("\ufeff*).1over() for
+中国大学生在线
+
+===== PAGE 46 =====
+idx_n = idx_z = None
+472
+for i.h in enumerate（norm_lines）:
+473
+1fre.=atch（r*vl\s*[.:\s]\s*n\s*$,h）:
+474
+1dx_n = 1
+475
+1f re.=atch（rv1\s*[.:\s]\s*x\s*$,h）:
+476
+1dx_k = 1
+477
+478
+1f idx_n is None:
+479
+raiseValueError（“未找到“vl.n表头；请检查CSV文件格式。*）
+48)
+481
+_collect_data(start_idx, end_idx):
+482
+vavelengths,values = [].[]
+483
+for ln in lines [start_idx + 1:end_idx]:
+48.4
+s =1n.strip()
+$87
+if（not s）or s.startsvith（"#):
+480
+continue
+437
+48s
+1f len(parts）<2:
+489
+continue
+490
+try:
+491
+vavelengths.append(float(parts [o]))
+492
+values-append(float (parts[1]))
+491
+except ValueError:
+494
+continue
+c95
+vavelengths = np.asarray(vavelengths, float)
+496
+values = np.asarray(values, float)
+497
+order = np.argsort(vavelengths)
+498
+return wavelengths[order],values[order]
+499
+500
+end_n_block = idx_k if idx_k 1s not None else len(lines)
+501
+vl_n, n_vals = _collect_data(idx_n,end_n_block)
+502
+108
+if idx_k is not None:
+504
+v1_k,k_vals =_collect_data(idx_k,len(lines))
+505
+s1g=a_k=1e4/v1_k波长（μ=）转波数（c=²-1）
+506
+order = np.argsort(sig=a_k)
+507
+signa_k, k_vals = sigma_x[order]. k_vals[order]
+508
+else:
+09
+如果没有x段，则以k=0近似
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 47 =====
+v1_x, x_vals = v1_n.copy(), np.zeros_like (n_vals)
+F11
+sig=a_k =1e4/ v1_x
+512
+order = np.argsort(sig=a_k)
+signa_k, k_vals = sigma_x[order]. x_valo[order]
+514
+515
+s1g=a_n = 1e4 / v1_n
+10
+order = np.argsort(sig=a_n)
+517
+signa_n, n_vals = sig=a_n[order], n_vals[order]
+18
+519
+确定有效的波数暂值范围（n和k数据重叠的部分）
+120
+valid_s1gna_nin = nax(float (s1g=a_n[0]),float(sig=a_x[0]))
+121
+valid_sigma_=ax ==in(float(sigma_n[-1]),float(sig=a_x[-1]))
+522
+121
+def n1_of_sig=a(sigma_c=_1nput) :
+24
+s = np.atleast_1d(sigma_c=_input).astype(float)
+if fill_=ode =*edge*:
+2
+right=n_vals[-1])
+127
+k_interpolated = np.interp(o, sig=a_z,x_vals, loft=z_vals [o],
+right=x_vals[-1])
+125
+olse: # f111_=ode == *nan*
+129
+n_interpolated = np.interp (s, sig=a_n, n_vals)
+f30
+k_interpolated = np.interp(s, sig=a_k, k_vals)
+531
+对于超出有效范围的数据点，设为a
+532
+out_of_range = (s < valid_sigma_=in) 1(s > valid_sig=a_=ax)
+133
+n_interpolated[out_of_range] = np.nan
+34
+x_interpolated[out_of_range]=np.nan
+return n_interpolated + 1j *k_interpolated
+53
+537
+return n1_of_sig=a, (valid_sig=a_=in, valid_sig=a_max)
+539
+39
+40
+41
+2）光学计算核心函数
+542
+141
+44
+def
+_calculate_cos_theta(n_incident,n_layer,
+541
+计算展内介质的余弦角cos（theta_layer）
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 48 =====
+连借Snell 定律n_incident·sin（theta_incident）·n_layer*sin（
+theta_layer).
+548
+选择实部为正的平方根以确保物理有效性。
+149
+550
+sin_incident = np.sin(theta_incident)
+551
+使用复数类型确保即使（n_inc/n_layer）**2*s**2>1也能正确处理
+552
+cos_layer_squared=（1 -（n_incident / n_layer)**2 *pin_incident**2).
+astype(co=plex)
+T21
+cos_layer = np.sqrt(cos_layer_squared)
+554
+物理约定：选取实部为正的支路
+555
+return np.vhere(np.real(cos_layer) < 0,-cos_layer, cos_layer)
+921
+551
+r5s
+def _fresnel_o_polarization(n_1,n_j.cos_1,cos_j):
+59
+560
+讨算s-偏振（TE模式）的菲尔反射系数r和造射系数t
+561
+n_1，n_J分别为入射介质和适射介质的折射率。
+542
+coB_1，coB_]分别为入射角和造射角的余监。
+63
+T_S
+（n_1*cos_1-n_j*cos_j）/（n_1*cos_1+
+n_j*cos_j）
+161
+t_s = 2 *n_1 *cos_1 /（n_1 *cos_1 +n_j ▪cos_j)
+return r_s,t_s
+567
+168
+569
+def
+_fresnel_P_polarization(n_1,n_j.cos_i,cos_j）:
+70
+***
+571
+计算p-偏振（TM模式）的菲尔反射系数r和益射系数t
+.72
+n_1，n_J分别为入射介质和适射介质的折射率。
+573
+coB_1，coB_J分别为入射角和造射角的余营。
+574
+575
+cos_j)
+f76
+t_p = 2 *n_1 * cos_1 /（n_j *cos_1 + n_1 *cos_j)
+577
+d”·d”xunsox
+579
+580
+def
+_nor=alize_refractive_index_input(value,sig=a_c=）:
+181
+**.
+582
+将折射率输入转换为与波数sig=a_c形状
+致的复数数
+f81
+value可以是：
+中国大学生在线
+
+===== PAGE 49 =====
+-标量（常数折射率）
+可调用对象：接受biga_cm并返回数组形式的复数折射率
+580
+）
+587
+s = np.atleast_1d(sig=a_c=)
+(8)
+1f callable(value):
+590
+arr = np.asarray(value(s),dtype=conplex)
+591
+else:
+592
+arr = np.asarray(value, dtype=co=plex)
+f93
+594
+if arr.ndin == 0 or arr.size == 1:
+标量
+969
+return np.full(s.shape,co=plex（arr),dtype=co=plex)
+596
+59T
+尝试广播到的形状
+599
+try:
+199
+return np.broadcast_to(arr, s.shape).astype(co=plez,copy=False)
+400
+except ValueError:
+601
+raise ValueError(
+402
+f折射率参数形状（arr.abape}不能广播到波数形状（a.ahape}.
+603
+请提供标量，接受波数参数的可调用函数，或与波数数组形状一致的数组。
+fo
+601
+f07
+3）反射率讨算函数（波数轴）
+608
+609
+610
+def calculate_R_tvo_bean(sig=a_c=
+nO.n1_ref_index,n2,incidence_angle_deg,
+layer_thickness, polarization
+611
+12
+计算单层薄膜的两光束反射率R（）
+波数，单位c="-1。
+614
+n0：入射介质的折射率。
+15
+n1_ref_index：薄膜的复数折射率，可以是标量、可调用函数（sig=a->n1）或数
+组。
+616
+n2：基底介质的折射率。
+617
+-incidence_angle_deg：入射角，单位度。
+618
+layer_thickness：冀膜厚度，单位米（=）。
+-polarization：偏振模式，可选*s*，
+中国大学生在线
+
+===== PAGE 50 =====
+薄膜中的相位定义：
+其中
+-1)
+622
+sigma_c= = np.atleast_1d(sig=a_cn).astype(float)
+824
+theta0 = np.deg2rad(incidence_angle_deg)
+121
+cos0 =np.cos（theta0)
+825
+f27
+nOs = _nornalize_refractive_index_input (n0, signa_cn)
+628
+n1s = _nornalize_refractive_index_input (n1_ref_index, sig=a_cm)
+829
+n2s
+8 " _nornalize_refractive_index_input (n2, signa_cn)
+630
+631
+cos1 =_calculate_cos_theta(n0s,n1s,theta0)
+32
+cos2=_calculate_cos_theta(n0s,n2s,theta0)
+633
+634
+将波数风c=-1转换为=-1
+f35
+sig=a_==100.0▪sig=a_c=
+3
+薄膜中的相位四子
+637
+beta =2▪np·p1 *n1s ▪layer_thickness *cos1*sig=a_=
+3
+439
+def
+_calculato_branch(kind):
+(4)
+if xind * *s*:
+(41
+r01,t01 =_fresnel_s_polarization(n0s,nls,cos0,cos1)
+42
+r12,_*_fresnel_s_polarization(n1s,n2s,cos1,cos2)
+f4)
+-,t10 =_fresnel_s_polarization(n1s，n0s，cos1，cos0）#注意 =1->
+n0接口的造射系数
+44
+d,== pux  :0so
+645
+r01,t01 =_fresnel_p_polarization(n0s,nls,cos0,cos1)
+40
+r12,_*_fresnel_p_polarization(n1s,n2s.cos1,cos2)
+647
+_，t10 =_fresnel_p_polarization(n1s，n0s,cos1，cos0）#注意n1->
+n0接口的造射系数
+f48
+(49
+两光束近仅的反射振幅叠加
+(50
+651
+return np.abs(reflection_amplitude)**2
+652
+653
+If polarization.lover() == *g:
+654
+return _calculato_branch(*s*)
+999
+ifpolarization.lover() ==*p*:
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 51 =====
+return
+_calculate_branch(*p*)
+57
+return 0.5*（_calculate_branch（"s*)
+_calculate_branch(*p"))
+658
+659
+560
+def
+calculate_R_exact(signa_cn,n0,n1_ref_index,n2,incidence_angle_deg,
+layer_thickness, polarization=*avg*, return_conplex_r=False):
+661
+662
+计算单层薄膜的严格多光来反射率B（）。
+663
+参数定文与
+calculate_R_tvo_bean
+和网。
+664
+65
+返回：
+著
+polarization='avg*：返回平均反射率R
+667
+若
+'return_co=plex_r=True',
+，则附带（r_s，r_p）菲理尔复振幅反射系数。
+polarization=s或'p*：返园对应偏振的R。
+869
+return_co=plex_r=True，则厨带对应偏振的复振幅反射系数。
+70
+871
+sig=a_cn = np.atleast_1d(sig=a_cm).astype(float)
+theta0 = np.deg2rad(incidence_angle_deg)
+673
+cosO =np.cos（theta0)
+674
+n0s =
+_nor=alize_refractive_index_input (n0, sig=a_c=)
+T
+n1s =
+_nornalize_refractive_index_input (n1_ref_index, sig=a_cm)
+677
+n2s = _nor=alize_refractive_index_input (n2, sig=a_cn)
+679
+cos1 =_calculate_cos_theta(n0s,n1s,theta0)
+cos2 =_calculate_cos_theta(n0s,n2s,theta0)
+(81
+82
+s1g=a_= =100.0*s1g=a_c=
+I-=01-==
+684
+81
+8
+def
+_calculate_exact_reflection(kind):
+1f xind ** *s*:
+199
+r01,
+_"_fresnel_s_polarization(n0s,n1s,cos0,cos1)
+689
+r12,
+=_fresnel_s_polarization(n1s,n2s,cos1,cos2)
+else: 0 kind ==*p*
+r01, _= _fresnel_p_polarization(n0s,n1s,c
+692
+r12,_"_fresnel_p_polarization(n1s,n2s,
+中国大学生在线
+
+===== PAGE 52 =====
+严格多光末反射系数公式
+（sd0+x+1x+1）/（q+0x）=xdx
+696
+return r_co=plex,np.abs(r_couplex）**2
+697
+698
+if polarization.lover(） ==*s:
+699
+r_s,R_s-_calculato_exact_reflection("s)
+P00
+return （R_s,r_s)if return_conplex_r else R_s
+701
+1f polarization.lover() == *p*:
+F02
+r_p.R_p "_calculate_exact_reflection("p*)
+P03
+return (R_p.r_p) if return_conplex_r else R_p
+04
+默认计算平均偏振
+106
+r_s,R_s =_calculate_exact_reflection(“s")
+r_p.R_p"_calculato_oxact_reflection(*p")
+08
+R_avg = 0.5 * (R_s + R_p)
+209
+1f return_co=plex_r:
+710
+return R_avg.(r_s,r_p)
+711
+return R_avg
+12
+713
+714
+71
+4）便捷封装：直接获取n1（）插值善
+716
+717
+718
+def build_n1_interpolator(csv_path: str, fill_=ode: str =*edge"):
+19
+r20
+读取CSV文件（两段两列：若无k段则自动k=O）
+721
+这回n1（sig=a_c=）可调用哲值募及其有效波数范围。
+722
+用法示例：
+n1_func,（sig_=in,sig_=ax)-build_n1_interpolator(*=aterial.csv")
+725
+reflectance = calculate_R_exact(sig=a_array.n0=1.0.
+n1_ref_index=n1_func,n2=3.5+0j.
+27
+incidence_angle_deg=15,
+728
+layer_thickness=S00e-9)
+30
+return create_n1_interpolator_from_tvo_block_csv(csv_path
+fi11_=ode)
+31
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 53 =====
+734
+指定CSV数据文件路径（应包舍v1，n'和v1，x两段）
+734
+DATA_PATH =r*Larruquert.csv"
+737
+739
+try:
+739
+#1）构造薄膜材料n1（）的括值器
+740
+n1_interpolator,(sigma_rango_=in, sigma_range_max) =
+build_n1_interpolator(DATA_PATH, fi1l_=ode=*edge*)
+41
+42
+#2）定义计算参数
+743
+s1g=a_values = np.1inspace(400, 4000, 2200)
+波数范围（cn~-1）
+744
+n0_incident = 1.0
+入射介质折射率（例如空
+气）
+745
+n2_substrate =2.7**2
+基底折射率（例如S1的
+延似值，请根据实际材料替换）
+746
+layer_thickness_= - 2500e-9
+薄膜厚度（米）
+incident_angle_deg = 20
+入射角（度）
+749
+#3）计算反射率
+750
+使用两光束近似计算反射率
+751
+reflectance_tvo_bea= = calculate_R_tvo_bea=(
+sig=a_values,n0_incident,nl_interpolator,n2_substrate,
+753
+incident_angle_deg.layer_thickness_=,polarization="avg
+54
+55
+56
+#使用严格多光束公式计算反射率，并获取复数反射系数
+757
+reflectance_exact,（r_s_complex,r_p_complex)=calculate_R_ozact(
+sig=a_values,n0_incident, n1_interpolator, n2_substrate,
+incident_angle_deg, layer_thickness_=, polarization=*avg",
+160
+return_co=plex_r=True
+761
+162
+763
+#4）绘图（此部分被注释，可根据要取消注释并运行）
+764
+#plt.f1gure (figsize=(10, 6))
+# plt .plot(sig=a_values, reflectance_tvo_beam,
+Approxi=at1on *)
+# plt.plot(sig=a_values,
+
+===== PAGE 54 =====
+#plt .xlabel (*Vavenunber (c=$~(-1)$)*)
+#plt.ylabel(*Reflectance R*)
+769
+# plt.title(f*Reflectance for fi1= *{DATA_PATH.split(*/*)[-1])* on
+substrate")
+770
+#plt.legend()
+771
+# p1t grid(True)
+r72
+#plt.tight_layout()
+# plt.shov()
+775
+print（f*计算完成。波数范围：{sig=a_values.=in（）}-{sig=a_values.max（）}
+c=-1*)
+776
+print（f*薄厚度：(layer_thickness_=*1e9}n="）
+777
+print（f"入射角：（incident_angle_deg}**)
+7rs
+打印部分结果示例
+79
+print（"\n部分两光束反射率结果：*）
+780
+#print (reflectanco_tvo_bean [:5])
+781
+print（"\n部分严格多光京反射率结果：）
+782
+#print (reflectance_exact [:5])
+81
+784
+except ValueError as e:
+785
+print（f*数据解析错误：（o}*）
+Listing2:间题2:反射率数学模型计算
+i=port re
+787
+from pathlib i=port Path
+788
+du se dunu rod=
+790
+i=port =atplotlib.pyplot as plt
+r93
+i=port pandas as pd
+92
+793
+=1.602176634e-19
+#C
+794
+eps0=8.8541878128e-12
+F/±
+795
+=_e=9.1093837015e-31
+#xg
+796
+c0 = 299_792_458.0
+8 =/s
+797
+198
+def cm1_to_omega(cm1):
+P99
+return 2*np·p1*c0*（cm1*100.0)
+800
+101
+def =obility_to_gamna_e(=u_c=2_Vs,=_eff_rel)
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 55 =====
+1f =u_c=2_Vs 1s None or =_eff_rel is None:
+return None
+804
+mu_SI = nu_c=2_Vs * 1e-4
+$0t
+=_off ==_off_rel·=_
+809
+return e / (=_eff *=u_SI)
+807
+809
+def doping_to_onega_p(_en3,=_eff_rel):
+809
+1f N_cn3 is None or =_eff_rel 1s None:
+110
+return Kone
+811
+X_=3 = N_cn3 * 1e6
+812
+=_eff = =_off_rel ·=_o
+813
+return np.sqrt(N_=3·o**2 /（eps0*=_eff))
+814
+$15
+def eps_lorentz_drude_osega(osega, eps_inf , o=ega_T, ozega_L, gasma_ph, omega_p
+=0.0, gamma_e=0.0):
+$16
+osega = np.asarray(osega,
+dtype=float)
+817
+phonon =（o=ega_L**2-o=ega_T**2）/（o=ega_T**2
+-1j*ganna_ph*
+o=ega)
+818
+（fo+（oe==3t+e3=o）▪o=o）/z**de3oo=opnxp
+$19
+return eps_inf *（1.0 +phonon)
+drude
+$20
+$21
+def n_lorentz_drude_sigma(sig=a_cn, eps_inf, sig=a_T_cn, sig=a_L_cn,
+Ganma_ph_c=, sig=a_p_c==None, Ga=na_e_c==Yone, N_c=3=None, =_eff_rel=None,
+mu_cn2_Vs=one):
+822
+sig=a_c= =np.atleast_1d(sig=a_cm).astype(float)
+823
+824
+v_T =cn1_to_omega（signa_T_c=)
+821
+v_L = cn1_to_omega(sig=a_L_c=)
+$25
+g_ph =
+(qd"e）eoouo
+827
+v = c=1_to_o=ega(sig=a_c=)
+828
+829
+1f sig=a_P_cn 1s not None or Gassa_e_cs is not Hone:
+830
+_P =
+cn1_to_onega(0.0 1f signa_p_cn 1s Hone else signa_p_c=)
+831
+cn1_to_o=ega(0.0 1f Gamna_e_cs 1s Hone else Gasna_e_c=)
+832
+else:
+$31
+v_p=doping_to_o=oga_p(x_cn3,=_eff_rel)or 0.0
+834
+g_e = mobility_to_ganma_e(mu_c=2_Vs, n_eff_rel) or 0.
+835
+
+===== PAGE 56 =====
+n_co=plex =np.sqrt（eps + 0j)
+return n_conplex
+839
+340
+def n_lorentz_drude_v(v_Hz, eps_inf, sig=a_T_c=, sigma_L_cs, Gamma_ph_cn,
+sig=a_P_cn=None, Gasna_e_cn=one,N_cm3=None, =_eff_rel=None, =u_cn2_Vs=
+None) :
+v_Hz
+=np.atleast_1d(v_Hz).astype(float)
+842
+omega = 2*np·p1 * v_Hz
+143
+844
+v_T = cn1_to_omega(sigma_T_cn)
+= cn1_to_omega(s1gma_L_c=)
+840
+g_ph = c=1_to_onega(Ganna_ph_c=)
+847
+141
+849
+_P =
+cm1_to_onega(0.0 if signa_p_cs 1s Hone else signa_p_c=)
+$50
+c=1_to_onega(0.0 if Gamna_o_c= 1s Hone else Ganna_e_c=)
+851
+else:
+852
+_P "
+doping_to_o=ega_p(x_cn3,=_eff_rel) or 0.0
+851
+8.0=
+=obility_to_gansa_e(=u_c=2_Vs,=_off_rel) or 0.0
+854
+s5f
+eps = eps_lorentz_drude_o=ega（o=ega，eps_inf,v_T,v_L,g_ph,v_p.g_o)
+return np.sqrt(eps + 0j)
+199
+def
+_cn1_to_omega（cn1）:
+859
+return 2*np.p1*c0▪（c=1*100.0)
+860
+861
+def
+_eps_lorentz_drude_o=ega（o=ega,eps_inf,vT.vL，g.ph,v_p.g_e）:
+862
+（=qd91-Z**=o-乙**n）/（乙**-乙**7n）=uuoq
+$63
+drude =v_p**2/（omega*（o=ega +1j*g_e）+0j)
+864
+return eps_inf *(1.o +phonon)- drude
+86t
+866
+def
+_mu_caughey_thomas(N_cm3,=u_=in, =u_=ax, N_c,alpha):
+867
+return nu_=in + (mu_max - nu_min)/ (1.0 + (N_cm3/_c)**alpha)
+869
+def n_sic_4H_signa(signa_c=, N_cn3=1e17, =_eff_re1=0.42, use_drude=True):
+$ 70
+sig=a_cs = np.atloast_1d(sig=a_cm).astype(float)
+871
+872
+eps_inf -6.56
+873
+sig=a_L_c= = 970.1
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 57 =====
+sig=a_T_c= = 793.9
+Ganma_ph_cn = 5.501
+876
+=u_ax = 950.0
+877
+nu_m1n =40.0
+s79
+_c = 2e17
+879
+alpha = 0.76
+890
+881
+_cn1_to_omega(sig=a_c=)
+$92
+vT =
+_cn1_to_omega(signa_T_cn)
+883
+vL = _c=1_to_omega(sig=a_L_cn)
+SS
+gph = _c=1_to_onega(Gassa_ph_cn)
+885
+$86
+1f use_drude and N_cn3 > 0:
+$87
+su =_=u_caughey_thomas(N_cn3, mu_min, mu_nax, N_c, alpha)
+Rag
+mu_SI = =u * 1e-4
+$99
+=_eff ==_eff_rel *=_e
+890
+_p=np.sqrt（（N_cn3+1e6)
+*e**2/（eps0*=_eff））
+891
+g_= /（=_off ▪=u_SI)
+892
+else:
+$93
+v_p =0.0
+$94
+8_0 =0.0
+968
+eps " _eps_lorentz_drude_o=ega(v,eps_inf, vT,vL, gph, v_P, g_e)
+897
+n_conplex =np.sqrt（eps +0j)
+899
+return n_co=plez
+899
+900
+def load_larruquert_csv_tvo_blocks(path:str):
+901
+p= Path(path)
+902
+if not p.ezists():
+903
+raise FileNotFoundError(path)
+904
+901
+rav =p.read_text（encoding=*utf-S*.errors=*ignore*).lstrip(*\ufeff*)
+906
+lines = rav.splitlines()
+907
+908
+1dx_n = idx_k = None
+909
+for 1,ln in enu=erate（lines）:
+910
+s = 1n.strip().lstrip(*\ufeff*)
+ifre.=atch（r*vl\s*[,:\s]\s*n\s*$*
+912
+idx_n = 1
+中国大学生在线
+
+===== PAGE 58 =====
+1f re.=atch(r*vl\s*[.:\s]\s*g\s*$,s,flags=re.I）:
+914
+idx_k = 1
+915
+916
+if idx_n 1s None:
+917
+raise ValueError(*Header *vl,n′not found.*)
+918
+1f idx_k is None:
+919
+raise ValueError(*Header *vl.x'not found.*)
+920
+921
+def collect（si,e1):
+922
+v1, val = []. []
+923
+for 1n in lines[s1+1:e1] :
+994
+s=1n.strip()
+925
+1f （not s）or s.startsvith（*a）:
+924
+continue
+927
+parts =[t for t in re.split(r*[,\s;]+*,s）if t]
+929
+1f len(parts)< 2:
+929
+continue
+930
+try:
+931
+v1_=float(parts[o]）:=float(parts[1])
+932
+except ValueError:
+933
+continue
+934
+1. append(v1_v): val .append()
+935
+v1 = np.asarray(vl,float): val = np.asarray(val,float)
+936
+order =np.argsort（v1)
+937
+return vl[order].val[order]
+938
+939
+v1_n,n_vals =collect(idx_n,idx_k)
+940
+v1_k, k_vals = collect(1dx_k,1en(lines))
+941
+if vl_n.size == 0 or vl_k.size == 0:
+942
+raise ValueError(*Parsed e=pty n or k block;check file fornatting.*)
+H41
+return (v1_n,n_vals), (vl_k, k_vals)
+944
+def =ake_n1_interpolator_from_tvo_block_csv(csv_path: str, fill: str =*edge*):
+P = Path(csv_path)
+947
+rav =p.read_text(encoding=*utf-8*,errors=*ignore).lstrip(*\ufeff*)
+941
+lines =rav.splitlines()
+947
+norn =[1n.strip().lstrip(*\ufeff*).lover() for 1n 1
+950
+196
+idx_n = idx_z = None
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 59 =====
+for i,h in enuserate（nor=）:
+G53
+if re.=atch（x*vl\s▪[.:\a]\a*n\s*$.h）:idx_n =1
+954
+1fre.=atch（rvl\s*[.:\s]\s*k\s*$*,h）:1dx_x=1
+955
+1f idx_n 1s None:
+956
+raiseValueError（“未找到“wl，n表头；请检查CSV*）
+951
+959
+def
+collect(si，ei）:
+959
+v1, val = [], []
+960
+for ln in lines[si+1:ei]:
+961
+s = 1n.strip()
+962
+1f（not s）or s.startsvith(*a):
+963
+continue
+964
+parts =[t for t 1n re.split(r*[,\s:]+,s）1f t]
+961
+1f len(parts)<2:
+966
+continue
+967
+try:
+968
+v1.append(float(parts[0])):val.append(float(parts[1]))
+969
+except ValueError:
+Pn
+continue
+971
+v1 =np.asarray(v1, float);val =np.asarray(val,float)
+972
+order = np.argsort(v1)
+973
+return vl[order].val[order]
+974
+97t
+end_n =idx_z if idx_x is not None elce len（lines)
+976
+v1_n, n_vals = collect(idx_n,end_n)
+977
+978
+if idx_k is not None:
+979
+v1_k,k_vals = collect(1dx_k,len(lines))
+990
+sig=a_k = 1e4 / v1_z
+order = np.argsort(sig=a_k)
+982
+s1gna_k, k_vals = signa_k[order], k_vals[order]
+186
+else:
+984
+v1_x, x_vals = v1_n.copy(), np.zeros_like (n_vals)
+98!
+sig=a_k = 1e4 / v1_k
+985
+order = np.argsort(sig=a_k)
+987
+s1g=a_k, k_vals = sig=a_z[order], k_vals[order]
+989
+989
+s1g=a_n = 1e4 / v1_n
+order = np.argsort (sig=a_n)
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 60 =====
+sig=a_n, n_vals = sig=a_n[order],n_vals[order]
+993
+sig_=in ==ax（float(s1g=a_n[o]),float(sig=a_k[0]))
+sig_=ax ==in(float（oig=a_n[-1]),float（sigma_x[-1]）)
+991
+def n1_of_s1gna(s1gma_c=):
+N91
+s = np.atleast_1d(signa_c=).astype(float)
+998
+if fill == *edge*:
+n_1 = np.interp(s,t
+sig=a_n, n_vals, left=n_vals [0], right=n_vals
+[1])
+x_1 = np.interp(s, s1gua_k, x_vals, 1eft=x_vals[0], right=z_vals
+[-1])
+1001
+else:
+1002
+n_1 = np.interp(s, oigna_n, n_vals)
+1003
+x_1 = np.interp(s,sig=a_k, k_vals)
+1004
+out =(s < s1g_=in) 1(s > s1g_=ax)
+1001
+n_i[out] = np.nan; k_i[out] = np.nan
+1006
+return n_1 + 1j*_1
+1007
+1008
+return nl_of_sig=a,（sig_=in,sig_=ax)
+1009
+1010
+def
+_cos_theta(n_inc,n_layer,theta_inc):
+1011
+s = np.sin(theta_inc)
+1012
+ct=np.sqrt（（1 -（n_inc/n_layer)**2*s**2).astype（co=plex）)
+1013
+return np.vhere(np.real（ct）<O,-ct,ct)
+1014
+1015
+def
+_fresnel_s(n_i,n_j.cos_i.cos_j）:
+1016
+r=（n_i*cos_1 -n_j*cos_j）/（n_i*cos_1 +n_j*cos_j)
+1017
+t=2*n_i*cos_1 /（n_i*cos_1 +n_j*cos_j)
+1018
+return r,t
+1019
+1090
+def
+_fresnel_p(n_1,n_j.cos_1,cos_j）:
+1021
+r =（n_j*cos_1 -n_1*cos_j)/（n_j*cos_1+n_1*cos_j)
+1022
+t=2*n_i*cos_1/（n_j*cos_1+n_i*cos_j）
+1023
+return r,t
+1024
+1021
+def
+_to_n_sigma(val,sig=a_c=):
+102
+s = np.atleast_1d(sig=a_c=)
+if callable(val):
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 61 =====
+arr = np.asarray(val(s), dtype=co=plex)
+else:
+1030
+arr = np.asarray(val, dtype=co=plex)
+1031
+1032
+1f arr.ndi= == 0 or arr.size == 1:
+1033
+return np.full(s.shape,coplex(arr), dtype=co=plex)
+1034
+1035
+try:
+103X
+return np.broadcast_to（arr,o.shape).astype(co=plex,copy=False)
+1037
+except ValueError:
+1038
+ralse ValueError(
+1039
+fn参数形状{arr.shape）不能广到aig=a形状{o.shape}.
+1040
+请传标量、可调用n（s1g=a），或与s1g=a同形状的数组。
+104:
+）
+1042
+1041
+def R_tvo_bean_sig=a(sig=a_cs, n0,n1_fun_or_const, n2,1_deg,d,pol=*avg*):
+1044
+sigma_cs = np.atleast_1d(sig=a_cm).astype(float)
+104!
+theta0 = np.deg2rad(1_deg): cos0 - np.cos(theta0)
+1045
+1047
+n0s =_to_n_sig=a(n0,sig=a_c=)
+104$
+n1s = _to_n_sig=a(n1_fun_or_const, sig=a_c=)
+1049
+n2s =_to_n_o1g=a(n2,signa_c=)
+1050
+1051
+cos1 -_cos_theta(n0s,n1s,theta0)
+1052
+cos2 =_cos_theta(n0s,n2s,theta0)
+1053
+1054
+sigma_= =100.0 *s1g=a_c=
+106
+beta =2*np·p1*n1s *d*cos1*sig=a_=
+1050
+1057
+def _branch (kind) :
+1058
+if kind … *s*:
+1059
+r01,t01 =_fresnel_s（n0s,n1s,cos0,cos1)
+1060
+r12,
+_fresnel_s(n1s,n2s,cos1,cos2)
+1061
+=*
+t10
+"_fresnel_s（n1s,n0s,cos1,cos0)
+1062
+else :
+1063
+r01,t01 "_fresnel_p（n0s,n1s,cos0,cos1）
+1064
+r12,-
+=_fresnel_p(n1s,n2s,cos1, cos2)
+1065
+t10
+"_fresnel_p(n1s,n0s,cos1,cos0)
+E=r01 +t01*t10*r12*np.exp（1j*2+beta)
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 62 =====
+return np.abs(E)**2
+106
+1f pol == *s:return _branch("s")
+1070
+（d）qouexq”uxnox:d.-=[odgf
+1071
+return 0.5*(_branch(*s*)+_branch(*p"))
+1072
+def R_exact_sigma(signa_cn, n0,n1_fun_or_const, n2,i_deg. d. pol=*avg*
+return_r=False) :
+sig=a_cn = np.atleast_1d(oig=a_cm) .astype(float)
+1075
+theta0 = np.deg2rad(1_deg): cos0 = np.cos(theta0)
+1077
+nOs = _to_n_sig=a(n0, sig=a_c=)
+1078
+n1s = _to_n_sig=a(n1_fun_or_const, signa_cn)
+1070
+n2s = _to_n_sig=a(n2, s1g=a_c=)
+1080
+1081
+cos1 -_cos_theta（n0s,n1s，theta0)
+109°
+cos2=_cos_theta(n0s,n2s.theta0)
+1081
+1084
+sig=a_==100.0▪sig=a_c=
+beta =2*np.pi *n1s *d*
+108
+e=np.oxp（1j *2▪beta)
+1087
+1089
+_rezact(kind):
+108
+if kind … *s*:
+1090
+r01,
+_"_fresnel_s（n0s，n1s，cos0,cos1)
+1091
+r12,
+"_fresnel_s（n1s,n2s,cos1,cos2)
+1092
+1093
+r01,_"_fresnel_p(n0s,n1s,cos0,cos1)
+1094
+r12,_*_fresnel_p（n1s,n2s,cos1,cos2)
+1095
+r=（r01+r12 *e）/（1+r01 *r12 *e)
+1096
+return r,np.abs(r)**2
+1097
+1098
+if po1 ***s*:
+1099
+r_s，R_o"_rexact（s)
+1100
+return (R_s,r_s) if return_r else R_s
+1101
+1fpol -=*p:
+1102
+r_p.R_p =_rexact(*p)
+1103
+return (R_p,r_p) if return_r else R_p
+1104
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 63 =====
+r_s,R_s"_rexact（"s")
+110
+r_p.R_p "_rexact（"p)
+1107
+R_avg = 0.5 ▪(R_s + R_p)
+1108
+if return_r:
+1109
+return R_avg.(r_s,r_p)
+1110
+return R_avg
+1111
+1112
+def build_n1_fro=_csv(csv_path: str, fill: str = *edge*):
+1113
+return make_n1_interpolator_fro=_tvo_block_csv(csv_path, fill=fil1)
+Listing3:问题2：碳化硅的折射率和掺杂的物理模型
+1114
+pd se sepued rodt
+1115
+from satplotlib iuport pyplot as plt
+1116
+plt.rcParans['font.sans=serif']-[*SimHei]
+1117
+plt.rcParams['axes.unicode_=inus*]=False
+避免负号显示成方块
+1118
+du se fdnu od=
+1119
+fros scipy.interpolate import UnivariateSpline
+1120
+from scipy.signal i=port find_peaks
+1121
+fro= scipy.opti=ize i=port nevton
+1122
+1121
+1124
+def robust_sig=a(z):
+1125
+ed = np.sedian(z)
+11236
+return 1.4826 * np.=edian(np.abs(z - ed))
+1127
+1128
+def find_trend_extresa(
+1129
+x, y.
+1130
+s=one,
+#平滑强度；Bone自动估计
+1131
+grid=8000,
+评估网格密度
+1132
+=in_distance=lone,
+#极值最小间隔（x单位）：Hone自动设5%跨度
+1133
+=in_proninence=None,
+根值最小突出度（y单位）：one自动设3
+1134
+=in_curvature=O.0,
+#1s（x）1阔值
+1135
+edge_=argin=0.01
+丢弃边缘（2%）内的极值，减少边界效应
+1136
+1137
+ = np.asarray(x): y = np.asarray(y)
+1138
+1dx = np.argsort(x); x, y = x[1dx], y[idx]
+1139
+1140
+归一化x，增强数值稳定性
+1141
+xmin, x=ax = x.min(), x.max（)
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 64 =====
+L=x=ax -x=in if xnax > xsin else 1.0
+xs=（x-xnin）/L
+1144
+1141
+初步估计和
+（戒差规模）
+1146
+先用轻微平滑估计残差
+1147
+sp10 = UnivariateSpline(xs,y, k=3, s=len(x)*np.var(y)*1e-4)
+1143
+res
+（ox）otds-=
+1149
+sigma = robust_sig=a(res)
+1150
+1151
+if s is None:
+Cs1T
+s=10*len(x)▪（s1gma**2)
+起步值：可按效果加大/减小
+1153
+1f =in_distance is None:
+1154
+=in_distance = 0.05 * L
+5%度
+S911
+if =in_prosinence is Eone:
+9A1T
+=in_proninence = 3.0 * sigma
+#
+1157
+else:
+1158
+=in_pro=inence = =in_pro=inence* sig=a
+6G11
+1160
+正式平滑
+1161
+sp1
+-UnivariateSpline（xs,y，k=3,s=s)
+1162
+dspl = spl.dorivative (1)
+1163
+d2spl= spl.derivative (2)
+1164
+116t
+在密同格上做峰谷筛选（基于
+proninence
+/ distance
+1164
+uu = np.linspace (0.0, 1.0, grid)
+1167
+yg = spl(uu)
+1168
+1169
+距离闽值转为“点数距离”
+11 70
+=in_dist_pts = max(1, int((min_distance / L) * grid))
+1171
+1172
+极大值：直接在yg上我峰
+1173
+p=ax,prop_=ax =find_peaks(yg.prominence=sin_prominence,distance=
+sin_dist_pts)
+1174
+额小值：等价于在
+-78我峰
+1175
+distance
+=in_dist_pts)
+1176
+1177
+def refine_to_stationary(u0):
+1118
+用牛顿法在连续样条上精侈，
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 65 =====
+try:
+u_star =float（nevton（func=dspl.x0=u0,fpri=e=d2spl.=axiter=20）)
+1181
+1f 0.0 <= u_star <= 1.0:
+1182
+return u_star
+1183
+except Exception:
+1184
+pas8
+1181
+return float(u0)
+1186
+1187
+out =[]
+1188
+6811
+处理极大值
+1190
+:xewd uy dxpr xog#
+1191
+u0 = uu[1dxp]
+119
+#
+u
+= ref ine_to_stationary(u0)
+1198
+if (u < edge_=argin) or (u > 1 -edge_margin) :
+1194
+#
+continue
+1195
+curv = float(d2spl(u))
+报大值应<0
+1196
+1f abs(curv) < =in_curvature or curv >= 0:
+1197
+continue
+1198
+#
+out . append({* type*:*=ax*,
+"x*:
+xmim
+12*L.
+"y:float（spl(u）)
+1199
+"pro=inence*:float (prop_=ax["pro=inences*][np. vhere (p=ax
+"=1dxp)[o][o]]),
+1200
+"curvature*: abs(curv)})
+1201
+1202
+处理极小值
+1203
+for idxp 1n p=1n:
+1204
+u0 = uu[idxp]
+120t
+u=refine_to_stationary（u0)
+1206
+if （u<edge_=argin)or （u > 1
+edge_=argin):
+1207
+continue
+1208
+curv =f1oat(d2sp1（u）)
+核小值应>0
+1209
+1f abs（curv）<min_curvature or curv <= 0:
+1210
+continue
+1211
+out.append（(*type:*min*，"x:x=in+u*L，*y*:float（spl（u））.
+1212
+“prominence*:float(prop_=in[*pro=inences*][np.vhere（p=is
+1dxp)[0][o]]),
+1213
+"curvature*:abs(curv)})
+1214
+121$
+out.sort（key=lambda d:d[x*])
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 66 =====
+return out,(la=bda zq: spl((np.asarray(xq)-x=in)/L))
+1217
+1218
+1219
+df=pd.read_oxcel（r*附作2.xlsx*，usecols=[o，1]）
+1220
+=df.1loc[：.0]
+1221
+y1 = df.11oe[:, 1]
+1222
+eztrema, f = find_trend_extresa(
+1223
+x, y1,
+1224
+grid=12000,
+加密网格
+1225
+nin_distance=0.02▪（x.nax()-x.min（)),
+1226
+1297
+=in_pro=inence=0.1.
+低门，石回更多
+1228
+=in_curvature=O.0,
+不用当率砍点
+1229
+edge_=argin=0.01
+1230
+）放宽边缘
+1231
+根值点
+1232
+print（f极值点个数是len（extxe=a）}"）
+1233
+ez =[]
+1234
+for ein extrea:
+1235
+print（e['x'].e['y].*curv:,e[curvature′])
+123
+ex.append(e['x'])
+1237
+1238
+xqnp.array（ex）=权值点集合
+1239
+yq·f（xq）#极值应对应是函数值
+1240
+1241
+ax = plt.gca()
+1247
+#评估超势曲线（用于画图）
+1243
+ys = f(x)
+1246
+1245
+stacked_array=np. vstack((x,ys)).T
+1246
+df = pd.DataFrame (stacked_array)
+1247
+#df.to_csv（r*附件1滑窗平均.csv*，index=False，float_format=*Y.6f*，encoding=*
+utf 8*)
+1249
+fig.ax=plt.subplots（figsize=(8,5))
+1249
+ax.plot(x,y1,
+linestyle=*-,label="f（x)ori*,color=*red*,linevidth =1.5)
+原曲线
+1950
+ax.plot(x，ys,linestyle=*--,label=*f(x）trend*,linevidth
+green")
+可选：趋势画线
+12s:def filtered_indices(data):
+中国大学生在线
+
+===== PAGE 67 =====
+*"*返回n售标准差范围内的平均值**
+1253
+arr = np.array(data)
+1254
+ean, std = np.zean(arr), np.std(arr)
+195
+condition =（arr >=mean-2*std）&（arr <= =ean+2*std）
+1254
+all_indices = np arange (len (data))
+1257
+vithin_indices = all_indices[condition]
+1258
+exclued_indices = all_indices[-condition]
+1259
+return vithin_indices ,exclued_indices
+1260
+filtvithin_indicesered,exclued_indices = filtered_indices(yq)
+1261
+1262
+az.scatter(xq[filtvithin_indicesered], yq[filtvithin_indicesered], s=40, zorder
+=3，1abel=pointsonf（x）·，color=“green）=你要标的点
+1963
+ax.scatter(xq[exclued_indices],yq[ezclued_indices],s=40,zorder=3,1abel="
+wrongpointsonf（z）*，color=red*）=你要标的点
+1264
+az.set_title（“第二间附件2滑窗平均超势展示"）
+1265
+az.grid(True)
+1266
+az.legend()
+1267
+plt.shov()
+1268
+\end(lslisting)
+1269
+\begin{lstlisting}[caption=问题2：统计分析代码]{python}
+1270
+du se fd=nu xod=
+1271
+i=port pandas as pd
+1272
+fro= scipy.stats import t
+1273
+1274
+def co=pute_stats（d,v=None,alpha=0.05）:
+1375
+1276
+d：1Darray-like，厚度序列{d1....,d_{L-1}}
+1277
+：1Darray-like，可选权重（如_1）。若None则不讨算加权平均
+1275
+1279
+d = np.asarray(d, dtype=float)
+1280
+n = d.size
+1281
+ifn<2:
+1282
+raiseValueError（“样本数不足（至少需要2个厚度值）*）
+1287
+1284
+2.6.1中心超势
+1295
+d_bar = d.=ean()
+算术平均
+1296
+euon = xeqa°p
+1281
+1f v is not None:
+1289
+v = np.asarray(v,dtype=float)
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 68 =====
+if v.size != n:
+raiseValueError（“权重长度与厚度序列不一联*）
+1291
+1f np.any (v < 0):
+1292
+raiseValueError（"权重必须非负）
+1293
+1f v.sum（) == 0:
+1294
+raiseValueError（“权重之和为O*）
+1291
+d_vbar = np.su=(v * d) / np.su=(=)
+加权平均（权重与△成正比）
+1296
+1297
+2.6.2不确定度
+1298
+样本标准差：
+_d = sqrt( 1/(n-1)* ∑(d_1 - d)2 )
+1299
+s1gma_d = d.std(ddof=1)
+1300
+1301
+标准误：
+_(d} =
+_d/sqrt (n)
+1302
+se = sig=a_d / np.sqrt (n)
+1303
+1.304
+95%置售区间：d±t_（0.025，n-1}
+_(d}
+1301
+df =n -1
+1306
+tcrit = t.ppf (1 - alpha/2, df)
+1307
+ci_lov =d_bar -tcrit ▪se
+1.309
+ci_high = d_bar + tcrit * se
+1309
+1310
+2.6.3可靠性：变异系数CV=
+_d/d×100%
+1111
+cv = sig=a_d / d_bar * 100.0
+11129
+1313
+#L=n+1
+1314
+return (
+1115
+"L:n+1,
+1316
+"n（=L-1)":n,
+1317
+*=ean": d_bar,
+1318
+*veighted_mean*:d_vbar,
+1319
+*std_sig=a_d*: sigma_d,
+1320
+"std_error":se,
+1321
+"t_erit(95%)*:terit,
+1122
+"CI95_lov*:ci_lov,
+1323
+*CI95_high": c1_high,
+1.124
+"cv_x*:ev,
+1325
+1326
+1127
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 69 =====
+def run_fro=_csv(csv_path,d_col="d",
+v_col=*delta_nu*,alpha=0.05,out_path=
+None):
+1129
+df = pd.read_csv(csv_path)
+1330
+v = None
+1331
+d=df.iloc[1:,0].to_numpy()
+1332
+1133
+res = compute_stats(d，v=v,alpha=alpha)
+1334
+out = pd.DataFraze ([res])
+133!
+1336
+1f out_path is Hone:
+1337
+i=port os
+1338
+base, ext = os.path.splitext(csv_path)
+1339
+out_path=base+*_统计结果.csv
+1140
+1341
+out.to_csv(out_path,index=False,float_forat=*X.6f*,encoding="utf-8-sig
+)
+1342
+print(out)
+1343
+print（f*结果已保春：《out_path}"）
+1144
+124!
+un_from_csv（r*附件1滑官平均筛去异常.csv*，d_col=*d°，_col=*delta_nu）
+114(
+\end(lslisting)
+1347
+\begin{1stlisting}[caption=问题3：硅品片的折射率和掺杂的物理模型]《python}
+1148
+i=port nuspy as np
+1249
+1350
+物理数（SI）
+1351
+1.602176634e-19
+#C
+1152
+eps0=8.8541878128e-12
+# F/=
+1353
+c0 = 299792458.0
+# =/s
+1154
+m_0
+=9.1093837015e-31
+#kg
+135f
+m_e
+=9.1093837015e-31
+#kg
+1356
+(1) Drude:
+eps_inf.
+有效质量
+1357
+eps_inf = 11.7
+#高频介电常数（论文）[ref]
+1358
+=_eff = 0.27 +=_0
+#n型电子有效质量（论文）[ref]
+1259
+（2）n型Masett1迁移率模型参数（单位注意：c=~2/Vskc=-3）
+1360
+MU1 = 68.5
+1161
+MU_HAX = 1414.0
+1362
+XU2 = 56.1
+1363
+CR =9.2e16
+1364
+CS = 3.41e20
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 70 =====
+ALPHA =0.711
+1266
+BETA = 1.98
+1367
+1368
+（3）区uz=icz不完全电离（n型，T=300K=>
+I=
+1369
+A_n =0.0824
+1370
+NO_n = 1.6e18
+117:
+B_1ov
+0.4722
+<=NO
+1372
+B_high = 1.23 - 0.3162
+# N > N0 => 0.9138
+1372
+du se dunu iod
+1374
+1375
+137
+单位换算：
+cn-1->角频本
+(rad/s)
+1377
+def _c=1_to_onega(sig=a_cn):
+117s
+sig=a_==np.asarray(sig=a_cn，dtype=float)▪100.0 c=~-1
+->²-
+1379
+return 2.0 * np-p1 * c0 * sig=a_=
+2
+1380
+1381
+n型硅：Kuzmiez不完全电离（T300K）
+1382
+eta = 1 - A •oxp(-(B ▪1n(x/No))~2)
+1181
+#n型:A=0.0824,N0=1.6e18 c=~-3,B=0.4722（N<=N0) e1se 0.9138
+1284
+def
+_eta_kuzmicz_n（N_cn3）:
+1381
+= np.saxi=u=(np.asarray(N_c=3,dtype=float),1.0)
+138
+,N0 =0.0824,1.6e18
+1187
+B=np.vhere（x <=NO,0.4722,0.9138)
+1389
+eta =1.0 -A *np.exp(-(B ▪np.1og(x / No）)**2)
+1389
+return np.clip(eta,0.o,1.0)
+1190
+1191
+n型硅：Masetti迁移率（Ne）[c=2/Vs]-
+1292
+1+（=ax-1)/(1+(Ne/Cr)~)-2/(1+（Cs/Ne)~)
+1393
+def
+1394
+KU1, MU_KAX, KU2 = 68.5, 1414.0, 56.1
+1291
+CR,CS
+=9.2e16,3.41e20
+1394
+ALPHA,BETA
+= 0.711, 1.98
+1397
+Ne = np.asarray(Ne_c=3, dtype=float)
+1.299
+return XU1+（MU_MAX-XU1)/(1.0+（Ne/CR）**ALPHA）-MU2/(1.0+（CS/Ee）**
+BETA)
+1400
+Drude介电函数（只合自由载流子项）
+1.40:
+def
+_eps_drude_onega(onega, eps_inf , Me_n3, =_eff ,
+（*=0d)/00=.d
+中国大学生在线
+
+===== PAGE 71 =====
+vp2
+=Ne_=3*e**2/（eps0*=_off)
+=e/（n*
+1405
+ga=ma =e / (=_eff *=u_=2Vs） 1f np.al1(mu_m2Vs > 0) else 0.0
+1406
+return ops_inf -vp2 /（omega *（onega +1j*ga=na）)
+1407
+1408
+主函数：n（）vith
+(cn~-1)
+1409
+def n_si_signa(sigma_cn,
+1410
+N_cm3=5e18,
+掺杂浓度（供体），
+单位c=²-3
+1.411
+eps_inf =11.7,
+高频介电常数
+1412
+m_eff_rel=0.27,
+电子有效质量（相对电子质量）
+1418
+use_drude=True ,
+1414
+use_ionization=True):
+1415
+1416
+n型S1：Drude复折射率n（）+1k（），输入波数
+[c=²-1].
+1417
+-自由载流子Me：默认用Kuzmicz不完全电离：Ne=eta（N）▪N
+1418
+迁移率
+（Ne）：Masetti 棋型（n型）
+1419
+（（+））/d-u（）-
+=2c
+1420
+这回：复数数组n_co=plex（）
+1421
+1422
+sig=a_c= =np.atleast_1d(sig=a_cm).astype(float)
+1421
+onega
+"_c=1_to_o=ega(sig=a_c=)
+1424
+自由电子浓度（考虑不完全电离）
+1421
+if use_ionization:
+1426
+eta =_eta_kuznicz_n(N_cn3)
+1427
+Ne_cn3 =eta *float(N_c=3)
+1429
+else:
+1429
+Ne_cm3=float（N_cn3）
+1430
+Ne_=3=Ne_c=3▪1e6
+#c=~-3
+1431
+迁移率（由自由电子浓度决定）
+1432
+mu_cn2Vs = _mu_=asett1_n(Ne_cn3)
+#c=*2/Vs
+1433
+nu_±2Vs
+u_c=2Vs▪1e-4
+θ =~2/Vs
+1434
+Drude介电函数
+1435
+1f use_drude and Ne_c=3 > 0:
+143M
+=_eff = n_eff_rel * =_e
+1437
+eps = _eps_drude_omega(omega, eps_inf, Ne_n3, =_eff,mu_=2Vs)
+1433
+else:
+1439
+fo+guyede= ode
+1440
+复折射率
+1441
+n_conplex =np.sqrt（eps +0j)
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 72 =====
+return n_couplex
+Listing4:闫题2：间隔法计算碳化硅数据
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 73 =====
+415
+2026年全国大学生
+国家安全知识答题

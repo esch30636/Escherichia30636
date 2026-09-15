@@ -1,0 +1,74 @@
+{
+  "final_run": "adaptive_2.5e-05",
+  "N": 800,
+  "mesh_power": 2,
+  "budget": 2.5e-05,
+  "T_error_estimate_C": 5.336274654155204e-06,
+  "C_error_estimate_kgkg": 8.105109859194807e-06,
+  "C_temporal_estimate": 4.9654565772438986e-06,
+  "C_spatial_estimate": 3.134833861532608e-06,
+  "C_observed_spatial_order": 1.9997598787034265,
+  "BDF_tolerance_difference": 4.819420418300524e-09,
+  "bounds": {
+    "T": [
+      27.999999999999996,
+      36.78556296060923
+    ],
+    "C": [
+      1.5102382718814762,
+      2.55
+    ]
+  },
+  "balance_relative": {
+    "T": 2.0197380084251714e-14,
+    "C": 5.820797092100423e-13
+  },
+  "solver_statistics": {
+    "T": {
+      "accepted_macro_steps": 612438.0,
+      "rejected_steps": 584.0,
+      "Newton_iterations": 1839066.0,
+      "min_macro_dt_s": 2.0278133803230958e-06,
+      "max_macro_dt_s": 0.01636692467728623,
+      "min_cell_value": 28.0,
+      "max_cell_value": 36.785557831011744,
+      "outward_exchange_integral": -3.583956973805795
+    },
+    "C": {
+      "accepted_macro_steps": 159242.0,
+      "rejected_steps": 14.0,
+      "Newton_iterations": 477787.0,
+      "min_macro_dt_s": 1.0245430168593412e-10,
+      "max_macro_dt_s": 0.2452253553509093,
+      "min_cell_value": 1.5102430271609801,
+      "max_cell_value": 2.55,
+      "outward_exchange_integral": 0.12822082895092698
+    }
+  },
+  "quadrature_max_relative_difference": 2.2378336062939706e-15,
+  "mean_C_1800": 2.293558342098146,
+  "dry_mass_kg_assumed": 0.07256636551953889,
+  "water_loss_kg_assumed": 0.01860903908174249,
+  "T_center_1800": 33.57534466534079,
+  "T_surface_1800": 36.78556296060923,
+  "C_center_1800": 2.5499923793034824,
+  "C_surface_1800": 1.5102382718814762,
+  "benchmarks": {
+    "heat_series_180_vs_360": 4.5076092192175565e-08,
+    "heat_constant_max_abs_error": 3.3974773373302014e-05,
+    "heat_constant_balance_max": 4.844125101044483e-12,
+    "moisture_constant_max_abs_error": 1.5264648237423017e-05,
+    "moisture_constant_balance_max": 1.0595690991266338e-14,
+    "end_effect_max_C": 6.346326690900405e-08,
+    "end_effect_refinement_difference_C": 2.8472937344576917e-08,
+    "end_effect_final_center_C": 6.346326690900405e-08
+  },
+  "all_numeric_checks_passed": true,
+  "runtime": {
+    "python": "3.13.9",
+    "numpy": "2.3.5",
+    "scipy": "1.16.3",
+    "numba": "0.62.1",
+    "matplotlib": "3.10.6"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "rows": 3431,
+  "radius_columns": 21,
+  "checked_values": 72051,
+  "max_rounding_difference": 4.999903892330404e-05,
+  "first_time_s": 60.0,
+  "last_time_s": 205860.0,
+  "freeze_panes": "B2",
+  "previous_max": 0.15000295352176402,
+  "final_max": 0.14998537271777612,
+  "table5_matches": true
+}

@@ -1,0 +1,5 @@
+numpy<2
+opencv-python-headless<5
+opencv-contrib-python<5
+imgaug==0.4.0
+paddleocr==2.7.3

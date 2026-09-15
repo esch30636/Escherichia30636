@@ -1,0 +1,65 @@
+[
+  {
+    "scenario": "hfactor_0.95",
+    "max_delta_T": 0.24201817432006578,
+    "max_delta_C": 0.003295963200944385,
+    "final_surface_delta_T": -0.017896561487667384,
+    "final_center_delta_T": -0.02277116242531463,
+    "final_surface_delta_C": 0.00037753422747033305,
+    "final_center_delta_C": 0.0021370608798043644
+  },
+  {
+    "scenario": "hfactor_1.05",
+    "max_delta_T": 0.2242629562302625,
+    "max_delta_C": 0.0030066119951035475,
+    "final_surface_delta_T": 0.014790168739828857,
+    "final_center_delta_T": 0.018661967762433562,
+    "final_surface_delta_C": -0.00036758148319759876,
+    "final_center_delta_C": -0.0019076228143490859
+  },
+  {
+    "scenario": "hmfactor_0.95",
+    "max_delta_T": 0.013551190998434492,
+    "max_delta_C": 0.03866412231532057,
+    "final_surface_delta_T": -0.002370721470327908,
+    "final_center_delta_T": -0.0028723926462035365,
+    "final_surface_delta_C": 0.03866412231532057,
+    "final_center_delta_C": 0.021133866082093
+  },
+  {
+    "scenario": "hmfactor_1.05",
+    "max_delta_T": 0.013093069528629542,
+    "max_delta_C": 0.03650986387763844,
+    "final_surface_delta_T": 0.002246860524522276,
+    "final_center_delta_T": 0.0027092365237351146,
+    "final_surface_delta_C": -0.03649895486611754,
+    "final_center_delta_C": -0.02002525273584288
+  },
+  {
+    "scenario": "dfactor_0.95",
+    "max_delta_T": 0.006708764370387144,
+    "max_delta_C": 0.028551634316373198,
+    "final_surface_delta_T": -0.0008602804255204433,
+    "final_center_delta_T": -0.0015025360004656818,
+    "final_surface_delta_C": -0.007221452151520147,
+    "final_center_delta_C": 0.028551634316373198
+  },
+  {
+    "scenario": "dfactor_1.05",
+    "max_delta_T": 0.006424719999067463,
+    "max_delta_C": 0.026506390238735245,
+    "final_surface_delta_T": 0.0008064731481951526,
+    "final_center_delta_T": 0.001403878799827396,
+    "final_surface_delta_C": 0.006513935746249588,
+    "final_center_delta_C": -0.026487253050649473
+  },
+  {
+    "scenario": "pchip400",
+    "max_delta_T": 0.005714594240110671,
+    "max_delta_C": 1.647697739404208e-05,
+    "final_surface_delta_T": 0.00023273345098573373,
+    "final_center_delta_T": -0.00010813833823419827,
+    "final_surface_delta_C": -1.5863871050125766e-06,
+    "final_center_delta_C": -2.943800060384305e-06
+  }
+]

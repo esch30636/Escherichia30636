@@ -1,0 +1,19 @@
+{
+  "温度": {
+    "rows": 1800,
+    "radial_positions": 21,
+    "numeric_values": 37800,
+    "max_difference_from_rounded_source": 0.0,
+    "four_decimal_format": true,
+    "freeze_panes": "B2"
+  },
+  "水分浓度": {
+    "rows": 1800,
+    "radial_positions": 21,
+    "numeric_values": 37800,
+    "max_difference_from_rounded_source": 0.0,
+    "four_decimal_format": true,
+    "freeze_panes": "B2"
+  },
+  "all_passed": true
+}

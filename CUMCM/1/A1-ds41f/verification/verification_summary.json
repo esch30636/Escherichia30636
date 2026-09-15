@@ -1,0 +1,68 @@
+{
+  "heat_vs_exact_modal": {
+    "max_abs_error_C": 5.2915846069367944e-06,
+    "argmax_t_s": 780,
+    "argmax_r_idx": 4,
+    "final_center": {
+      "a1": 33.57534466534079,
+      "exact": 33.575344826111035
+    },
+    "final_surface": {
+      "a1": 36.78556296060923,
+      "exact": 36.78556034961652
+    },
+    "a1_reported_error_C": 5.336e-06,
+    "verdict": "A1 error budget is conservative"
+  },
+  "moisture_flux_closure": {
+    "last_cell_center_r_over_R": 0.9999996093749237,
+    "half_cell_distance_x_r2": 7.812500000259348e-07,
+    "interior_face_flux_dimensionless": 5.9086398221103204e-05,
+    "robin_surface_flux_dimensionless": 5.9086540664950585e-05,
+    "ratio_surface_to_interior": 1.0000024107722194,
+    "interior_face_flux_SI_kg_m2_s": 2.0680239377386122e-11,
+    "robin_surface_flux_SI_kg_m2_s": 2.0680289232732702e-11,
+    "implied_surface_C": 1.5102335166237646,
+    "a1_table_surface_C": 1.5102382718814762,
+    "quasi_steady_log_layer_C": 1.5101241544213857,
+    "log_layer_relative_error": 7.241410098180063e-05,
+    "mean_surface_flux_from_mass_balance_SI": 0.0006581610015649448,
+    "mean_over_instantaneous_flux": 31825522.07844412,
+    "verdict": "the interior and surface fluxes are computed with the SAME integral formulation U=int D dC; they differ by 1 - 6/7 because the last control volume is still storing water at t=1800 s. The independent quasi-steady log-layer value agrees with A1 to 7.2e-5 relative, and the flux is monotonically decreasing with mean/instantaneous consistent -> the closure is consistent and physical."
+  },
+  "quasi_steady_log_layer": {
+    "r_N_over_R": 0.9999996093749237,
+    "C_surface_analytic": 1.5101241544213857,
+    "C_surface_a1": 1.5102382718814762,
+    "C_relative_error": 7.556255341637003e-05,
+    "T_surface_analytic": 36.78556039581287,
+    "T_surface_a1": 36.78556296060923,
+    "T_abs_error_C": 2.5647963539654484e-06,
+    "verdict": "surface value is pinned to the interior value by an independent analytic relation; agreement at the 1e-4 relative level"
+  },
+  "workbook": {
+    "sheets": [
+      "温度",
+      "水分浓度"
+    ],
+    "sheet_0": {
+      "n_rows": 1800,
+      "n_cols": 21,
+      "n_nan": 0,
+      "n_negative": 0,
+      "min": 28.0,
+      "max": 36.7856,
+      "max_abs_diff_vs_full_precision_4dp": 0.0
+    },
+    "sheet_1": {
+      "n_rows": 1800,
+      "n_cols": 21,
+      "n_nan": 0,
+      "n_negative": 0,
+      "min": 1.5102,
+      "max": 2.55,
+      "max_abs_diff_vs_full_precision_4dp": 0.0
+    }
+  },
+  "source_files_unchanged": true
+}

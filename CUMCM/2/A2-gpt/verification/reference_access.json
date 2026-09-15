@@ -1,0 +1,22 @@
+{
+  "verified_on": "2026-09-11",
+  "method": "web.run open; inspect returned title, metadata and actual readable body. Search results alone do not qualify.",
+  "successful": [
+    {"id": 2, "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7892935/", "level": "full_text_html", "title": "Modeling and simulation of heat and mass transfer in an Ethiopian fresh injera drying process", "doi": "10.1016/j.heliyon.2021.e06201", "evidence": "Article header and sections 2.1, 2.1.3 and 2.2.2 returned readable content."},
+    {"id": 3, "url": "https://www.aeeisp.com/nygcxb/cn/article/Y2022/I1/314", "level": "metadata_and_abstract", "title": "红外联合热风干燥白萝卜片的耦合建模与热质传递分析", "doi": "10.11975/j.issn.1002-6819.2022.01.035", "evidence": "Authors, title, citation record and Chinese/English abstracts readable; HTML-fulltext label does not contain actual article body in returned page."},
+    {"id": 4, "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11640360/", "level": "full_text_html", "title": "Mathematical Modeling of Goat Meat Drying Kinetics with Thermal Oscillations", "doi": "10.3390/foods13233836", "evidence": "Authors, Foods 13(23):3836, abstract and article sections returned."},
+    {"id": 5, "url": "https://arxiv.org/abs/1407.1567", "level": "metadata_and_abstract", "title": "Finite volume schemes for diffusion equations: introduction to and review of modern methods", "doi": "10.1142/S0218202514400041", "evidence": "Author, journal citation, related journal DOI and abstract returned."},
+    {"id": 5, "url": "https://arxiv.org/pdf/1407.1567", "level": "full_text_pdf", "pages": 38, "evidence": "application/pdf with 38 pages parsed successfully."},
+    {"id": 6, "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html", "level": "official_documentation", "evidence": "SciPy 1.18.0 page; BDF/Radau and tolerance API accessible. Actual local solver version separately recorded as 1.16.3."}
+  ],
+  "failed": [
+    {"url": "https://www.sciencedirect.com/science/article/pii/S0260877414002118", "status": "403 Forbidden"},
+    {"url": "https://www.tcsae.org/article/doi/10.11975/j.issn.1002-6819.2022.01.035", "status": "tool_fetch_failed"},
+    {"url": "https://www.aeeisp.com/nygcxb/cn/article/pdf/preview/10.11975/j.issn.1002-6819.2022.01.035.pdf", "status": "tool_fetch_failed"},
+    {"url": "https://www.mdpi.com/1996-1073/15/24/9347", "status": "tool_fetch_failed"},
+    {"url": "https://www.mdpi.com/2304-8158/13/23/3836", "status": "tool_fetch_failed; accessible PMC alternate used"},
+    {"url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10093796/", "status": "browser_check_page_not_article"},
+    {"url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12365052/", "status": "browser_check_page_not_article"}
+  ],
+  "limitation": "Access status is limited to this verification session. DOI URLs listed in bibliography were not all separately opened; use the successful URLs above. No failed retrieval is labelled verified full text."
+}

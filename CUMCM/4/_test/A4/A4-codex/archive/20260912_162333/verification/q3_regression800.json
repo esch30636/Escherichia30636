@@ -1,0 +1,41 @@
+{
+  "name": "q3_regression800",
+  "n": 800,
+  "rtol": 1e-11,
+  "method": "BDF",
+  "shrink": false,
+  "appendix": 3,
+  "interp": "linear",
+  "scenario": "base",
+  "sha256": {
+    "code/core.py": "f8924611ee9fb14ac4c14e075b28ac60e58d3aa81980f34c2ea81234c3a29daa",
+    "code/solve.py": "086bdb3dd95a578cbe2b416430157bcad427b3e4d67b379cbbbc5851f83d8f88",
+    "data/ambient.csv": "142b410f871b645f1f627b9c4a7b12a253fa248359608804a380b3a9fa802333",
+    "data/radius.csv": "3921506b7eabe35727cdac412fa57dc1665ad169c570a8507403ab352beff0a9"
+  },
+  "crossing_s": 205810.07717871142,
+  "minute_s": 205860.0,
+  "seconds": 31.062864708015695,
+  "integrals": [
+    1.2128519913055447,
+    -13452.291987823239,
+    -20422.02349955435,
+    0.0
+  ],
+  "balance": [
+    -1.1628542573305367e-10,
+    -5.360481736715883e-06
+  ],
+  "relative_balance": [
+    9.120425547690484e-11,
+    2.8705142166941304e-10
+  ],
+  "identity_abs": [
+    2.168404344971009e-19,
+    4.440892098500626e-16
+  ],
+  "radial_increase_max": 8.881784197001252e-16,
+  "radius_extended": false,
+  "steps": 29215,
+  "nfev": 59315
+}

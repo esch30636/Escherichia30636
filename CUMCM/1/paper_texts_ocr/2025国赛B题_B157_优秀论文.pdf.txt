@@ -1,0 +1,2361 @@
+
+===== PAGE 1 =====
+碳化硅外延层厚度的双光束和多光束干涉法测量研究
+摘要
+碳化硅是一种新兴的第三代半导体材料，其外延层的厚度对其性能至关重要。而红
+外于涉法是外延层厚度的一种无损伤测量方法。本文通过分析红外光束的于涉效应，建
+立了相应的于涉模型和厚度测量模型。采用多种优化方法，在双光束和多光束干涉场景
+下获得了精确的的外延层厚度值。
+针对问题一：构建双光束干涉模型。首先，依据Snell定律修正入射角的影响，推
+导出外延层内光程差与相位差。接着，利用Fresnel公式计算空气-外延层、外延层-衬底
+界面的反射系数，引入Cauchy色散模型描述折射率随波长的变化，建立外延层厚度与
+红外光谱反射率的模型关系。求解时通过傅里叶变换法获取干涉条纹周期并提取振荡周
+期，得到外延层厚度租略的初始估计值，最后采用非线性最小二乘法拟合模型参数，为
+后续厚度反演提供清断的理论相架。
+针对问题二：基于问题一模型，对碳化硅晶圆片在入射角10°和15°的实验数据进
+行厚度反演。首先对光谱数据进行等间距重采样，裁剪1000cm一以下低波数干扰区。
+然后对光谱利用非对称最小二乘法（AsLS）去趋劳与SavitzkyGolay平滑去噪。随后通
+过滑窗傅里叶变换筛选高信噪比有效额段[2500，3700]cm，采用双角联合拟合策略共
+享厚度与色散参数，引入波数刻度和入射角微偏差校准量，利用随机梯度下降法进行全
+参拟合，最终得到SiC外延层厚度约7.604um，残差均方根误差低于1.14x10-3。此外，
+本文从残差统计特性、正态性检验、角度一致性、系统敏感性等多个维度对模型进行了
+可靠性检验，确保了模型的准确性与稳健性。
+针对问题三：构建Airy多光束干涉+Cauchy色散模型。首先对两角度光谱进行等
+距重采样与轻量多项式去基线，随后采用滑窗FFT提取主颜f与信噪比，并据此选择
+有效带宽[1170，2170]cm-作为厚度反演的工作区间。结合相干长度判据与界面反射率
+锐度系数F的分析得到多光束相于条件，并据此判定出硅晶圆片存在显著多光束于涉，
+而碳化硅样品因SiC/Si界面反射率仅约0.016，高阶反射贡献可忽略，沿用两光束模型
+即可。基于此，我们对硅样品建立Airy型多光束干涉+Cauchy色散模型，在两角度数
+据上联合最小二乘全参拟合，残差主峰位置复现实验条纹、幅值整体小于0.02，最终得
+到硅晶圆片厚度约3.814um。
+关键字：外延层厚度测量傅里叶变换多光束干涉Cauchy色散模型Airy公式
+中国大字生在线
+dxs.moe.gov.cn
+1
+
+===== PAGE 2 =====
+一、问题重述
+1.1问题背景
+碳化硅（SiC）作为新一代半导体材料，因其宽禁带、高热导率和高击穿场强等特
+性，被广泛应用于电力电子、轨道交通、新能源汽车等领域。外延工艺是碳化硅晶圆制
+造的关键环节，而外延层的厚度直接影响器件的导通电阻、击穿电压和整体性能。因此，
+如何准确测定外延层厚度，不仅是科研中的重要课题，也是产业界在质量控制与性能优
+化中的迫切需求。
+与此同时，硅材料作为传统半导体的基础，在电子器件制造中依然占据着重要地
+位。对硅及碳化硅材料外延层的厚度测量与比较研究，不仅能够为半导体产业的发展提
+供参考数据，也有助于推动材料检测技术的进一步完善。
+1.2向题提出
+基于上述背景，本文建立数学模型解决下列问题：
+向题一在仅考虑外延层与衬底界面分别发生一次反射与投射所形成的两光束干涉情
+况下，构建外延层厚度的数学模型。
+问题二利用问题一所建立的模型，对碳化硅晶圆片在入射角为10°和15°时的实验数
+据进行厚度反演，并对结果的准确性与可靠性进行评估。
+向题三分析多光束干涉产生的条件和其对厚度测定结果的影响，判断硅晶圆片的实验
+数据是否存在多光束干涉，并在必要时建立相应的模型与算法进行厚度求解。同时，若
+碳化硅数据中存在类似影响，提出相应的修正方法并给出校正后的厚度结果。
+二、问题分析
+2.1问题一
+问题一的核心是建立一个光学干涉模型，用于描述外延层厚度与红外反射光谱之
+间的关系。人射光在外延层表面和衬底界面分别发生反射，两束光在一定条件下相干叠
+加，从而形成干涉条纹。条纹的周期和强度不仅依赖于外延层的厚度，还与材料折射率
+和入射角有关。因此，需要在理想化的“两光束干涉”假设下，构建厚度与波数之间的
+函数关系。由于折射率随波长和载流子浓度而变化，可引入合适的色散模型加以描述，
+2
+
+===== PAGE 3 =====
+使得模型更贴近实际情况。通过这一模型，可以为后续的厚度估计和算法设计提供清晰
+的理论依据。
+2.2问题二
+在已有两光束干涉模型的基础上，问题二的任务是利用实测数据对外延层厚度进行
+反演计算。已知条件是碳化硅晶圆片在两种入射角下的实测光谱曲线，关键在于如何将
+模型与实际数据结合，得到可靠的厚度值。
+首先，需要对光谱数据进行预处理，包括去除噪声、归一化、选择合适的额段，以
+确保用于拟合的数据的质量。随后，根据问题一建立的模型，设计合适的算法对参数进
+行拟合。为了保证结果的稳定性和可信度，可以采用两步法：先通过频域分析获得厚度
+的初值，再利用非线性优化方法在全频段范围内精细拟合。在此过程中，充分利用人射
+角10°与15°的两组数据，通过联合拟合与结果对比来验证模型的适用性。最后，结合
+残差分析与参数灵敏度讨论，对所得厚度结果给出可靠性评估。
+2.3向题三
+向题三在前两问的基础上考虑了多光束干涉的更多情况，要求分析产生多光束干涉
+的条件以合理选择模型解决相应问题。在建立模型之后，根据硅晶圆片和碳化硅晶圆片
+的实测光谱曲线，选择合适的模型，得到更精确的效果。
+为此，对问题一的模型进行一些修正，将其推广到多光束情形，同时得到必要条件
+与精度影响。在推导获得多光束模型后，将光谱数据按问题二的流程进行预处理，通过
+须域分析获取初值，采用非线性优化算法对硅晶圆片用多光束模型进行拟合，从而评价
+模型的适用性，并给出可靠性评估。对碳化硅晶圆片，在预处理后，利用带通滤波的方
+法对原图进行优化，消除其他光束的影响，再利用问题二的计算方法得到厚度值。
+三、模型假设
+1.厚度与面内均匀性：假设外延层厚度d在光斑范围内不随波数/时间变化（面内与时
+间上均匀稳定）。
+2.衬底折射率平稳：假设在选定带宽内，衬底折射率n近似平稳。SiC样本取n22.65，
+Si样本取n2≈3.42。
+3.各向同性：假设介质各向同性、界面理想平行，忽略粗糙、模角影响。
+4.介质吸收率较低：假设介质足够透明，红外光在介质表面发生折射和反射以及在介
+质中传播时介质对光能的吸收较低可以忽略，反射率与透射率之和为1。
+dxs.moe.go
+
+===== PAGE 4 =====
+四、符号说明
+本文所使用的符号及说明如表1所示。
+表1符号说明
+符号
+含义
+单位
+n;
+介质对红外光折射率
+0;
+光线与法线的夹角
+rad
+相位差
+rad
+入
+红外光波长
+m
+V
+单位长度内的波周期数
+m~1
+tij,ti
+透射系数，透射波振幅/入射波振幅
+一
+Tij
+反射系数，反射波振幅/入射波振幅
+一
+T
+透射率，透射光功率/入射光功率
+R
+反射率，反射光功率/入射光功率
+I
+光强，衡量光的能量大小
+W/m²
+E
+光矢量
+Lc
+光源相干长度
+m
+F
+锐度系数
+p
+外延层厚度
+m
+五、模型建立与求解
+5.1问题一模型的建立与求解
+学牛在线
+5.1.1两光束干涉厚度模型的建立
+在红外于涉测厚实验中，入射光在空气外延层界面和外延层衬底界面各发生一次
+反射，两束光在探测端叠加产生干涉条纹。为描述这一现象，我们建立“两光束干涉厚
+度模型”。
+dxs.mo
+4
+
+===== PAGE 5 =====
+设空气折射率为no=1，外延层折射率为n（x），厚度为d，衬底折射率为n2，人
+射角为6。根据Snell定律，外延层中的折射角为
+no sinθo = n(入) sinθ
+(1)
+其中，0为外延层中的折射角。
+光在外延层内的往返光程差为
+△L =2n(入)dcosθ,
+(2)
+对应的相位差为
+5(入) =
+4πn(入)dcos 0
+入
+(3)
+空气
+n,a)
+外延层
+衬底
+图1两光束干涉模型的光路示意图
+利用Fresnel公式，空气-外延层及外延层-衬底的反射系数分别为：
+n cosθ n(入)cosθ
+T01 
+n cos θ + n(入) cos θ
+(4)
+n(入) cos θ  n2 cos θ2
+12 =
+n (入) cos θ + n2cos 02
+(5)
+其中6为在衬底中的折射角。
+则总反射率为
+R(x) ro + re(x)|2
+生在线
+为刻画色散效应，引入Cauchy模型近似外延层折射率：
+n（x）=A+
+B
+X2
+(7)
+ov.cn
+其中A，B为待定参数。至此，我们已建立了外延层厚度d与红外光谱R（入）之间的函数
+关系。
+
+===== PAGE 6 =====
+5.1.2两光束干涉厚度模型的求解
+由于厚度d出现在非线性相位函数中，难以直接解析求解，需要结合实验数据进行
+数值反演。求解思路如下：
+首先由于涉条纹周期与厚度的近似关系
+/1
+2ndcos0
+(8)
+通过FFT分析光谱条纹周期，对厚度做出初步估计，得到厚度初值d。
+接下来构造目标函数：
+J(d,A,B)=(Rob(x)-R(入；d,A,B))²
+(6)
+其中R为实验数据，R（）为理论模型。
+下面以d为初值，采用非线性最小二乘法拟合参数（dA，B），得到厚度估计d。
+最后，对不同入射角的两组实验数据进行联合拟合，比较结果的一致性，并通过残
+差分析验证拟合的合理性。
+5.2问题二模型的建立与求解
+5.2.1数据预处理
+在正式代入数据进行反演之前，要对数据进行预处理。为保证频域分析（FFT）与
+滑动窗口的有效性，需要在波数o上等间距采样。将原始数据（o：，R）线性插值到等间
+距网格，步长取原始间距的中位数：
+median(ai+1-oi)
+(10)
+其中，反射率按小数参与计算：R=R（%)/100。
+等间距重采样后得到数据如图2所示。其中raw代表原始数据，UniformSampling代
+表处理之后的数据。
+由图2可以看出，在原始光谱中，低波数区域（约1000cm-以下），出现了明显的
+高反射率平台与陡降，这是由碳化硅材料的声子极化子（Reststrahlen）区引起的物理效
+应：当波数位于横光学声子（TO）与纵光学声子（LO）频率之间时，介电常数为负，表
+面反射率接近1；而在L0边附近（约970-1000cm）会出现剧烈的色散与吸收，导致
+光谱中出现“暴涨暴跌”的特征。这一区域的信号主要受材料本征吸收主导，而不再
+体现出稳定的干涉条纹。
+将该区间数据保留，会对基线估计和平滑滤波造成于扰，同时在滑窗FFT分析中
+导致主须率与信噪比的不稳定，从而降低厚度估计的可靠性。因此，我们在预处理阶段
+6
+
+===== PAGE 7 =====
+图2等间距重采样后数据州
+图3裁务低波数区城后等所重果样围
+将1000cm°以下的波数段整体含弃，仅保留1000-4000cm°的有效光谱进行后续分析。
+获剪后的数据如图3所示。
+接下来，我们对数据进行去趋势化、去噪、平滑处理。首先采用非对称最小二乘法
+(AsLS)拟合基线6,扣除了基线借号，有效去除了由强吸收与整体趋势引起的低频分量
+min(Rt  a) + 入(a²s)。 =
+[p
+R > I
+[1p R ≤ =
+(11)
+其中²为二阶差分算子，入 >0 控新平滑度，p ∈ (0,1) 让基线胎近下包络。
+随后使用Hampel 滤波别除尖噪，并通过 Savitzky-Golay 平带（零相位滤波）进一步
+降低高额噪声，处理后得到的残差信号主要包含干涉条纹成分（见图4），为后续的频城分
+析和厚度估计提供了稳定的输入，需要注意的是，1000cm附近依然存在由Reststrhlem
+区边界带来的急剧起伏，因此该区城在后续分析中不予采用。
+为了从干涉条纹中提取可靠的周期信息，我们采用潜动窗口快速傅里叶变换（FFT）
+的方法，对不间波数区间内的主级率与信弹比（SNR）进行分析，
+在波数轴上选择固定宽度W300og的滑动图口，依次厦盖1000-4000 cm²的
+整个有效区间，对窗口内的去始势信号r(乘Hamm窗函数=]，然后计算快速婷里叶
+7
+
+===== PAGE 8 =====
+变换得列排量 [Y[]I:
+YA| FT(r()· (()
+(12)
+齐业大报货地的期作为该度口的主是本：
+f"° = agmas(Y(U).
+((1)
+将明SNR的钮：
+SNR
+(14)
+共中A为主降照算,多学用于货计号声水平,
+图5 给8 了在 1006400 om° 区间内. 19° 5与 15° 期组数的例 FT 分析结第
+以看出用分度下的主建本/' 基水保指定, 降病价化武儿平不发生津SNR 在不
+在得家T的基难上。我们引入了自动bnd选排准则，确定用于那度反演的有效
+相设，夜们设定“好度”的判定净件：
+L 两个角度的倡星比WH时病是 SNR ≥1I, SNR ≥ 11;
+3.将满足条件的相等院口合并为连独区间，并在区网所确进行15-23cn°的安全载第：
+2. 两用度非膜相对差情足 ≤9%
+为最作 d,
+摊违后待列第如图4示，选取（25370为有政段
+在有效期段内，对10与19°两个是度的始劳位号分期案Hmm有井进行快通障
+C/
+
+===== PAGE 9 =====
+图5全带滑窗FFT结果图
+图6有效频段选择
+里叶变换（FFT），提取条纹的主频/。主频与条纹周期满足关系：
+ =
+f-
+(15)
+其中△v表示条纹在波数城的周期。
+根据两束干涉近似条件（一次反射/透射），有：
+学生在线
+(16)
+gov.cn
+(17)
+
+===== PAGE 10 =====
+其中n（o）为该band区间内的平均折射率，6为透射角。
+由此可得厚度初值
+1
+(18)
+图7执行FFT后的频谱结果
+代入数据后得到结果如图7。10°下估测得到厚度为7.662μm，15°下估测得到厚
+度为7.682μm，面这相对差异小于3%，平均为7.672μm，该厚度初值将作为后续基于
+Cauchy 模型的非线性拟合的初始条件，以保证选代的收敛性与稳定性。
+5.2.2基于Canchy折射率模型的外延层厚度反演
+物理模型与参数化与校准量设两组入射角分别为"-10°与-15°，对应观测
+数据为{（，R）}，其中1/入为波数，k∈{10,15}标识角度。
+为消除仅器与儿何的系统性微偏差，引人两类校准量：
+1.波数刻度校准：令真实波数为*=（1+e)，以补偿谱仅刻度的线性误差。
+2.人射角微偏差△0：令有效人射角6=6+△，以补偿装调误差。
+考虑上述校准后，两光束模型的理论反射率写为
+Bxe(p; d, A, B,6, (1 + c))  R(入  1, d, n(A; A, B), 6) ,
+(19)
+其中 R（-) 由第5.1.1节给出（Fresnel 强度反射率 R，R与相位差6μs的组合
+式）。
+n(x)A+
+(20)
+其中AB为待估参数。
+由 Snell 定律有 sinθ sin8/n（入)，从面 cos0
+√1-sin²0
+设外延层厚度为dμm，薄膜往返相位为
+gov.cn
+(21)
+10
+
+===== PAGE 11 =====
+为了将求解重点放在相位对齐（决定条纹位置、对d最敏感），我们采用相位优先
+的反射率模型：
+R(v;θ;) = Co + so cos(2β(入,0;)),
+(22)
+其中co，s为不同入射角的幅度与偏置系数。
+闭式幅值/基线标定为抵消探测链路的辐值与基线差异，对每条曲线保留闭式线性标
+定：给定一组参数（d，A，B，e，△0k），先计算理论序列yk=Rmode（vk（1+e)；d,A，B，0k），
+然后用最小二乘团式解：
+ak=—
+Cov(yk，Rg)
+bk=R-akyk
+(）A
+(23)
+得到校正后的模型输出Rk=ayk；+bk。这种“内环闭式、外环非线性”的结构
+可减少优化变量，提升稳定性。
+双角联合的鲁棒目标函数直接分别对10°与15°两组数据独立拟合厚度d1o与d15，再
+取其平均作为最终结果的方法主要存在以下两大缺陷：
+1.物理一致性不足：外延层厚度d在物理上应为同一常数，而独立拟合时每个角度的
+色散参数（A，B）可能向不同方向漂移，导致d1o，dis不完全可比。
+2.稳健性不足：当某一角度数据在局部波段信噪比较低或受吸收峰干扰时，独立拟合
+结果容易受到显著偏移，取平均并不能消除该偏差。
+相比之下，双角联合拟合在一个统一的目标函数下同时利用两角度的观测数据，共
+证了厚度的物理唯一性，又利用了两角度在噪声与系统误差上的互补性，从而得到更稳
+定、可靠的反演结果。
+基于上述考虑，我们构造了带有物理先验正则的加权鲁棒最小二乘目标：
+uru
+wkp(RRk)+ne²+n（△θ)²+nA(A-Ao)²+nB(B-Bo)²
+k
+物理先验正则
+(24)
+其中uk：为数据可信度权重（在吸收段/低信噪比段取较小值），P（)为鲁棒损失函数，
+本文选用soft_11形式；（Ao.Bo）为基于厚度初值do的预拟合结果，n.为正则权重参
+数。
+式解对幅值/基线进行标定，再对（d，A，B，e，△o）进行非线性更新，从而在保证收敛稳
+11
+
+===== PAGE 12 =====
+两阶段初始化在确立了目标函数之后，我们首先采用有效范围内全谱段（药2500~
+3800cm-1）进行直接拟合。对相关参数做两阶段初始化：
+1.频域初值：由于涉条纹主频得dodo,k=(2fo.k√n²-sin²o)-,将两角合并取加权
+平均得do。
+2.（Ao，Bo）预拟合：固定d=do，并在每条曲线内用公式(23）的闭式（ak，b）对齐后，
+仅对（A，B）做轻量最小二乘，得到（Ao，Bo），为后续全参拟合提供合理先验。
+约束与求解器为保证物理合理与数值稳定，设置有界约束
+d ∈ [1,50] μm,A ∈ [2.3,2.8]，B ∈[Bmin， Bmax]，|∈| ≤ 2 × 10,|△0|≤ 0.3°,
+其中B的范围根据材料与谱段经验选取（实现中用[-0.05，0.20或宽松上界并配合正则
+拉回）。
+以（do，Ao，Bo，e=0，△θ=0)为初值，采用带界的Levenberg-Marquardt/信赖域算法
+求解目标函数（24)，并在启动前对d在[do（1±5%作一次一维粗搜索，以降低局部极
+小风险。
+拟合我们的拟合流程如算法1所示。
+Algorithm1两光束厚度反演
+Input:{（bk，Rg）），k∈{10,15}；入射角0；衬底折射率n2
+Output:厚度d，色散参数（A，B），校准量，△θk，置信区间
+1.频域初值：两角分别FFT得主峰fok，合成do；
+2.预拟合（Ao.Bo)：固定d=do，用闭式（a，b）对齐后仅优化（A,B)；
+3.全参联合：以（do，Ao，Bo，0,0,0)为初值，带界最小化式（24)；
+4.诊断与评估：残差谱、双角一致性、置信区间；必要时调整权重/带宽再选代。
+在引入波数刻度与入射角微偏差的校准量后，我们首先对全谐段（2500～3800cm-）
+进行了双角联合拟合。拟合结果如图8和9所示，厚度参数估计为
+d =7.619 μm,A =2.663，B =0.100,
+对应的中心折射率约为n（3.23pm）2.653。
+校准参数：与△9均接近零，表明谱仅刻度与角度设置基本准确。全谐拟合的残差
+均值接近零，整体均方根误差RMSE分别为1.14×10-3（10°)与1.10×10-3（15°)，说
+明模型能够较好地刻画主振荡区的干涉条纹。
+qov.cn
+然而，在高波数区间（>3300cm-），残差仍呈现系统性波动，且RMSE明显偏
+大，提示单一Cauchy模型在全谱范围内的适配能力存在不足。
+12
+
+===== PAGE 13 =====
+MME
+图810度-SiC拟合结果
+图915度-SiC拟合结果
+为改善这一问题，我们采用了分段拟合策略：以X’=3.03μm（对应=3300cm-1）
+为分界点，将光谱划分为低波数段与高波数段，分别估计色散参数（A.B），同时要求在
+分界点处折射率函数n（入）及其一阶导数连续。这种处理方式能够更灵活地抽提不同波
+段的色散特征，又避免了物理上的不连续性。
+WEWWW
+学生在线
+图1010度-SiC分段拟合结果
+分段拟合的结果如图10和11所示。厚度估计d=7.604gm，与全谱拟合的7.619μm
+基本一致（差异小于0.2%），说明分段策略并未引入厚度偏差。在分界点的连续性检查
+中，折射率函数值跳跃仅△n=2.8×10-5，导数跳跃△n=1.9×10-，均可忽略。
+13
+
+===== PAGE 14 =====
+图1115度-SiC分段拟合结果
+更重要的是，分段方法在残差表现上优于全谱方法：
+1.全谱拟合的整体RMSE约为1.14×10-3，分段拟合后在10°曲线上降低至1.04×10-3
+在15°曲线下则保持在同一数量级。
+2.在高波数区间（>3300），分段方法显著改善了残差，例如10°曲线的RMSE从
+1.35 × 103降至 9.34 × 104，提升约 1.44 倍。
+因此，分段Cauchy拟合在不改变厚度估计结果的前提下，有效提升了高波数段的
+拟合精度与残差均匀性，进一步增强了模型在全谱范围内的稳定性和可靠性。
+5.2.3结果可靠性分析
+为了验证两光束干涉厚度反演模型的准确性与稳健性，我们从残差统计特性、正态
+性检验、频域分析、角度一致性、频段稳健性、参数不确定度、系统敏感性以及合成数
+据回归等多个方面对模型进行了系统的可靠性检验。
+1.残差统计与正态性检验残差直方图12和图13表明，在10°与15°两个人射角下，无
+论采用单角独立拟合还是双角联合拟合，残差均值接近零，分布大致对称，未表现出明
+显的系统性偏差。
+图12SiC10°联合拟合、联合回代、单角拟合残差直方图
+进一步的Q-Q图14和图15分析显示，残差点基本落在理论正态分布直线上，拟
+合优度R²约为0.940.97，表明残差近似服从正态分布结合Durbin-Watson与Ljung
+Box检验结果，残差不存在显著自相关性，说明模型误差来源主要为随机噪声。
+14
+
+===== PAGE 15 =====
+130
+图13SiC15联合拟合、联合回代、单角拟合残差直方图
+图14SiC10°联合拟合、联合回代、单角拟合残差Q-Q图
+2.频域残差分析通过对残差进行快速傅里叶变换（FFT），从图16和图17中可以看出
+在于涉条纹主颜f附近未出现显著峰值，且相对主峰低至少1520dB。残差颜谱在高
+须区快速衰减，未表现出周期性结构，符合白噪声特征。联合拟合的残差谱幅度整体低
+于单角拟合，进一步验证了模型拟合的充分性与可靠性。
+3.双角一致性检验在厚度估计结果上，由图18可得10°与15°单角拟合得到的厚度
+差异小于3%，联合拟合结果与二者平均值的差异不超过2%。在反射率曲线和残差分布
+上，联合拟合相比单角拟合能有效降低残差波动，并在两个角度下同时保持一致性。这
+说明模型在不同实验条件下具有较高的稳定性，联合拟合策略能提升结果稳健性。
+4.频段稳健性检验在有效波段内采用滑动窗口对不同子频段进行厚度拟合，图19结
+果显示厚度估计始终稳定在7.597.64uum之间，相对波动不足1%。不同子带结果围绕
+全带拟合值上下波动，未出现系统性偏移。这表明模型对频段选择不敏感，具有良好的
+稳健性。
+O-QRot[15deg_Joint,R=0.965
+O-QPet(15deu
+G-QRlet (15deg,
+图15SiC15联合拟合、联合回代、单角拟合残差Q-Q图
+15
+
+===== PAGE 16 =====
+图16SiC10°联合拟合、单角拟合残差频谱图
+图17SiC15°联合拟合、单角拟合残差频谱图
+WW
+Woy
+图18单角与联合拟合效果与我差对比
+16
+
+===== PAGE 17 =====
+Param correlation
+1.00
+0.75
+Band robustness (joint fit)
+9
+7.63
+0.25
+7.62
+0.00
+0.25
+7.60
+0.50
+7.59
+0.75
+1.00
+2800
+3000
+3400
+日
+Band center (cm-1)
+图19不同子频段中心下的厚度估计结果
+图20参数不确定度与相关性热图
+5.参数不确定度与相关性分析基于最小二乘法的雅可比矩阵计算得到的协方差结果
+表明，厚度参数d的相对标准差小于2%，A与B的标准差也处于合理范围。相关性热
+图（图20）显示d与A存在中等相关性，A与B的相关性较高，但均低于0.9，没有严
+重的共线性问题。说明参数可辨识性良好，厚度估计具有统计意义上的可信度。
+6.敏感性分析对波数刻度误差（s）与人射角偏差（△0）的敏感性分析表明：在±0.2%
+的波数伸缩和±0.3°的角度误差范围内，厚度相对变化率分别控制在±0.2%与±0.04%
+以内。可见模型对实验系统的小扰动具有较强的鲁棒性。
+Sensitivity to 
+Sensitivity to 8
+0.2
+0.04
+0.1
+0.02
+笔
+AVPV
+0.1
+=0.02
+0.04
+0.2
+0.0020.0010.001.0005.0000.000.0010.0019.0020
+E (wavenumber scale)
+0.3
+-0.20.1
+69 (deg)
+0.0
+0.1
+0.2
+0.3
+图21波数刻度误差、人射角偏差对厚度的敏感性
+7.合成数据回归检验在不同信噪比条件下利用合成数据进行回归验证，图22结果
+显示随着SNR的提高，厚度估计偏差迅速收敛，在SNR>20时偏差保持在0.3%以下，
+SNR=50时小于0.2%；同时，测量精度提升显著，从约60ppm降低至10ppm左右。这
+表明模型不仅能在理想条件下准确回收真值，也能在中高信噪比实验条件下保持高稳定
+性。
+17
+
+===== PAGE 18 =====
+图22合成数据网归检验结果
+通过以上多维度检验可以看出：
+1.残差统计与频城分析均支持残差眼从随机噪声分布；
+2.双角一致性与频段稳健性验证了厚度反演结果的稳定性：
+3.参数不确定度分析保证了模型在统计上的可信度：
+4.敏感性与合成数据回归检验进一步证明了模型对实验误差与噪声的鲁棒性。
+综上，本文建立的两光束Caachy厚度反演模型在准确性、稳健性与鲁棒性方面均表现
+良好，能够为碳化硅外延层厚度的可靠测量提供坚实的理论与方法支持。
+5.3问题三模型的建立与求解
+5.3.1多光束干涉的必要条件
+在实际实现中，光波可以在外延层界面和衬底界面产生多次反射和透射，从面产生
+多光束干涉。
+设外延层折射率为n（A)、厚度为d，人射角为，层内折射角为6（由斯湿尔定律
+给出）。记外表面（空气/外笔层）与内表面（外冠层/材底）的复反射系数为r,T，透射
+系数为白2-各级反射光的复征服为
+E = Ep,E,  Eorye (r{re)m2
+m = 2,...)
+(25)
+其中相位推移
+= 4π n(α) d cosθα,
+(α = 1/A).
+(26)
+总场为级数之和：
+E, = Eor + Eo1jrz
+1-Firye
+(27)
+由此得到反射率的Airy型表达式：
+R(A) =
+R+R+2√Rcos6
+1 + R;Rs + 2√RFg cos6
+R; = |2,°.
+(28)
+18
+
+===== PAGE 19 =====
+该式表明：条纹的相位由决定，线形与峰锐度由R，R决定。
+故产生多光束干涉需要满足以下条件：
+1.相干长度条件：光源相干长度L。应大于往返光程差，
+Lc>2ndcosθ
+(29)
+2.反射率条件：界面反射率不能过小，需保证rir2《1。锐度系数
+4√/RR2
+F=
+(1-√RR2)²
+(30)
+不应太小。
+3.低吸收条件：外延层吸收系数α较小，使得e-2odcos不过小，否则高阶光被显著削
+弱。
+4.几何与分辨条件：入射光束平行性好，样片模角小，仪器分辨率优于条纹间隔。
+5.3.2多光束干涉对厚度计算精度可能的影响
+设条纹相位为6=4πndcos0/入。
+1.在理想对称、低损耗条件下，极值近似满足6=2πm，条纹间隔
+2n dcosθ
+(31)
+与两光束模型一致。因此，多光束干涉并不显著改变条纹的基本周期。
+2.多光束干涉会使条纹更尖锐、对比度增强。如果仍使用两光束正弦模型拟合，会出
+现模型失配，导致残差具有结构性，从而引入系统偏差。
+3.当R≠R2或外延层存在吸收时，极值位置发生微小漂移，若用两光束近似会进一
+步放大厚度计算误差。
+4.在傅里叶域，多光束干涉会引入谐波分量，若忽略处理，可能造成厚度估计偏差。
+综上，多光束于涉的存在会影响厚度计算的精度，需要在建模与拟合过程中予以考
+虑。
+5.3.3硅晶圆片数据的预处理与多光束干涉分析
+在对附件3（入射角10°）与附件4（入射角15°）的硅晶圆片实验数据进行分析之
+前，需要进行合理的预处理，以保证后续频谱分析与厚度估算的可靠性。
+数据统一化与波段裁剪原始数据的波数轴。（单位：cm-）并非严格等间距，反射率
+列单位为%。首先按波数升序排序，将反射率归一化到0.1]，并采用线性插值将数据统
+一到等间距网格
+{0k}k=),
+.dxs.moe.gol
+k+1-0k=△omedian{mw}
+(32)
+19
+
+===== PAGE 20 =====
+统一采样后的效果见图 23：重采样典线与原始散点高度重合，保证了后续FT的采样
+假设。
+图23硅片反射率光谱：原始散点vs等间距重采样（左：10°；右：15°）。
+考虑到低波数段噪声与仅器畸变相对明显，我们仅保留500~400cm-的范围作
+为有效工作等。
+基线校正我们采用轻量化的多项式拟合去基线方法：对归一化反射率R（r）与波数。
+进行一次或二次多项式损合
+Rlama(o) = a + a;o (或(a + ayo + agg²),
+(33)
+再将其从原始曲线上扣除，得到去始势后的干涉信号
+Rasmba(a)  R(a)  Ruas(α).
+(34)
+与复杂的基线校正算法相比，该方法简洁且能够保调干涉条纹的相位信息，避免过
+度滤波导致条纹畸变。
+图24给出了人射角10°与15°数据的去基线效果，可以看到条纹的幅度更加突出
+便于后续FFT提取主频。
+滑窗FFT与信噪比评估为验证条纹周期的稳定性与预处理效果，采用汉宁窗的滑动
+窗口快速得里叶变换（Sliding-FFT）提取局部主频/与信噪比 SNR，窗口宽度W取
+1000 cm1（覆盖≥4个条纹周期），步长150 cm，对每个窗倡号z，先行去均值开乘
+以窗函数v，计算
+Y = |FFT(v - (x r)], 
+7(35)
+主峰幅度记为Aa，噪声幅度取主峰左右排除若干频点后的均方根，得到SNR=
+Aa/RMS(noise)
+图25与图26显示，预处理后提取的上（)更加平滑稳定，低频伪峰显著下降，SNR
+分布合理
+20
+
+===== PAGE 21 =====
+24经县上基线后的目片成制免
+图25 逆病 FT: 2著线 vs 仅在采群的 /~ 与 5NR 球比
+们强比医动的作效分析带选择分获得是能的厚度估排区润。我红以疗定FT的 SNR
+与提本@定性为准则, 选择 SNR ≥ 15 且/ 编风其母为中分数不超过 3%的违线区间
+存为布级带。 两势度数期均指内 [117, 2170[em” 为确优区网 (见用 27),
+射丰差较大及实独光理兼件，可年纤品具条产生多光来于涉的物理销提，对指件384的
+多光求下涉的实研判定 根据第5.3.1节给出的多无求干持必要条件, 组合甜/空拆
+实洲数据,证据如下:
+1.条投可龙度与次现线：在009~150m区可，行对比度银高、纹至现Ai
+2.城指征：全请FT以单一为正，回上都尚周是次规班，资宝FFT的
+我形的突特征，显客盛干间光来近饮下的正我型条线，
+度在主期用近存在《就家的语该或务，并谷多次反的叠加对线形的修饰。
+21
+
+===== PAGE 22 =====
+图26局部主频与SNR的叠图比较
+enter e icm-l)
+图27基于滑窗FFT的信噪比与频率稳定性选带
+3.跨角度一致性：将局部主频按cos9归—化后，10°与15°两角度在所选带内一致性
+良好（相对差异小于数个百分点），说明条纹周期受几何光程主导，而线形差异来自
+多光束精细度变化
+基于以上图像特征与频域证据，可判定附件3与附件4的硅片数据存在显著的多光
+束干涉效应。
+中国大学生仕线
+5.3.4多光束干涉厚度模型的建立
+gov.cn
+下面，我们建立多光束干涉下的反射率模型。设所有反射光振幅叠加为：
+22
+
+===== PAGE 23 =====
+EL, (n +(n + y(-+f/-
+X9 / oa(a 为8&,
+也于阶片 <1, 上述规数化效, 《我疗风期组数求和, 提月
+(8)
+这就是典型的 Niry 下涉会式, 与 Fiary-Pint 干多胶那式一效, 为使于分析, 记
+n;  [, B  r{, f
+(60)
+开
+（）
+（）
+
+===== PAGE 24 =====
+R↓
+sin²(0  02)  tan²(0  02))
+sin°(0 + 0)  tan°(0, + 0) /
+(43)
+由以上推导可见，多光束干涉下的反射率由相位&控制。条纹极大值与极小值分别
+对应Rm和R，条纹锐度取决于精细度系数F。当F较大时，条纹峰值尖锐，厚度
+分辨率提高，但若仍采用两光束近似拟合，会产生系统偏差；当F较小时，多光束效应
+减弱，可近似为两光束模型。
+值得注意的是，厚度d与相位&的关系依然保持周期性：
+1
+入
+(44)
+因此，厚度的主周期估算公式与两光束情况一致，但由于Airy线形导致的极值微
+移和非对称性，若直接使用两光束模型，将低估计算的不确定度，并可能引入1%～2%
+的系统偏差。为获得高精度厚度，应在建模和拟合中采用Airy型多光束模型。
+5.3.5多光束干涉厚度模型的求解
+Step1数据预处理数据预处理的工作已经在5.3.3完成，此节不再资述。
+Step2FFT粗估厚度在多光束干涉的情形下，干涉条纹依旧表现为近似周期性。我们
+仍然对预处理后的反射率光谱R（v）（v为波数，单位cm-）进行快速傅里叶变换（FFT），
+从频谐中提取主频率fo。该频率与光程差的关系为
+fo
+(45)
+其中nr为外延层的有效折射率，9为入射角。
+I0* FFT in band
+图29执行FFT后的频谱结果
+代入数据后得到结果如图29。10°下估测得到厚度为3.675um，15°下估测得到厚
+度为3.681um，平均为3.678μm。该厚度初值将作为后续基于Cauchy模型的非线性拟
+合的初始条件，以保证选代的收效性与稳定性，
+24
+
+===== PAGE 25 =====
+(A-
+3F LF%858.
+H
+  4°)
+HE
+s. 1e6 I/
+
+===== PAGE 26 =====
+A -(=])x
+WRSt中n次
+A - (=g)*
+ t496,=.=2.6098, 0=1.3 × 1*
+8&*A8代668.
+xla w", a, *9. a,r.
+158RmA
+ELE. RKT96MCAIOR
+
+===== PAGE 27 =====
+wWWm
+N3 sterase7vgeesc8
+.
+
+===== PAGE 28 =====
+为了降低优化算法的成本，容易导致拟合时有较强的初值敏感性，且容易陷入局部
+最优，因此需要设定较好的初始值，并做好残差分析和多参数交叉验证。
+2.未考虑外延层对光的吸收：两模型均假设外延层足够透明，对光能的吸收率较小以
+至于可以忽略。在本征吸收频率附近时两模型已不再适用，需考虑原子光谱等更加
+复杂的修正。
+参考文献
+[1]全国半导体设备和材料标准化技术委员会（SAC/TC203).全国半导体设备和材料标
+准化技术委员会材料分技术委员会（SAC/TC203/SC2).碳化硅外延层厚度的测试
+红外反射法：GB/T42905-2023[S].中国标准出版社，2023
+[2]全国半导体设备和材料标准化技术委员会材料分技术委员会（SAC/TC203/SC2).重
+掺杂衬底上轻掺杂硅外延层厚度的红外反射测量方法：GB/T14847-2010[S].中国标
+准出版社，2010.
+[3]赵凯华，钟锡华.光学：上册[M].北京：北京大学出版社，1984
+[4]郭小花，张明霞.多光束干涉的扩展研究[.天水师范学院学报，2016,36(05)：13-14.
+[5]郭硕鸿.电动力学[M].北京：高等教育出版社，2000.143-147.
+[6]程佩青.数字信号处理教程[M].北京：清华大学出版社，2017
+[7]DeepSeek.DeepSeek-R1-0528,深度求索(DeepSeek),2025-09-05
+[8]ChatGPT, GPT-4o,OpenAI, 2025-09-06
+中国大学生在线
+dxs.moe.gov.cn
+28
+
+===== PAGE 29 =====
+附录ASiC外延层厚度分析源代码1
+i=port os,json
+ieport nunpy as np
+inport pandas as pd
+inport matplotlib.pyplot as plt
+fros scipy i=port sparse
+fron scipy.sigmal isport savgol_filter
+fro= scipy.signal isport vindovs
+fros nunpy.fft ieport rfft, rfftfreq
+#== Phase 1:load k preprocess data ===
+plt.rcParams[*f1gure.figsize°]=(8,4.5)
+=[o]erexd
+plt.rcParans[*axes.grid*] = True
+LOW_CUT =1000
+os.=azedirs(°./figa",exist_ok=True）
+os.makedirs(*./preprocessed*, exist_ok=True)
+def clip_lov(s,y.lov=LOw_cUT):
+ = s >= 1ov
+return s[=]. y[=]
+def load_xlsx(path) :
+df = pd.read_ezcel(path, beader=0)
+sig=a = pd.to_numeric(df.1loc[:, 0],
+errors=*coerce*).dropna().to_nunpy(float)
+R_pct = pd.to_numeric(df.1loc[:, 1],
+errors=*coerce*).dropna().to_nunpy(float)
+R=R_pct/100.0 if np.nanmax(R_pct）>1.5else R_pct
+sort
+order = np .argsort(sigma)
+sig=a, R = sigma[order], R[order]
+#norsalization
+大学生在线
+R_=in,R_=ax = float（np.min(R)),float(np.max（R))
+R_norn =(R -R_=in)/(R_max -R_=in + 1e-12)
+return signa, R_norm
+dxs.moe.gov.cn
+29
+
+===== PAGE 30 =====
+def make_uniform_sigma(sigma, R, step=None):
+1dx = np.argsort(sigma)
+s1g=a = s1gma[1dx]
+R = R[idx]
+diffs = np.diff(sigma)
+if step 1s lone:
+step = float(np.nedian(diffs))
+sigma_u = np.arange(sigma.min(), sigma.max() + step / 2, step)
+R_u = np.interp(sigma_u, sigma, R)
+return sigua_u, R_u, step
+#load data
+s1g=a10_rav, R10_rav = 1oad_x1sx(°./1_S1c10.xlsx*)
+sig=a15_rav,R15_rav =load_xlsx("./2_S1c15.xlsx*)
+sig=a10_u, R10_u, dstep10 = ake_unifors_sig=a(sig=a10_rav, R10_rav)
+s1g=a15_u, R15_u, dstep15 = sake_unifors_s1gua(sigua15_rav, R15_rav)
+fig. axs = plt.subplots(1, 2, figsize=(14, 5))
+ left -> angle 10°
+axs[0].scatter(sig=a10_rav,
+R10_rav,
+s=8,
+alpha=0.7,
+label=*Rav Data*,
+color=′red',
+edgecolors='none)
+axs[0] .plot(s1gma10_u,
+R10_u,
+1v=2,
+label=*Uniforn Sanpling",
+color='darrorange',
+alpha=0.8)
+axs[0].set_title(“10* Data: Rav vs Uniforn Resanpling*,
+fontsize=12,
+axs[O].set_xlabel("Wavenu=ber
+（cm*），fontsize=11）
+axs[0].set_ylabel(“Reflectance R*, fontsize=11)
+axs[O] .1egend(frameon=True, fancybox=True, shadov=True)
+axs[0] .grid(True, alpha=0.3)
+中国大学生在线
+#right -> angle 15
+axs[1].scatter(oigma15_rav,
+dxs.moe.gov.cn
+R15_rav,
+30
+
+===== PAGE 31 =====
+s=8,
+alpha=0.7,
+label=*Rav Data*,
+color='red',
+edgecolors='none′)
+axs[1] .plot(sigma15_u,
+R15_u,
+1v=2,
+label=*Uniforn Sanpling".
+color='darkorange',
+alpha=0.8)
+axs[1].set_title("15° Data: Rav vs Unifors Resampling*,
+fontsize=12,
+(.Poq,
+axs[1].set_xlabel(*Wavenumber(cm )°, fontsize=11)
+axs[1].set_ylabel(*Reflectance R*,fontsize=11)
+axs[1] .legend(frameon=True, fancybox=True, shadov=True)
+axs[1] .grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig(*./figs/rav_vs_uniform.png")
+plt.shov()
+sig=a10_u, R10_u = clip_lov(sigma10_u, R10_u)
+s1g=a15_u, R15_u = clip_1ov(s1gma15_u, R15_u)
+#enhanced plot
+fig.axs = plt.subplots(1, 2,figsize=(14, 5))
+#left -> angle 10
+axs[0] .plot(s1gma10_u,
+R10_u,
+1v=2,
+label=*Uniform Sampling*,
+color='darrorange',
+alpha=0.8)
+axs[0].set_title(*10* Uniform Resa=pling (Wavenunber > 1000cm)",
+fontsize=12,
+fontveight='bold')
+axs[O].set_xlabel("Wavenunber
+（cm），fontsize=11）
+axs[0] .set_ylabel(“Reflectance R*, fontsize=11)
+axs[O] .legend(frameon=True, fancybox=True, shadov=True)
+axs[0] .grid(True, alpha=0.3)
+中国大学生在线
+#right -> angle 15
+axs[1] .plot(sigma15_u,
+dxs.moe.gov.cn
+R15_u,
+31
+
+===== PAGE 32 =====
+1v=2,
+label=*Uniforn Sanpling"
+color=′darkorange',
+alpha=0.8)
+axs[1].set_title(“15° Data Uniform Resanpling （Wavenunber > 1000cm)",
+fontsize=12,
+fontveight=′bo1d')
+axs[1].set_xlabel(*Wavenu=ber(cm)°,fontsize=11)
+axs[1].set_ylabel("Reflectance R°, fontsize=11)
+axs [1] .legend(frameon=True, fancybox=True, shadov=True)
+axs [1] .gr1d(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig(*./figs/uniform_above1000.png*)
+plt.shov()
+Phase 2:detrending k
+def baseline_asls(y.la==1e5,p=0.001,niter=10):
+L = 1en(y)
+D = sparse.diags([1,-2, 1], [0,-1, -2],shape=(L - 2, L))
+D = D.T @ D
+ = np.ones(L)
+for _1n range(niter):
+V = sparse.diags(v, 0,shape=(L, L))
+Z =+1a ▪ D
+z = sparse.linalg.spsolve(Z,v▪y)
+=p*(y>z)+（1-p）▪(y<=z）
+return z
+def hampel_f11ter(x, k=3, t=3.0):
+=x.copy()
+n = 1en(x)
+for 1 in range(n):
+1o, h1 ==ax(0, 1 -x）.=in(n, 1 +k + 1)
+vin = x[1o:h1]
+sed = np.sedian(vin)
+=ad = np.=edian(np.abs(vin - =ed)) + 1e-12
+1f np .abs(x[1] - med) > t * 1.4826 * ad:
+x[1] = ed
+中国大学生在线
+e.gov.cn
+def detrend_and_smooth(R_u,ng_vin=11,og_poly=2, 1a==1e5, p=0.001):
+R1 = ha=pel_filter(R_u, k=3, t=3.0)
+32
+
+===== PAGE 33 =====
+base = baseline_asls(R1, lan=lam, P"p, niter=10)
+r_det = R1 - base
+sg_vin = sg_vin 1f sg_vin % 2 == 1 else sg_vin + 1
+r_ssooth = savgol_filter(r_det, sg_vin, sg_poly, mode=*interp*)
+return r_det, r_snooth, base
+# detrending k ssoothing
+r10_det,r10_ssooth,base10 = detrend_and_ssooth(R10_u.
+sg_vin=11,
+og_poly=2,
+las=1e5,
+p=0.001)
+r15_det, r15_ssooth, base15 = detrend_and_szooth(R15_u,
+sg_vin=11,
+sg_poly=2,
+lan=1e5,
+p=0.001)
+plot
+fig. axs = plt.subplots(2, 3, figsize=(18, 8))
+axs[0, 0].plot(sig=a10_u, R10_u, 1v=1.0, label=*Unifor=*, color='red’)
+axs[0, 0].plot(sigma10_u, base10, 1v=1.0, label=*Baseline*, color=′darzorange′)
+axs[0, 0].set_title("10* Baseline°)
+axs[0, 0].legend()
+axs[0, 1].plot(sig=a10_u, r10_det, 1v=1.0, label=*Detrended°, color=′red′)
+axs[0.1].set_title("10*Detrended°)
+axs[0, 1].legend()
+axs[0, 2].plot(sigma10_u,
+r10_s=ooth,
+1v=1.0,
+label=*Smoothed",
+color='darzorange')
+axs[0,2].set_title("10* Smoothed°)
+axs[0, 2].legend()
+axs[1,0].plot(sigma15_u,R15_u,1v=1.0,label=*Uniform*, color=′red°)
+axs[1, 0].plot(sig=a15_u, base15, 1v=1.0, label=*Baseline*, color=′darzorange′)
+axs[1, 0].set_title("15* Baseline")
+axs[1, 0].legend()
+axs[1, 1].plot(sig=a15_u,r15_det,1v=1.0.1abel="Detrended*, color=′red′)
+axs[1, 1].set_title("15* Detrended°)
+axs[1, 1].legond()
+dxs.moe.gov.cn
+33
+
+===== PAGE 34 =====
+axs[1,2].plot(nig=a15_u,
+r15_s=ooth,
+1v=1.0,
+label-*Ssoothed",
+color=′darzorange′)
+axs[1,2].set_title("15* Smoothed°)
+axs[1, 2] .legend()
+plt.tight_layout()
+plt.savefig(*./figs/detrend_snooth.png*)
+plt.shov()
+save data
+df_10 = pd.DataFrame({
+*vavenunber_c=-1′: s1gna10_u,
+'reflectance_unifors':R10_u,
+'baseline':base10.
+'detrended':r10_det,
+'ssoothed':r10_ssooth
+)
+df_10.to_csv('./preprocessed/1_Sic10_processed.csv',index=False)
+df_15 = pd.DataFrame({
+*vavenusber_cm-1′: sigma15_u,
+'reflectance_uniform':R15_u,
+'baseline':base15,
+'detrended':r15_det,
+'smoothed':r15_smooth
+b)
+df_15.to_csv('-/preprocessed/2_Sic15_processed.csv',index=False)
+ Phase 3: Sliding FFT 
+def sliding_fft_setrics(sigma,
+y,
+vin_vidth_em=300,
+step_c==60,
+lovfreq_cut_bins=1,
+zero_pad=True):
+ds = float (np .nedian(np diff (s1gna)))
+V = int(round(vin_vidth_cn / ds))
+S = 1nt(round(step_cn / ds))
+中国大学生在线
+ = W1f  % 2 == 1 else  + 1
+centers,fstar,snr = [], [],[]
+1 = 0
+dxs.moe.gov.cn
+vhile 1 + W <= len(y):
+34
+
+===== PAGE 35 =====
+sog * y[1:1 + W]
+sig_seg = sigma[1:1 + v]
+v = vindovs.hann(W)
+nfft = 1 << (V - 1).bit_length() if zero_pad else W
+Y = np.abs(rfft(x, n=nfft))
+F = rfftfreq(nfft, d=ds)
+1o = max(1, 1ovfreq_cut_bins)
+pk_idx = 1o + np.argmax(Y[1o:])
+fpk = F[px_1dx]
+anp = Y[pk_1dx]
+nb =np.r_[=ax(1o, pk_idx -50):=ax(1o, pk_idx -3）,
+=in（pk_idx+3.1en（Y））:min（pk_idx+50.1en（Y））]
+noise = np.sqrt(np.sean(Y[nb] *2)) + 1e-12
+centers.append(s1g_seg[W // 2])
+fstar.append(fpk)
+snr.append(anp / noise)
+1 += S
+return np.array(centers), np.array(fstar) , np-array(snr)
+cent10,f10, s10 = sliding_fft_metrics(sigma10_u,r10_ssooth)
+cent15, f15, s15 = sliding_fft_metrics(sigma15_u, r15_snooth)
+fig. axs = plt.subplots(2,2, figsize=(12, 8))
+axs[0,0].plot（cent10,f10)
+axs[0,0].set_title("10* f+vs center “)
+axs[O,0].set_xlabel(*_center")
+axs[0,0].set_ylabel(*f*（cycles/cn）)
+axs[0,1].plot(cent10,s10)
+axs[0,1].set_title("10° SNR vs center *)
+axs[O.1].set_xlabel(*_center")
+axs[0, 1].set_ylabel(*SNR*)
+axs[1, 0].plot(cent15, f15)
+axs[1,0].set_title（"15*fvs center ")
+axs[1,0].set_xlabel(*_center")
+axs[1,0].set_ylabel(*f*（cycles/cn))
+axs[1,1].plot(cent15,s15)
+axs[1,1].set_title("15* SNR vs center )
+axs[1,1].set_xlabel(*_center")
+axs[1, 1].set_ylabel(*SNR*)
+plt.tight_layout()
+plt.savefig(*./fign/oliding_fft.png*)
+中国大学生在线
+plt.shov()
+35
+
+===== PAGE 36 =====
+def merge_good_vindovs(centers, good_nask, =in_span_cs=300) :
+1f good_sask.sum() == 0: return []
+groups =[]
+run = None
+for c, ok in zip(centers, good_mask):
+1f ok and run is None:
+run = [c, c]
+elif ot:
+run[1] = c
+else:
+if run is not None:
+groups.append(tuple(run))
+run = None
+1f run 1s not Mone: groups append(tuple (run))
+groups = [(lo, hi) for (lo, h1) in groups 1f (h - 1o) >= min_apan_cs]
+return groups
+def pick_best_band(bands，centers，snr10,snr15_interp):
+if not bands: returm None
+def score(b):
+lo, h1 = b
+=（centers >= lo）(centers <= h1)
+return float(np.nanmean((snr10[=]+ snr15_interp[=]) / 2))
+return max(bands, key=score)
+#alligm 15° to 10*
+f15i =np.interp(cent10,cent15,f15)
+s151 = np.interp(cent10,cent15, s15)
+snr_thresh = 10.0
+f_rel_diff = 0.10
+min_span_cs = 300
+edgo_cxop = 20
+good_=ask = (s10 >= snr_thresh)  (s151 >= snr_thresh)  (
+np.abs(f10 - f151) / np.maximun(f10, 1e-9) <= f_re1_diff)
+生在线
+bands = serge_good_vindovs(cent10, good_sask, =in_span_cs=min_span_c=)
+bands = [(lo + edge_crop. hi - edge_crop) for (lo, hi) in bands]
+band_used = pick_best_band(bands, cent10, s10, s151)
+#plot: candidates k solected band
+lxs.moe.gov.cn
+fig.ax = plt.subplots(1, 1,figsize=(10, 4))
+36
+
+===== PAGE 37 =====
+ax.plot（cent10.s10,1v=1.2,1abe1=SNR 10°)
+ax.plot(cent10, s151,1v=1.2,1abel=*SNR 15°(interp))
+for (1o,h1) in bands:
+ax.axvspan(lo, h1, alpha=0.15)
+if band_used 1s not None:
+ax.axvspan(band_used[0], band_used[1], alpha=0.25, label=*band_used*)
+ax.set_title(*Band candidates & selected band*)
+ax.set_xlabel(*Center
+(c=$²(-1}$）-)
+ax.set_ylabel(*SNR")
+ax.legend()
+plt.tight_layout()
+plt.savefig(*./figs/band_selection.png*)
+plt.shov()
+print (*Candidate bands:*, bands)
+print (*Final band_used:*, band_used)
+save band info
+band_info = (
+'candidate_bands': bands,
+'selected_band′: band_used,
+'snr_threshold': snr_thresh,
+'frequency_relative_diff': f_rel_diff,
+'=in_span_cs′: sin_span_cs,
+'edge_crop':edge_crop
+vith open('./preprocessed/band_selection_info.json′,'v') as f:
+json. dunp(band_info, f, indent=2)
+print(*Data saved to./preprocessed/ directory*)
+print(*- Processed spectral data:*_processed.csv)
+print(*- FFT analysis results: *_fft_results.csv*)
+print (*- Band selection information: band_selection_info.json*)
+#=s= Phase 5: Thickmess Estination ==
+def prep_in_band(sigma_u, y_residual, band, og_vin31, sg_poly=3):
+blo, bhi = band
+= = (s1g=a_u >= blo) & (sig=a_u <= bh1)
+学生在线
+5, y = sig=a_u[=], y_residual[=]
+assert len（s）>= 64,*Selected band too narrov or no overlap!*
+if sg_vin % 2 == 0: sg_vin += 1
+37
+
+===== PAGE 38 =====
+Linear detrend:y*y-（a*s+b)
+A = np.c_[s, np.ones_lize(s)]
+a, b = np.linalg.lstsq(A, y, rcond=None)[0]
+y-y-(a*s+b)
+# Zero-mean + Hann
+y = (y - y.sean()) • vindovs.hann(len(y))
+FFT
+ds = abs(float (np.=edian(np.diff(s))))
+nfft = 1 < (len(y) - 1).bit_1ength()
+Y = np.abs(rfft(y, n=nfft))
+F =rfftfreq(nfft,d=ds)
+return s, F, Y, y
+def zero_cross_freq_hint(s, y):
+nz = np.vhere(np.diff (np.signbit (y)))[0]
+ncycles = max(len(nz) / 2.0, 1.0)
+span = s[-1] - s[0]
+return ncycles / max(span, 1e-9)
+def pick_peak_guarded(F.Y,f_hint, guard=O.5):
+lo = max((1 - guard) * f_hint, 1e-6)
+h1 = (1 + guard) * f_hint
+band = (F >= 1o) & (F <= h1)
+if not np.any(band):
+1dx = 1 + np argmax(Y[1:])
+else:
+cand = np.vhere(band) [0]
+1dx = cand[np.argmax(Y[cand])]
+return F[1dx]
+band_used =(2500,3700)
+s10b, F10, Y10, y10b = prep_in_band(sigsa10_u, r10_ssooth, band_used)
+s15b, F15, Y15, y15b = prep_in_band(sigma15_u, r15_ssooth, band_used)
+f_hint_10 = zero_cross_freq_hint (s10b, y10b)
+f_hint_15 = zero_cross_freq_hint(s15b, y15b)
+大学生在线
+f10 = pick_peak_guarded(F10, Y10. f_hint_10. guard=0.5)
+f15 = pick_peak_guarded(F15, Y15, f_hint_15. guard=0.5)
+dxs.moe.gov.cn
+def do_from_period(delta_nu, theta_deg, n_eff=2.65):
+38
+
+===== PAGE 39 =====
+th = np.deg2rad(theta_deg)
+cos_t =np.sqrt(1 - (np.sin（th) / n_eff)**2)
+return（1.0/（2*n_eff*cos_t*delta_nu))*1e4 #
+dnu10, dnu15 = 1.0 / f10, 1.0 / f15
+d0_10 = d0_fron_period(dnu10, 10.0)
+d0_15 = d0_fros_period(dnu15, 15.0)
+d0_avg=0.5▪（d0_10+d0_15)
+print(f*[10*] f*=(f10:.5f} cyc/cn,△={dnu10:.1f} cn²-1，d0(d0_10:.3f} =)
+print(f*[15°] f*=(f15:.5f} cyc/cn,△=(dnu15:.1f) cn²-1，d0(d0_15:.3f} =°)
+print(f*[avg]do (do_avg:.3f）=*)
+#plot
+fig. axs = plt.oubplots(1, 2, fignize=(12, 4))
+axs[0].plot(F10, Y10)
+axs[0].axvline(f10,1s=*--',label=f*f*=(f10:.5f}")
+axs[0].axvline(f_hint_10, ls=':′, label=f*f_hint=(f_hint_10:.5f)°)
+axs[0].set_x11=(0,0.02)
+axs[0] .legend()
+axs[0].set_title(*10° FFT in band*)
+axs[1] .plot(F15, Y15)
+axs[1].axvline(f15,ls='--',label=f*f*=(f15:.5f}")
+axs[1].axvline(f_hint_15,1s=′:', label=f*f_hint=(f_hint_15:.5f})
+axs[1].set_x11=(0, 0.02)
+axs[1].1egend()
+axs[1].set_title(*15° FFT in band*)
+plt.tight_layout()
+plt.savefig(*./figs/fft_in_band.png)
+plt.shov()
+附录BSiC外延层厚度分析源代码2
+1=port nupy as np. pandas as pd, matplotlib.pyplot as plt, re
+fro= pathlib 1=port Path, PurePath
+fro= scipy.optimize isport least_squares
+fron mupy.fft i=port rfft,rfftfreq
+pre_dir = Path(*./preprocessed*)
+saterial - "Sic*
+中国大学生在线
+angles_needed=(10.0,15.0)
+n2_const = 2.65
+dxs.moe.gov.cn
+39
+
+===== PAGE 40 =====
+Auxiliary Functions "
+def parse_tag_angle(name: str) :
+n = name.lover()
+tag=*Sic if *sic* in n else （
+*Si*if re.search(r′(?i)(1_)si(?!c)',n）else *unlnoum)
+= =re.search(r′(?i)(?:siclsi)[_-]?(\d(1,2))*, n)
+ang = float(=.group(1)) 1f = else Bone
+return tag, ang
+def cauchy_n_lambda(lam_un, A, B) :
+return A +B /(la=_uz**2 + 1e-18)
+def cauchy_piecevise(lanbda_um, A1, B1, A2, B2, lanbda_star) :
+n1 =A1 + B1 /(la=bda_um**2 + 1e-18)
+n2 = A2 + B2 / (1a=bda_um**2 + 1e-18)
+return np.vhere(la=bda_um >= lambda_star, n1, n2)
+def soft_C1_penalty(A1, B1, A2, B2,lambda_star,w0=1e3, v1=1e3):
+n1 = A1 + B1 / lambda_star**2
+n2 = A2 + B2 / 1anbda_star**2
+dn1 = -2 * B1 / (lambda_star**3)
+dn2 = -2 ▪B2 / (1ambda_star**3)
+return v0▪（n1-n2）**2+v1+（dn1-dn2）**2
+def snell_theta(n_fros, n_to, th_from):
+s =（n_from *np.sin（th_fro=）) / np.saximum(n_to,1e-18)
+s = np.c1ip(np.real_1f_close(s). -0.999999, 0.999999)
+return np.arcsin(s)
+def R_tvo_beam(nu_cm1,
+thotao_deg.
+d_un,
+A,
+B,
+n2_cot=2.65,
+piecevise=False,
+中国大学生在线
+A2=None,
+B2=lone,
+la=bda_atar=Zone):
+dxs.moe.gov.cn
+nu = np.asarray(nu_cn1, float)
+40
+
+===== PAGE 41 =====
+1f piecevise and A2 1s not Wone and B2 1s not None and lanbda_star 1s not None:
+n1 = cauchy_piecevise(lam,A, B,A2, B2,lanbda_star)
+else:
+n1 = cauchy_n_lanbda(lan, A, B)
+n2 = n2_cst
+th0 = np.deg2rad(theta0_deg)
+th1 = snel1_theta(1.0, n1, th0)
+th2 = snell_theta(n1, n2, th1)
+Rs01 = (np.sin(th0 - th1) / np.sin(th0 + th1))**2
+Rp01 =(np.tan(th0 - th1)/ np.tan(th0 + th1))*2
+R1=0.5·（Rs01+Rp01)
+Rs12 = (np.sin(th1 - th2) / np.sin(th1 + th2))**2
+Rp12 =(np.tan(th1 - th2) / np.tan(th1 + th2))**2
+R2 =0.5▪(Rs12+Rp12)
+（（1)soodu ▪un²p ▪u▪z）▪（e/d·du ▪z）=eop
+return np.clip(R, 0.o, 1.2)
+Load Data 
+band_csvs = sorted(pre_dir.glob(**_processed.csv*))
+assertband_csvs，“preprocessed/下未找到*_processed.csv，请先完成Stepo*
+fit_band=(2500,3700)
+packs = []
+for p in sorted(pre_dir.glob(**_processed.csv*)):
+df = pd.read_csv(p)
+nu = df[*vavenumber_cn-1*].to_numpy(float)
+R = df[*reflectance_uniform*].to_numpy(float)
+tag, ang " parso_tag_angle(p.name)
+:ppeeu"seaue ug 3ue pte ()xesot'teteses == ()zono 3e 
+= =(mu >= fit_band[o])  (nu <= fit_band[1])
+packs append(↑
+"path": p,
+“nu*: nu[=].
+中国大学生在线
+“R*:R[=],
+"tag*:tag,
+"angle*:float(ang)
+dxs.moe.gov.cn
+)
+41
+
+===== PAGE 42 =====
+angles =sorted({q[“angle°]for q in packs})
+assert all(
+a in angles for a in
+oBue}=pzuoooy [popoousot3ue]=soue pozuoooxu ‘(popoou"sodue
+cands = sorted(packs, key=lanbda q: q[angle*])
+print(“For fitting.[
+f*(PurePath（c[path']).nane}o(c['angle*]}*[(fit_band[o]),(fit_band[1])] c=²-1*
+for c in cands
+=Initial Guess 
+d_10 = 7.662
+d_15 = 7.682
+d0_um = (d_10 + d_15) / 2
+A0, B0 = 2.6,0.10 # Empirical guess for S1C
+print(*d initial value =*,round(do_un, 4).*m*)
+def calib_ab(y0,y):
+y0 = np.asarray(yo, float)
+y " np.asarray(y, float)
+≤0, ± = y0.sean(), y.mean()
+v0 =y0-=0
+a =np.dot(v0,y -m)/ (np.dot(v0,v0)+ 1e-12)
+b=m-a*=0
+return float(a),float(b)
+def resid_only_AB(p):
+A, B - P
+res = []
+for c in cands:
+y0 = R_tvo_bean(c[*nu*],c[*angle°], d0_un, A, B, n2_const)
+a,b = calib_ab(y0, c[*R*])
+res.append(a *y0 +b -c[*R])
+res.append(0.2 ▪(A -2.6))
+res.append(0.2 ▪ (B - 0.10))
+return np.concatenate([r if np.ndi=(r) else np.array([x]) for r in res])
+ab_fit = least_squares(resid_only_AB,
+xO=[AO.B0].
+国大学生在线
+bounds=（[2.3，-0.10].[2.8,0.60]),
+loss=*soft_11",
+f_acale=0.03,
+dxs.moe.gov.cn
+=ax_nfev=S000)
+42
+
+===== PAGE 43 =====
+A0, Bo = ab_fit.x
+print（f*[Auto seed]AO=(AO:.4f}，BO=(BO:.4f})
+def residual_fft(nu, res, tag=*curve°):
+xu = np.linspace(float(nu.min()), float (nu.sax()). 2**14)
+ru = np.interp(xu, nu, res 
+ -np.sean(res))
+vin = np.hanning(len(ru))
+R =rfft(ru *vin)
+dnu = xu[1] - xu[0]
+f = rfftfreq(len(ru), d=dnu) # cycles per cn-1
+= = (f > 5e-4)  (f <= 0.02)
+if not np.any(n):
+print (f*[{tag)] does not find valid FFT peak*)
+return np.nan, np.nan
+idx = np.axgmax(np.abs(R[=])
+f_dom =float(f[=][1dx])
+dnu_res = 1.0 / f_don
+print (f*[(tag)] ros1dual peak f▪(f_dom:.5f) -△_res (dnu_res:.2f} c=-1°)
+return f_don, dnu_res
+def residuals_piecevise(p) :
+la=bda_star=1e4/33003.03=
+d,A1, B1,A2, B2, eps,dth1,dth2 = P
+res,regs =[],[]
+:(nu)sq8gene8gop
+ = np.ones_like(nu)
+higb_freq_=ask = nu >= 3300
+v[high_freq_mast] *= 1.8
+for 1dx, c in enumerate(cands):
+nu_eff = (1.0 + eps) * c[*nu*]
+theta_eff = c[“angle*]+（dth1 if idx == 0 else dth2)
+y0 = R_tvo_bean(nu_eff,
+theta_eff,
+d,
+A1,
+B1,
+n2_const,
+中国大学生在线
+piecevise=True,
+A2=A2,
+B2=B2,
+dxs.moe.gov.cn
+larbda_star=lambda_star)
+43
+
+===== PAGE 44 =====
+a,b =calib_ab（yo.c[*R*])
+[]-q+o=enpsx
+（)=
+veighted_residual = residual • np.sqrt(veights)
+res.append(ve1ghted_residual)
+c1_penalty =soft_C1_penalty（A1,B1.A2,B2.1ambda_star,v0=5e3,v1=2e3)
+regs += [
+S0.0 * eps, 15.0 ▪ dth1, 15.0 * dth2, 0.2 ·(A1 -A0), 0.2 *(B1 - B0),
+0.1 *（A2-A0), 0.1 *(B2-BO).
+np.sqrt(c1_penalty)
+】
+return np.concatenate(res + [np.atleast_1d(x) for x 1n regs])
+def residuals_vith_cal(p):
+d,A, B, eps,dth1, dth2 = p
+res,regs =[].[]
+for 1dx, c in enumerate(cands):
+mu_eff = (1.0 + eps) * c[*nu*]
+theta_eff = c[“angle°] +(dth1 if 1dx "= 0 else dth2)
+yO =R_tvo_bean(nu_off, thota_eff,d, A,B, n2_const)
+a，b = calib_ab（yo.c[*R*])
+（[]-q+o.e）pueddes
+regs +=[
+80.0 * eps, 15.0 ▪ dth1, 15.0 * dth2, 0.2 •(A -A0), 0.2 ▪(B -B0)
+print(*\n== Enhanced Fitting vith Calibration ==*)
+pO_cal = np.axray([do_un, AO, BO, 0.0, 0.0, 0.o])
+1b_cal = np.array([1.0, 2.3,-0.10, -2e-3, -0.3, -0.3])
+ub_ca1=np.array([50.0.2.8,0.60.2e-3,0.3,0.3])
+res_cal = least_squares(residuals_vith_cal,
+国大学生在线
+po_cal,
+bounds=(1b_cal,ub_cal),
+loss="soft_11*,
+f_scale=0.03,
+dxs.moe.gov.cn
+max_nfev=20000,
+44
+
+===== PAGE 45 =====
+verbose=1)
+d_hat_cal, A_hat_cal, B_hat_cal, eps_hat, dth1_hat, dth2_hat = res_cal.x
+print (f*\n-= Enhanced Fitting Results ==")
+print(f*d =(d_hat_cal:.6f} =")
+print(f*A =(A_hat_cal:.5f), B =(B_hat_cal:.5f}*)
+print(f*eps =(eps_hat:+.2e}*)
+print(f*d1=(dth1_hat:+.2f}°,d2=(dth2_hat:+.2f)*")
+print(*Final status:*, res_cal.sessage)
+#self-consistency check of physical parazeters
+lamc = 1e4 / np.sedian(cands[0] [*nu*])
+n1_cal = A_hat_cal + B_hat_cal /lamc**2
+print(f*\n=== Self-consistency Check of Physical Parameters ===*)
+print(f*Central Wavelength c(lamc:.2f} =")
+print(f*Contral Refractive Index n1(n1_cal:.3f}")
+print(
+abs（eps_hat)< 2e-3 else 'Large,Needs Checking'})*
+def plot_fit_inproved (nu, y. theta, idx, title):
+nu_eff = (1.0 + eps_hat) * nu
+theta_eff = theta + (dth1_hat if 1dx == 0 else dth2_hat)
+yo =R_tvo_bean(nu_eff, theta_eff,d_hat_cal,A_hat_cal,B_hat_cal,
+n2_const)
+a,b = calib_ab(yo.y)
+yhat =a ▪ y0 + b
+fig, ax = plt.subplots(1,2,figsize=(10, 3.8),constrained_layout=True)
+ax[0] .plot(nu, y. label=*=eas*, alpha=0.8)
+ax[0] .plot(nu, yhat, *--′, label=*fit (improved)*, color=*red*, alpha=0.8)
+ax[o] .invert_xaxis()
+ax[0] .legend()
+ax[0].set_title(title)
+r"yhat-y
+ax[1] .plot(nu, r, color='red’, alpha=0.8)
+ax[1].axhline(0, color=′x′,1v=0.8)
+ax[1] .invert_xaxis()
+ax[1].set_title(*Residuals (improved)*)
+国大学生在线
+plt.shov()
+rnse = float(np.sqrt(np.mean((yhat -y)**2)))
+return rsse, mae, r
+45
+
+===== PAGE 46 =====
+print(f*\n=== Inproved Fitting Results ===")
+rsse1_cal, mae1_cal, r1_cal = plot_fit_inproved(
+cands[o] [*nu*]. cands[0] [*R*].cands[o][angle*],0,
+（[due,]o]spue}{eeu（[.qed,]o]spu）qeen
+rnse2_cal, mae2_cal, r2_cal = plot_fit_improved(
+cands[1][*nu*],cands[1][*R],cands[1][angle*],1,
+f"{PurePath(cands[1][‘path']).nane} 0{cands[1]['angle′]}")
+print (f*I=proved Fitting RMSE: curve1=(rmse1_cal:.4e), curve2={rmse2_cal:.4e)*)
+print (f*I=proved Fitting MAE: curve1=(mao1_cal:.4o), curve2=(=ae2_cal:.4e)*)
+(= (poe poda) ssouiera mrsods temprse )u
+=residual_fft(cands[o][*nu*],r1_cal,*curvel_inproved)
+=residual_fft(cands[1]["nu*].r2_cal,*curve2_1nproved)
+p0_piece = np array([
+d_hat_cal, A_hat_cal, B_hat_cal, A_hat_cal, B_hat_cal • 0.9, eps_hat,
+dth1_hat, dth2_hat
+])
+1b_p1ece = np.array([1.0, 1.5, -1.0, 1.5, -1.0,-2e-3,-0.3,-0.3])
+ub_p1ece = np.array([50.0, 3.5, 1.0, 3.5, 1.0, 2e-3, 0.3, 0.3])
+（（-0)*）d *0+:oq p =
+R_tvo_beans = 1a=bda o: lambda u: np.vhere(np.array(u) > 3300, _(o) (u),o)
+print(*Start Fitting...*)
+res_piece = least_squares(residuals_piecevise,
+po_piece,
+bounds=(1b_piece,ub_piece),
+loss=*soft_l1",
+f_scale=0.03,
+=ax_nfev=25000,
+verbose=1)
+d_piece, A1_piece, B1_piece, A2_piece, B2_piece, eps_piece, dth1_piece, dth2_piece 
+res_piece.x
+print(f"\n== Piecevise Cauchy Fitting Results *)
+print(f*d =(d_piece:.6f} =(vs Improved Fitting: {d_hat_cal:.6f) m)*)
+print(f*1 (3.03m):A=(A1_piece:.5f),B=(B1_piece:.5f))
+学生在线
+print(f*2（<3.03=):A={A2_piece:.5f}.B={B2_p1ece:.5f})
+print(
+"(z'+:05oTdzqp)=P
+dxs.mo
+46
+
+===== PAGE 47 =====
+print(*Termination Status:",res_piece.sessage)
+#Piecevise Model Continuity Check
+1ambda_star = 1e4/ 3300
+n1_star = A1_piece + B1_piece / lazbda_star**2
+n2_star = A2_piece + B2_piece / la=bda_star**2
+dn1_star = -2 * B1_piece / (lanbda_star**3)
+dn2_star = -2 • B2_piece / (lanbda_star**3)
+print (f*\n=*= Piecevise Model Continuity Check ==*)
+print(f**=(la=bda_star:.3f} =*)
+print(f*1 ( 3.03m) at boundary: n ({lambda_star:.3f)) =(n1_star:.5f})
+print（f*2（<3.03=）at boundary:n（(la=bda_star:.3f})={n2_star:.5f}*)
+print (f*Function Value Jup: An = (abs(n2_star-n1_star) :.6f)*)
+print(f*Derivative Value Junp: An′ = {abs(dn2_star-dn1_star):.6f)")
+# Piecevise Model Visualization and Residual Diagnosis
+def plot_fit_piecevise(nu,y, theta, idx, title) :
+*Visualization of fitting using piecevise method***
+nu_eff = (1.0 + eps_piece) * nu
+theta_eff = theta + (dth1_piece 1f 1dx = 0 else dth2_piece)
+yO = R_tvo_bean(nu_eff,
+theta_eff,
+d_piece,
+A1_piece,
+B1_piece,
+n2_const,
+piecevise=True,
+A2=A2_p1ece,
+B2=B2_piece,
+lazbda_star=lambda_star)
+a, b = calib_ab(yo, y)
+rav = a * y0 + b
+yhat = R_tvo_beans(rav) (nu_eff)
+fig,ax = plt.subplots(1,3,figsize=(15,4),constrained_layout=True)
+ax[0] .plot(nu,y, label=*eas*, alpha=0.8)
+ax[0] .plot (nu,
+yhat,
+color='green',
+alpha=0.8)
+中国大学生在线
+ax[0] .axvline(3300,
+color='red',
+linestyle=':',
+dxs.moe.gov.cn
+alpha=0.7,
+47
+
+===== PAGE 48 =====
+label='bou
+undary')
+ax[0].invert_xaxis()
+ax[0] .legend()
+ax[0].set_title(title)
+r  yhat -y
+ax[1] .plot(nu, r, color=′green′, alpha=0.8)
+ax[1] .azhline(0, color=*x′, 1v=0.8)
+ax[1].axvline(3300.color=′red’,linestyle=′:*,alpha=0.7)
+ax[1] .invert_xaxis()
+ax[1].set_title(*Residuals (piecevise)*)
+lam = 1e4 / nu
+n_piece = cauchy_piecevise(lam, A1_piece, B1_piece, A2_piece, B2_piece,
+lanbda_star)
+ax[2].plot(nu,n_piece, color=*green′, linevidth=2, label=′n() piecevise′)
+ax[2] .axvline(3300.
+color='red',
+linestyle=':',
+alpha=0.7,
+label=*boundary′)
+ax[2] .invert_xaxis()
+ax[2] .1egend()
+ax[2].set_title(*Refractive Index*)
+ax[2] .set_ylabel(°n°)
+plt.shov()
+rnse = float(np.sqrt(np.mean((yhat - y)**2)))
+=ae = float(np.sean(np.abs(yhat - y)))
+return rsse,sae, r
+print (f*\n== Fitting result *)
+rsse1_piece, sae1_piece, r1_piece = plot_fit_piecevise(
+cands[o] [*nu*]，cands[0][*R*]，cands[o][angle*],0,
+f*(PurePath(cands[o][‘path']）.nane}Q{cands[o]['angle′]}*")
+rsse2_piece,sae2_piece,r2_piece = plot_fit_piecevise(
+cands[1][*nu°].cands[1][*R*].cands[1][angle°], 1,
+（[.aue,][t]spue}{oeu（qed,][t]spu）qexn
+print(f*Piecevise RMSE:curve1=(rmse1_piece:.4e).curve2=(rnse2_plece:.4e)")
+print(f*Piecevise MAE:curve1={mae1_piece:.4o}.curve2={mae2_piece:.4e})
+print(f*vs I=proved RNSE: curvel=(rmse1_cal:.4e},curve2={rmse2_cal:.4e}")
+cn
+print(
+f*RMsE改善：curve1={r=sel_cal/r=se1_piece:.2f）x，curve2={rmse2_cal/rnse2_piece:.2f}x
+48
+
+===== PAGE 49 =====
+print(*\n**= Piecevise Residual Spectrun Diagnosis =*)
+= residual_fft(cands[o}[nu*], r1_piece, “curvel_piecevise*)
+“residual_fft(cands[1]["nu*],r2_piece,*curve2_piecevise)
+def analyze_high_freq_residuals() :
+print (f*\n*= High Frequency Residual Analysis (3300) *)
+for idx,(c,r_cal,r_piece) in enumerate([（cands[o].r1_cal,r1_piece),
+(cands[1], r2_cal, r2_piece)]):
+high_nask = c[“nu*] >= 3300
+if np.oum(high_=asz) > 10:
+rnse_cal_high = np.sqrt(np.=ean(r_cal[high_nask]**2))
+rnse_piece_high = np.sqrt (np.sean(r_plece[high_=ask] **2))
+inprovement = rsse_cal_high / rsse_piece_high
+print(
+f"Curve{idz+1} High Frequency RMSE: Improved={ruse_cal_high:.4e},
+Piecevise=(r=se_piece_high:.4e),I=prove=ent=(i=provezent:.2f}x*
+analyze_high_freq_residuals()
+print(*n* +**· 80)
+print(*=== Final Results Summary ==*)
+print(*-*· 80)
+] = spoq=
+“I=proved Method (Single Segment)*,*Piecevise Method (Dual Seg=ent)*
+params_single = [
+d_hat_cal, A_hat_cal, B_hat_cal, None, None, eps_hat, dth1_hat, dth2_hat
+parans_piece = [
+d_piece, A1_piece, B1_piece, A2_piece, B2_piece, eps_piece, dth1_piece,
+dth2_piece
+print(f*('argu=ents′:<10} ('Improved Method′:<15)('Piecevise Method’:<20})
+print(*-*▪50)
+print (f*(′d(m)′:<10) (d_hat_cal:<15.6f} (d_p1ece:<20.6f})
+print(f*('A1′:<10) (A_hat_cal:<15.5f) (A1_piece:<20.5f))
+学生在线
+print(f*{'B1′:<10}{B_hat_cal:<15.5f}(B1_p1ece:<20.5f})
+print(f*{'A2′:<10} {'N/A':<15}{A2_piece:<20.5f})
+print(f*('B2′:<10} {'s/A′:<15} (B2_p1ece:<20.5f}*)
+oe.gov.cn
+print(f*('d1（°)':<10){dth1_hat:<15.2f}(dth1_piece:<20.2f})
+49
+
+===== PAGE 50 =====
+print(f*('d2（°)':<10}(dth2_hat:<15.2f}(dth2_piece:<20.2f})
+print(
+f"\n('Fitting Accuracy Co=parison′:<15} {'Curve 1 RMSE′:<15}{'Curve 2 RMSE*:<15} {'Average
+Inprovement':<10}*
+print(*-* · 60)
+print(
+f"{'Inproved Method′:<15}{rmse1_cal:<15.4e}{rmse2_cal:<15.4e}{'1.00z′:<10}*
+）
+1=provement_avg = 0.5 * (rmse1_cal / rmse1_piece + r=se2_cal / rnse2_piece)
+print(
+f*{Piecevise Method′:<15}{rmse1_piece:<15.4e}{rnse2_piece:<15.4e}
+{improvenent_avg:<10.2f}x"
+print (f*\n== Technical Summary ===*)
+print(*1.Single Seg=ent Cauchy Model:*)
+print(
+f-Advantages: Fever parameters （4 physical parameters), clear physical meaning
+print(f*-Limitations: Systenatic deviation exists at 3300 c=)
+print(f* - Final Thickness: d = (d_hat_cal:.6f} m°)
+print(*\n2. Plecevise Cauchy Model:*)
+print(
+f*
+-Advantages: Handles wide spectral range systematic deviation,=aintains C` continuity*
+：
+print(f* - Cost: Adds 2 physical paraneters (A2, B2)*)
+print(f*-Boundary:*=3.03 =（3300 cm))
+print(f* - Final Thickness: d ={d_piece:.6f} =)
+print(
+f"
+-Continuity:An=
+(abs(A2_piece+B2_piece/lambda_star**2-A1_piece-B1_piece/lanbda_star**2) :.6f)*
+print(f*\n3.Perforzance Inprovenent:*)
+print(f*- Orerall RMSE Isprovement:(i=provement_avg:.2f)z*)
+print(
+f*- Sigmificant inprovement in high-frequency range, addressing systezatic deviation at
+3300c*
+results_summary "{
+d_um’:[d_hat_cal, d_piece],
+50
+
+===== PAGE 51 =====
+'A1′:[A_hat_cal, A1_piece],
+‘B1′: [B_hat_cal, B1_piece],
+'A2′: [np.nan, A2_piece],
+B2′:[np.nan, B2_plece],
+'dth1_deg':[dth1_hat,dth1_piece],
+‘dth2_deg': [dth2_hat, dth2_piece],
+'rmse_curvel': [rmsel_cal, rssel_piece],
+'rmse_curve2′:[rmse2_cal, rmse2_piece],
+'i=provement_factor′:[1.o, inprovement_avg]
+results_df = pd.DataFrane(results_sunnary)
+results_df.to_csv(*preprocessed/_cauchy_fitting_results.csv*,index=False)
+print(f*\nResults saved to: preprocessed/_cauchy_fitting_results.csv*)
+print（*\n*+*=*80）
+print(*. Analysis Complete =…*)
+print(*=*▪S0)
+附录C硅晶圆片厚度测定源代码1
+i=port os, json
+i=port nuspy as np
+1sport pandas as pd
+isport satplotlib.pyplot as plt
+plt.rcParams[“figure.figsize*] = (8, 4.5)
+plt.rcParans[*figure.dpi°] = 140
+plt.rcParams["axes.grid*] = True
+os.=akedirs(*./figs",exist_ok=True)
+os.mazedirs(*./preprocessed*, exist_ok=True)
+def 1oad_xlsx(path):
+df = pd.read_ezcel(path, header=0)
+sig=a = pd.to_numeric(df.1loe[:, 0],
+errors=*coerce*).dropna().to_numpy(float)
+学生在线
+R_pct = pd.to_numeric(df.1loc[:, 1],
+errors="coerce).dropna().to_munpy(float)
+if np.nanmax(R_pct) > 1.5:
+R =R_pct / 100.0
+dxs.moe.gov.cn
+else:
+51
+
+===== PAGE 52 =====
+R=R_pct
+order = np.axgsort(s1gma)
+s1g=a, R = signa[order], R[order]
+R_min，R_=ax = float(np.min(R)),float(np.max(R))
+R_norn = (R - R_nin) / (R_max - R_=in + 1e-12)
+return sigma, R_norn
+def make_unifors_sig=a(sigma, R, step=None):
+idx = np.argsort(sig=a)
+sig=a = sig=a[1dx]
+R = R[1dx]
+diffs = np.diff(sig=a)
+if step is lone:
+step = float(np.median(diffs))
+sig=a_u = np.arange(sigua.min(), s1gsa.max() + step / 2, step)
+R_u = np.interp(sigma_u, sigma, R)
+return signa_u, R_u, step
+sig=a10_rav,R10_rav =load_xlsx(“3_S110.xlsx*)
+s1g=a15_rav, R15_rav = load_x1sx("4_S115.xlsx*)
+sig=a10_u, R10_u, dstep10 = ake_uniforn_sigma(signa10_rav, R10_rav)
+sig=a15_u, R15_u, dstep15 = make_uniforn_sigma(signa15_rav, R15_rav)
+f1g.axs = plt.subplots(1,2,f1gsize=(14, 5))
+axs[0].scatter（sigma10_rav,
+R10_rav,
+s=8,
+alpha=0.7,
+label=*Rav Data*,
+color='red',
+edgecolors='none')
+axs[0].plot(s1gma10_u,
+R10_u,
+1v=2,
+label=*Unifors Sampling*,
+color=′darkorange′,
+中国大学生在线
+alpha=0.8)
+fontsize=12,
+fontveight='bold')
+52
+
+===== PAGE 53 =====
+axs[O].set_xlabel("Wavenunber
+（cm）,fontsize=11）
+axs[O].set_ylabel("Reflectance R*,fontsize=11)
+axs[0] .1egend(frameon=True, fancybox=True, shadov=True)
+axs[0] .grid(True, alpha=0.3)
+axs[1].scatter(sigma15_rav,
+R15_rav,
+s=8,
+alpha=0.7,
+label=*Rav Data"
+color='red',
+edgecolors='none′)
+axs[1] .plot(sigma15_u,
+R15_u,
+1v=2,
+label=*Uniforn Sampling",
+color='darkorange′,
+alpha=0.8)
+axs[1].set_title(“15* Data: Rav vs Uniforn Resampling*,
+fontsize=12,
+fontveight='bold')
+axs[1].set_xlabel(*Wavenu=ber(cm )*,fontsize=11)
+axs[1] .set_ylabel(“Reflectance R*, fontsize=11)
+axs [1] .legend(frameon=True, fancybox=True, shadov=True)
+axs[1] .grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig(*./figs/_rav_vs_uniform_si.png")
+plt.shov()
+LOW_CUT = 500
+def c11p_low(s, y, 1ov=LOw_cUT) :
+==s>=1ov
+return s[=], y[=]
+sig=a10_u, R10_u = clip_lov(sigma10_u, R10_u)
+sig=a15_u, R15_u = clip_1ov(sigma15_u, R15_u)
+fig.axs =plt.oubplots(1,2,f1gsize=(14,5))
+中国大学生在线
+axs[0].plot(s1gma10_u,
+R10_u,
+1v=2,
+dxs.moe.gov.cn
+label="Uniforn Sa=pling*.
+53
+
+===== PAGE 54 =====
+color='darzorange'
+alpha=0.8)
+axs[0].set_title(“10° Uniform Resa=pling (Wavenunber > 500cn ^)*,
+fontsize=12,
+fontveight='bold)
+axs[0].set_xlabel(*Wavenunber
+(cm),fontsize=11)
+axs[0].set_ylabel(*Reflectance R*, fontsize=11)
+axs[0] .1egend(frameon=True, fancybox=Truo, shadov=True)
+axs[0] .grid(True, alpha=0.3)
+axs[1] .plot(s1gma15_u,
+R15_u,
+1v=2,
+label="Uniforn Sampling*
+color='darkorange',
+alpha=0.8)
+axs[1].set_title(*15° Data Uniform Resanpling (Wavenumber > 500cn )*,
+fontsize=12,
+axs[1].set_xlabel（*Wavenu=ber（cm),fontsize=11)
+axs[1].set_ylabel(“Reflectance R*, fontsize=11)
+axs [1] .1egend(frameon=True, fancybox=True, shadov=True)
+axs [1] .grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig(*./figs/_umifor=_above1000_s1.png*)
+plt.shov()
+def detrend_light(signa, y, order=1):
+p = np.polyfit(nigma, y, order)
+return y -np.polyval(p.sigma)
+r10_det = detrend_light(sig=a10_u, R10_u, order=1)
+r15_det = detrend_light(sig=a15_u, R15_u,order=1)
+f1g,axs = plt.subplots(1,2, figsize=(18, 8))
+axs[0] .plot(sigma10_u,
+r10_det,
+1v=1.0,
+label=*Detrended",
+中国大学生在线
+color='darkorange'
+alpha=0.8)
+axs[0].set_title("10° Detrended")
+dxs.moe.gov.cn
+axs[0] .1egend()
+54
+
+===== PAGE 55 =====
+axs[1].plot(sigma15_u,
+r15_det,
+1v=1.0,
+label=*Detrended",
+color=′darkorange′
+alpha=0.8)
+axs[1].set_title("15° Detrended")
+axs[1] .1egend()
+plt.tight_layout()
+plt.savefig(°./figa/_dotrend_s1.png*)
+plt.shov()
+df_10 = pd.DataFrame({
+'vavenunber_c=-1':sigma10_u,
+reflectance_uniform′:R10_u,
+'detrended':r10_det,
+})
+df_10.to_csv('./preprocessed/3_Si10_detrended.csv',index=False)
+df_15 = pd.DataFrame(↑
+'vavemumber_cm-1′: sigma15_u,
+'reflectance_unifors′:R15_u,
+'detrended':r15_det,
+}）
+df_15.to_csv(*-/preprocessed/4_Si15_detrended.csv',index=False)
+fron scipy.signal isport vindovs
+fro= nu=py.fft i=port rfft, rfftfreq
+def sliding_fft_metrics(sigma,
+y.
+vin_vidth_cs=1000,
+step_c==150,
+lovfreq_cut_bins=1,
+:(onxL=pedoxoz
+ds = abs(float (np.=edian(np.diff(sig=a))))
+V =int (round(vin_vidth_cn / ds))
+S = 1nt(round(step_cn / ds))
+V=Wif  % 2 == 1 else V + 1
+centers,fstar,snr = [].[],[]
+中国大学生在线
+1 = 0
+vhile 1 + W <= len(y):
+sog=y[1:1 +V]
+dxs.moe.gov.cn
+sig_seg = sigma[1:1 + W]
+55
+
+===== PAGE 56 =====
+sog = seg - np.nean（seg)
+ = vindovs.hann(W)
+ = seg * v
+nfft = 1 << ( - 1).bit_length() if zero_pad else W
+Y = np.abs(rfft(x, n=nfft))
+F = rfftfreq(nfft, d=ds)
+1o = max(1, 1ovfreq_cut_bins)
+pk_idx = 1o + np.argmax(Y[1o:])
+fpk = F[px_1dx]
+anp = Y[pk_1dx]
+nb = np.r_[=ax(1o, pk_idx - 50):nax(1o, pk_idx - 3),
+=in(pk_idx +3.1en(Y)）:min(px_idx + 50.1en(Y))]
+noise = np.sqrt(np.sean(Y[nb] **2)) + 1e-12
+centers.append(s1g_seg[W // 2])
+fstar.append(fpk)
+snr.append(anp / noise)
+1 += S
+return np.array(centers), np.array(fstar) , np-array(snr)
+cent10,f10, s10 = sliding_fft_metrics(sigma10_u,r10_det)
+cent15, f15, s15 = sliding_fft_metrics(sigma15_u, r15_det)
+cent10_rav, f10_rav, s10_rav = sliding_fft_netrics(s1gma10_u,
+（（noT）ueodu-n
+cent15_rav, f15_rav, s15_rav = sliding_fft_netrics(s1gma15_u,
+R15_u - np.mean(R15_u))
+f1g, axs = plt.subplots(2, 4, f1gsize=(16, 8))
+axs[0,0].plot(cent10,f10)
+axs[0,0].set_title("10*f*vs(Detrended)*)
+axs[0, 0].set_xlabel(*_center")
+axs[O,0].set_ylabel(*f▪（cycles/c=）)
+axs[0,1].plot(cent10,s10)
+axs[0,1].set_title("10* SNR vs
+(Detrended)·)
+axs[0,1].set_xlabel(*_centor")
+axs[0, 1].set_ylabel(*SNR*)
+axs[0,2].plot(cent10_rav,f10_rav，'orange′)
+axs[0, 2].set_title("10* f* vs(Rav Resampled))
+axs[0, 2].set_xlabel(*_center")
+国大学生在线
+axs[0,2].set_ylabel(*f*（cycles/c=))
+axs[0,3].plot（cent10_rav,s10_rav,'orange′)
+axs[0, 3].set_title("10* SNR vs
+axs[O,3].set_xlabel(°_centox")
+dxs.moe.gov.cn
+axs[0, 3].set_ylabel(*SNR*)
+56
+
+===== PAGE 57 =====
+axs[1,0].plot(cent15,f15)
+axs[1,0].set_title("15*f*vs(
+(Detrended)")
+axs[1, 0].set_xlabel(*_center")
+axs[1, 0].set_ylabel(*f*(cycles/cn))
+axs[1, 1].plot(cent15,s15)
+axs[1, 1].set_title("15* SNR vs
+(Detrended)“)
+axs[1,1].set_xlabel(*_center")
+axs[1, 1].set_ylabel(*SNR)
+axs[1,2].plot(cent15_rav, f15_rav,‘orange′)
+axs[1, 2].set_title("15* f+ vs (Rav Resa=pled)*)
+axs[1, 2].set_xlabel(*_center")
+axs[1，2].set_ylabel(*f*（cycles/c=）)
+axs[1,3].plot(cent15_rav,s15_rav,‘orange*)
+axs[1,3].set_title("15* SNR vs(Rav Resanpled）)
+axs[1,3].set_xlabel(*_centor)
+axs[1, 3].set_ylabel(*SNR*)
+plt.tight_layout()
+plt.savefig(*./figo/_sliding_fft_comparison_si.png*)
+plt.shov()
+f1g. axs = plt.subplots(2, 2, figsize=(12, 8))
+axs[0, 0].plot(cent10, f10,label=′Detrended′,alpha=0.8)
+axs[0, 0].plot(cent10_rav, f10_rav, label=′Rav Resampled′, alpha=0.8)
+axs[0, 0].set_title("10* Frequency Co=parison*)
+axs[O,0].set_xlabel(*_center")
+axs[0,0].set_ylabel（*f+（cycles/cn）)
+axs[0, 0] .legend()
+axs[0, 1].plot(cent10,s10, label=′Detrended′,alpha=0.8)
+axs[0, 1].plot(cent10_rav, s10_rav,label='Rav Resampled',alpha=0.8)
+axs[0, 1].set_title("10* SNR Comparison*)
+axs[0, 1].set_xlabel(°_center")
+axs[O,1].set_ylabel(*SNR*)
+axs[0, 1].legend()
+axs[1,0].plot(cent15,f15,label='Detrended′,alpha=0.8)
+axs[1, 0].plot(cent15_rav, f15_rav, label='Rav Resampled', alpha=0.8)
+axs[1,0].set_title("15° Frequency Co=parison°)
+axs[1, 0].set_xlabel(*_center")
+axs[1,0].set_ylabel(*f(cycles/c=))
+axs[1, 0].legend()
+中国大学生在线
+axs[1, 1].plot(cent15,s15, label=′Detrended', alpha=0.8)
+e.gov.cn
+axs[1,1].plot(cent15_rav,s15_rav,label='Rav Resampled',alpha=0.8)
+axs[1,1].set_title("15* SNR Comparison°)
+57
+
+===== PAGE 58 =====
+axs[1,1].sot_xlabel(*_center")
+axs[1, 1].set_ylabel(*SNR*)
+axs[1, 1].legend()
+plt.tight_layout()
+plt.savefig(*./figs/_fft_overlay_comparison_si.png*)
+plt.shov()
+USE_DETRENDED = True
+1f USE_DETRENDED:
+centers_analysis = cent10
+f10_analysis = f10
+f15_analysis = f15
+s10_analysis = s10
+s15_analysis = s15
+pepuoxed. = odKa"srsfreue
+centers_analysis = centi0_rav
+f10_analysis = f10_rav
+f15_analysis = f15_rav
+s10_analysis = s10_rav
+s15_analysis = s15_rav
+analysis_type = *Rav_Resaspled*
+print (f*Using {analysis_type} data for band selection analysis*)
+def merge_good_vindovs(centers, good_mask, =in_span_cs=300):
+1f good_sask.sum() == 0: return []
+groups =[]
+run = None
+for c, ok 1n zip(centers, good_mask) :
+1f oz and run is None:
+run = [c, c]
+elif ok:
+run[1] = c
+else:
+if run is not None:
+groups.append(tuple(rum))
+run = None
+生在线
+if run is not None: groups.append(tuple (run))
+groups = [(lo, hi) for (1o,hi) in groups if (hi - 1o) >= min_span_c=]
+return groups
+dxs.moe.gov.cn
+def pick_best_band(bands,centers，snr10,snr15_interp):
+58
+
+===== PAGE 59 =====
+if not bands: return None
+def score(b):
+lo, h1 = b
+=（centers >=lo）（centers <=hi）
+return float (np.nanmean((snr10[=] + snr15_interp[=]) / 2))
+return =ax(bands, zey=score)
+1f USE_DETRENDED:
+f151 =np.interp(cent10, cent15, f15)
+s151 = np.interp(cent10,cent15,s15)
+else:
+f151 = np.interp(cent10_rav, cent15_rav, f15_rav)
+s151 = np.interp(cent10_rav,cent15_rav,s15_raz)
+snr_thresh = 10.0
+f_rel_diff = 0.10
+00 =u>uedeuu
+edge_crop = 20
+good_nasl = (s10_analysis >= snr_thresh)  (s151 >= snr_thresh)  (
+np.abs(f10_analysis - f151) / np.maximun(f10_analysis, 1e-9) <= f_rel_diff)
+bands = serge_good_vindovs(centers_analysis,
+good_mask,
+=in_span_cm=min_span_c=)
+bands = [(lo + edge_crop. hi - edge_crop) for (lo, hi) in bands]
+band_used = pick_best_band(bands, centers_analysis, s10_analysis, s151)
+fig. ax = plt.subplots(1, 1, fignize=(10, 4))
+ax.plot(centers_analysis,
+s10_analysis,
+1v=1.2,
+label=f*SMR 10 ({analysis_type}))
+ax.plot(centers_analysis,
+s151,
+1v=1.2,
+label=f*SNR 15* (interp.{analyais_type}))
+for (lo, h1) in bands:
+ax.axvspan(lo, h1, alpha=0.15)
+生在线
+1f band_used 1s not None:
+ax.axvspan(band_used[0], band_used[1],alpha=0.25,1abel=*band_used*)
+ax.set_title(f*Band candidates k selected band ({analysis_type))*)
+ax.set_xlabel(*Center
+（cms(-1）s）")
+dxs.moe.gov.cn
+ax.legend()
+59
+
+===== PAGE 60 =====
+plt.tight_layout()
+plt.savefig(f*./fige/step3_band_selection_{analysis_type)_si.png*)
+plt.shov()
+print (f*Analysis results using (analysis_type} data:*)
+print (*Candidate bands:*, bands)
+print (*Final band_used:*, band_used)
+band_info = {
+'analysis_sethod': analysis_type,
+'use_detrended′: USE_DETRENDED,
+'candidate_bands': bands,
+'selected_band':band_used,
+snr_threshold': snr_thresh,
+'frequency_relative_diff': f_rel_diff,
+'=in_span_cs′: sin_span_cs,
+'edge_crop':edge_crop
+vith open('./preprocessed/band_selection_info.jscn',*v) as f:
+json.dunp(band_info, f, indent=2)
+print(*Data saved to ./preprocessed/ directory*)
+print(*- Processed spectral data: *_processed.csv*)
+print(*- FFT analysis results: *_fft_results.csv*)
+print(*- Band selecticn info: band_selection_info.json*)
+ieport nuspy as np
+inport satplotlib.pyplot as plt
+fro= scipy.s1gnal 1sport savgol_filter, vindovs
+fros nuspy.fft i=port rfft, rfftfreq
+def prep_in_band(sigma_u, y_residual, band, sg_vin=31, sg_poly=3):
+blo, bhi = band
+= = (sigma_u >= blo) & (sig=a_u <= bhi)
+s, y = sigma_u[n], y_residual[≤]
+assert len(s) >= 64,*band too narrov or no data in band*
+1f sg_vin % 2 = 0: sg_vin += 1
+y = savgol_filter(y, sg_vin, min(sg_poly, 3))
+A = np.c_[s, np.ones_like(s)]
+国大学生在线
+a, b = np.1inalg.1stsq（k, y. rcond=None)[0]
+yy-(a▪s+b)
+dxs.moe.gov.cn
+y = (y - y.mean())▪vindovs.hann(len(y))
+09
+
+===== PAGE 61 =====
+ds = abs(float (np.=edian(np. diff (s))))
+nfft = 1 << (len(y) - 1).bit_length()
+Y = np.abs(rfft(y, n=nfft))
+F = rfftfreq(nfft, d=ds)
+return s, F, Y, y
+def zero_cross_freq_hint(s,y):
+nz = np.zhere(np.diff (np.signbit (y))) [o]
+ncycles = =ax(len(nz) / 2.0, 1.0)
+span = s[-1] - s[0]
+return ncycles / max(span, 1e-9)
+def pick_peak_guarded(F, Y, f_hint, guard=O.5):
+1o = max((1 - guard) * f_hint, 1e-6)
+h1 = (1 + guard) * f_hint
+band = (F >= 1o)  (F <= h1)
+if not np.any(band):
+idx = 1 + np argmax(Y[1:])
+else:
+cand = np vhere(band) [0]
+1dx = cand[np.argmax(Y[cand])]
+return F[idx]
+band_used = (1170, 2170)
+s10b, F10, Y10, y10b = prep_in_band(s1gsa10_u, r10_det, band_used)
+s15b, F15, Y15, y15b = prep_in_band(sigma15_u, r15_det, band_used)
+f_hint_10 = zero_cross_freq_hint (s10b, y10b)
+f_hint_15 = zero_cross_freq_hint(s15b, y15b)
+f10 = pick_peak_guarded(F10, Y10, f_hint_10, guard=0.5)
+f15 = pick_peak_guarded(F15, Y15, f_hint_15, guard=0.5)
+def do_fro=_period(delta_nu, theta_deg, n_eff=3.45):
+th =np.deg2rad(theta_deg)
+cos_t = np.sqrt(1 - (np.sin(th) / n_eff)**2)
+return （1.0 /(2 ▪n_eff ·cos_t ▪ delta_nu))*1e4 
+学生在线
+中国大
+dnu10, dnu15 = 1.0 / f10, 1.0 / f15
+d0_10 = d0_fro=_period(dnu10, 10.0)
+dxs.moe.gov.cn
+d0_15 = d0_fro=_period(dnu15,15.0)
+61
+
+===== PAGE 62 =====
+d0_avg=0.5▪（d0_10+d0_15)
+print(f*[10°] f*={f10:.5f}cyc/cn，={dnu10:.1f} cn²-1,d0 {d0_10:.3f} =)
+print(f*[15°] f*=(f15:.5f} cye/cn, △={dnu15:.1f} cn-1, d0 {d0_15:3f} =°)
+print(f*[avg] d0 {d0_avg:.3f} =*)
+fig, axs = plt.subplots(1, 2, figsize=(12, 4))
+axs[0].plot(F10, Y10)
+axs[0].axvline（f10.1s='--',label=f"f*={f10:.5f}")
+axs[0].axvline(f_hint_10, 1s=′:*,label=f*f_hint=(f_hint_10:.5f}*)
+axs[0].set_x11=(0, 0.02)
+axs[0] .1egend()
+axs[0].set_title(*10° FFT in band°)
+axs[1] .plot(F15, Y15)
+axs[1].axvline(f15, 1s=*--', 1abel=f*f*=(f15:.5f}")
+axs[1].axvline(f_hint_15,1s=′:*,label=f*f_hint=(f_hint_15:.5f})
+axs[1].set_xli=(0, 0.02)
+axs[1] .1egend()
+axs[1].set_title(*15* FFT 1n band)
+plt.tight_layout()
+plt.savefig(*./figs/fft_in_band_si.png")
+plt.shov()
+附录D硅晶圆片厚度测定源代码2
+x‘d s oddqde‘pd e sddu se u xod
+fro= pathlib i=port Path, PurePath
+fro= scipy.optimize isport least_squares
+ 
+pre_dir = Path(*./csv*)
+pre_data  next(
+(p for p in [pro_dir /·_fft_results.csv*,
+Path(*./_fft_results.csv)]if p.exists()),None)
+band_csvs = sorted(pre_dir.glob(**_band.csv*))
+saterial -*S1*
+angles_noeded = (10.0,15.0)
+n2_const =3.445
+# == Initial guess for Cauchy paraneters
+中国大学生在线
+A0 = 3.415 = Typical for Si in mid-IR
+B0 =-0.001
+d0_um=3.8
+dxs.moe.gov.cn
+62
+
+===== PAGE 63 =====
+"=Auxiliary functions 
+def parse_tag_angle(name: str):
+n = name.lover()
+tag =*Sic if *sic* in n else （
+*Si*if re.search(r′(?i)(1_)si(?!c)*,n）else *unlnoum)
+==re.seareh(r′(?1)(?:siclsi)[_-]?(\d(1,2})*,n)
+ang = float(=.group(1)) 1f = else Mone
+return tag, ang
+def cauchy_n_lambda(lam_us, A, B) :
+return A + B /(1a=_us**2 +1o-18)
+def snell_theta(n_fron, n_to, th_from):
+s =(n_fros ▪ np.sin(th_fro=)) / np.saximum(n_to, 1e-18)
+s = np.clip(np.real_if_close(s), -0.999999, 0.999999)
+return np.arcsin(s)
+def R_hat(nu_cn1, theta0_deg. d_um, A, B, n2_cst=2.65):
+nu = np-asarray(nu_c=1, float)
+lam = 1e4 / nu # =
+n1 = cauchy_n_la=bda(lan, A, B)
+n2 = n2_cst
+th0 = np.deg2rad(theta0_deg)
+th1 = snell_theta(1.0,n1, th0)
+th2 = snell_theta(n1, n2, th1)
+Rs01 = (np.sin(th0 - th1) / np.sin(th0 + th1))**2
+Rp01 =(np.tan(th0 - th1) / np.tan(th0 + th1))**2
+R1 = 0.5 ▪(Rs01 +Rp01)
+Rs12 = (np.sin(th1 - th2) / np.sin(th1 + th2))**2
+Rp12 = (np.tan(th1 - th2) / np.tan(th1 + th2))**2
+R2 = 0.5 ▪(Rs12 + Rp12)
+*（（▪）xb+)/（ ▪）xb ▪=
+**（(（ ▪）xbsdu +1） /（（z）xbedu +（1）xbsdu）） =xe=g
+*（（（▪）bu-）/（（）xu-（）xb））=ug
+学生在线
+（（1q）soduunp*u▪）*（ue/d·du▪）=ep
+half_delta = delta / 2
+cn
+return np.clip(R, 0.0, 1.2)
+63
+
+===== PAGE 64 =====
+fit_band =（1100.2300)
+packs = []
+for p in sorted(pre_dir.glob(**_band.csv*)):
+df = pd.read_csv(p)
+nu = df [*vavenumber_cna-1°] . to_numpy(float)
+R = df[*reflectance_norn*].to_nunpy(float)
+tag. ang * parse_tag_angle(p .name)
+if tag.lover() == saterial.1over() and ang in angles_needed:
+= =(nu >= f1t_band[o])  (nu <= fit_band[1])
+pacto.append((
+*path*: p,
+“nu*: nu[=],
+"R*:R[=],
+"tag*:tag,
+“angle*:float(ang)
+angles = sorted((q["angle*] for q in packs))
+cands = sorted(packs,key=lanbda q: q[angle*])
+print(“Experiment Setting:*,[
+f"{PurePath(c['path']).na=e}0(c['angle']}*[{fit_band[o]),(fit_band[1]}] cs~-1*
+for c in cands
+])
+df1 = pd.read_csv(pre_dir /*_fft_results.csva)
+def calib_ab(y0, y) :
+y0 = np.asarray(yo,float)
+y = np.asarray(y. float)
+=0, = = y0.sean(), y.ean()
+v0 = y0 -=0
+a=np.dot（v0,y-=）/（np.dot（v0,v0）+1e-12）
+b =±-a *=0
+return float(a),float(b)
+def residuals_vith_cal(p):
+d,A, B,eps, dth1, dth2 = p
+res,regs =[].[]
+中国大学生在线
+for 1dx, c in enumerate(cands):
+dxs.moe.gov.cn
+nu_eff = (1.0 + eps) * c[*nu*]
+64
+
+===== PAGE 65 =====
+theta_eff =c[“angle°]+（dth1 if idx =0else dth2)
+y0 = R_hat(nu_eff, theta_eff, d, A, B, n2_const)
+a, b = calib_ab(yo, c[*R*])
+res.append(a *y0 + b - c[*R])
+regs +=[
+S0.0 *eps, 15.0 *dth1, 15.0 *dth2,0.2 *(A-A0),0.2 *(B-B0)
+return np.concatenate(res + [np.atleast_1d(z) for x in regs])
+print(*\n** Fitting Result =.*)
+p0_ca1 = np.array([dO_un,A0, B0, 0.0, 0.0, 0.o])
+1b_ca1=np.array([3,-10.-10.-2e-3,-0.3,-0.3])
+ub_ca1 = np.array([5,+10, 10, 2e-3, 0.3, 0.3])
+res_cal = least_squares(residuals_vith_cal,
+pO_cal,
+bounds=(1b_cal, ub_cal),
+loss="soft_11*,
+f_scale=0.03,
+max_nfev=100000,
+verbose=2)
+d_hat_cal, A_hat_cal, B_hat_cal, eps_hat, dth1_hat, dth2_hat = res_cal.x
+pO_ca1 = np.array(
+[d_hat_cal, A_hat_cal, B_hat_cal, eps_hat, dth1_hat, dth2_hat])
+print (f*\n Fitting Result *)
+print(f"d={d_hat_cal:.6f} =")
+print (f*A = (A_hat_cal:.5f). B = (B_hat_cal: .5f}*)
+（o+qso）=sdo）u
+print(f*d1=(dth1_hat:+.2f}°,d2=(dth2_hat:+.2f）*")
+print(*Final status:*,res_cal.sessage)
+#Parameter physical self-check
+lamc = 1e4 / np.sedian(cands[0][*nu*])
+n1_cal = A_hat_cal + B_hat_cal / lamc**2
+print (f*\n=*= Para=eter Physical Self-Check ===*)
+学生在线
+print（f"Center Wavelength c(lac:.2f) =°)
+print(f*Center Refractive Index n1
+(n1_cal:.3fy)
+print(
+abs（eps_hat)<2o-3 oloo ‘Largo, Please Check'})*
+65
+
+===== PAGE 66 =====
+def plot_fit_inproved(nu,y. theta, 1dx, title):
+nu_eff = (1.0 + eps_hat) ▪ nu
+theta_off = theta + (dth1_hat if idx == 0 else dth2_hat)
+y0 = R_hat(nu_eff, theta_eff, d_hat_cal, A_hat_cal, B_hat_cal, n2_const)
+a, b = calib_ab(yo,y)
+yhat =a ▪yo+b
+fig,ax = plt.subplots(1, 2,figsize=(12, 4.5),constrained_layout=True)
+ax[0] .plot(nu, y, label=′Measured', color='#1f77b4′, 1v=1.5, alpha=0.85)
+ax[0] .plot (nu,
+yhat,
+'--',
+label='Fitted',
+color=*#fa1515*,
+1v=1.5,
+alpha=0.95)
+ax[o] .invert_xaxis()
+ax[0].set_xlabel(*Wavenumber（cmS~(-1}s)',fontsize=14)
+ax[0].set_ylabel('Reflectance (norn)′,fontsize=14)
+ax[0] .legend(fontsize=13, 1oc=′best′, franeon=True)
+ax[0].set_title(title, fontsize=15,fontveight=*bold°)
+ax[0] .grid(True, linestyle=*--*, alpha=0.5)
+ax[0] .tick_params(axis=*both*, labelsize=12)
+r-yhat-y
+ax[1] .plot(nu, r, color=*ad20e0e*, 1v=2, alpha=0.95, label=′Residuals)
+ax[1].azhline(0,color=*k′,1v=1.2,linestyle=′:*)
+ax[1] .invert_xaxis()
+ax[1].set_xlabel(*Wavenumber (cm$(-1)s)·,fontsize=14)
+ax[1] .set_ylabel('Residuals′, fontsize=14)
+ax[1].set_title(*Residuals′,fontsize=15,fontveight=′bold')
+ax[1] -grid(True, linestyle=*--′, alpha=0.5)
+ax[1] .legend(fontsize=13, 1oc=*best′, franeon=True)
+ax[1] .tick_parans(axis=′both', labelsize=12)
+fig.suptitle(title,fontsize=16,fontveight=′bold′)
+plt.savefig(f*fit_(theta}deg-png*, dpi=300)
+plt.shov()
+rnse = float(np.sqrt(np.nean((yhat - y)**2)))
+sae = float(np.mean(np.abs(yhat - y)))
+return rsse, sae, r
+中国大学生在线
+print(f*\n=* Fitting Result =…*)
+cands[0o][*nu*].cands[o][*R*].cands[0] [angle*]，0,
+66
+
+===== PAGE 67 =====
+f"{PurePath（cands[o]['path']）.nane}0(cands[o]['angle*]}")
+rnse2_cal,mae2_cal,r2_cal=plot_fit_improved(
+cands[1] [“nu°], cands[1] [*R°],cands[1][angle°], 1,
+（[.,]t]p]u（[e]]p）q
+print(f*Fitting RMSE:curve1=(rmse1_cal:.4e), curve2={rmse2_cal:.4e}*)
+print (f*Fitting MAE: curve1={mae1_cal:.4e), curve2=(=ae2_cal:.4e)°)
+中国大学生在线
+dxs.moe.gov.cn
+67
+
+===== PAGE 68 =====
+415
+2026年全国大学生
+国家安全知识答题

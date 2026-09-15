@@ -1,0 +1,36 @@
+{
+  "name": "scen_last_hour_meanT_finalC",
+  "n": 400,
+  "rtol": 1e-11,
+  "scenario": "last_hour_meanT_finalC",
+  "mesh": "graded",
+  "latent": null,
+  "appx": 4,
+  "crossing_s": 183939.57734899828,
+  "minute_s": 183960.0,
+  "crossing_h": 51.09432704138841,
+  "minute_h": 51.1,
+  "seconds": 107.24095029997989,
+  "steps": 30164,
+  "nfev": 62020,
+  "balances": {
+    "mass_closure": -4.4261695879093364e-09,
+    "mass_rel": 8.678763897861444e-06,
+    "energy_closure": -0.15868874613988737,
+    "energy_rel": 8.436913747229733e-06
+  },
+  "radial_increase_max": 0.0,
+  "min_C": 0.05248780695850619,
+  "integrals": [
+    -11481.278444241445,
+    0.0002781891745760608,
+    -8637.21725974914,
+    -0.0002232821849202718,
+    -15891.139535249737,
+    -42108403.669451535
+  ],
+  "max_identity": [
+    1.3234889800848443e-23,
+    4.440892098500626e-16
+  ]
+}

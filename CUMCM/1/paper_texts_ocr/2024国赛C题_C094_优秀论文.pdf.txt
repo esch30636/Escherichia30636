@@ -1,0 +1,3937 @@
+
+===== PAGE 1 =====
+基于随机优化的农作物种植策略模型
+摘要
+本文研究最大化利用土地资源，建立栽种策略优化模型，利用贪心算法、随机扰动、蒙
+特卡洛、灵敏度检验等方法求解科学土地管理、超额出售、多因素时间波动，农作物替代
+性、互补性以及相关性等问题。
+针对问题一，定义第年的第季度时，在第块地种植第k种作物种植面积为决策
+变量，构建了以种植经济效益最大化为目标函数，可耕种地域面积、实际可售量、连作方
+式、地块及作物栽种等限制为约束的种植策略线性规划模型。为科学管理土地，满足种植
+地不宜太分散的目标，传入参数p、9，分别约束每块土地最多种作物数量，每种作物最多
+可种地块数量。综合考虑p、q尽可能小与收益尽可能大。对题目给出的数据进行预处理，
+统一数据格式便于读取，并统计数据生成成本与产量的三维数据表。最终，使用求解器求
+解得：超出部分滞销结果为40244799.20元，超出部分折价结果为56325297.78元；使用
+贪心策略求解得：超出部分滞销结果为36848378.08元，超出部分折价结果为46724871.84
+元。这两种求解方法各有优缺点，求解器求解结果更优，但求解慢，而贪心算法则相反，根
+据具体需求选择方法，两种销售情况会导致结果产生较大差异，原因归结于收益大的作物
+在降价后仍可保持高收益，会被高频率大面积种植。
+针对问题二，考虑作物亩产量、预计销量和销售价格的波动因素，为增强风险应对能
+力，以最大化种植经济效益期望为目标函数，设定决策变量为波动场景下的可行策略对应
+的种植经济效益，增加其余参数的时间维度，在延续上一问的约束条件基础上，构建了随
+机规划模型。对于超过部分滞销情况，使用蒙特卡洛算法生成100组符合正态分布的随机
+参数序列，使用求解器在随机序列下求出100组种植策略。将分布函数离散化，可得到每
+组随机序列对应的概率，接着对每种规划策略进行扰动。最终得到100组随机扰动策略下，
+种植经济效益均值最高的种植规划策略，其中，抗波动性最强方案的种植经济效益均值为：
+51667432.02
+针对问题三，基于问题二模型，目标函数与决策变量保持不变，分析作物相关性以及
+销量-价格-成本相关性对变量的影响。对相关性强且作物类型相同的作物进行替代，比较
+目标函数对其替换程序的灵敏度检测其替代性，最终选择用小麦替代谷子，青根替代辣椒，
+对互补性强的植物进行软约束，使其尽可能协同耕种，提升效率，如豆类轮作可提升总体
+产量，接着，根据销量-价格-成本关系，根据销量推算合理的成本与价格。综合考虑上述因
+素后，在模拟数据下求解最优种植方案的种植经济效益均值为：53028389.86，相较于第二
+问结果更优，符合优化的目标。
+关键词：贪心策略求解器蒙特卡洛算法随机规划
+
+===== PAGE 2 =====
+问题重述
+1.1问题背景
+农业是乡村地区的核心支柱，尤其在偏远地区，种植业为当地居民提供主要牧入来源，切合实际
+积极善用当下仅限资源，因势利导，兴盛种植产业是实施乡村振兴战略的重要抓手，合理规划适宜农作
+物，可规避气候、病虫害等多种不确定性因素，优化水、肥与土地等资源利用，降低土壤侵蚀，灵活应
+对市场需求，提升经济产出。
+为制定科学裁种管理策略，应遵循如下原则：
+1.由于同种作物在同一地上连续多次种植时，易导致相关病原菌与害虫在土壤中积累，破坏土壤物
+理结构，无法有效支持作物正常生长，因此各类作物在同一地块或大棚内应避免重在种植。
+2.为方便土地管理，应避免各类作物过于分散，在单个地块或大棚内占地面积过小等。
+3.由于豆类作物的部可与根瘤菌共生，面根瘤菌能够将空气中的氮转化为植物可以直接吸收利
+用的氮化合物，因此通过豆类作物与非互类作物合理轮作，可有效减少病虫害积累，增强土壤健康性。
+N
+图1图氮原理
+1.2问题提出
+位于华北地区的某山区乡村，气候较为寒冷，多数农田年均仅可栽种一季作物。该乡村现有户外
+1201亩耕地，划分为34个面积不等的地块，涵盖梯田、平早地、水浇地与山坡地四类类型。此外，该
+乡村拥有16个普通大棚与4个智慧大棚，各大棚均占地0.6亩，不同地块或大棚载种方式要求不同，
+详见附件1，基于互类作物根菌的有益作用，自2023年起，各种地块或大棚三年内必须种植豆类作物
+至少一次。结合附件1中2023年历史具体数据，解决如下间题：
+间题一1假设各类农作物后续预期销量、售价、种植成本和亩产量相较于2023年保持稳定，且当
+季种植当季销售，不存在存放过季的情况。若所有作物超过预期销量部分的产量，无法正常售卖，分为
+两种情况：（1）周转级慢，销量为0：（2）依据2023年售价的50%减价出售。
+分析在两种情景下的最优种植策略，并填写附件roul1_1.xlsx与resul1_2.xkx。
+间题二：结合过往实践经验，宏观形势特续向好将带动口粮消费有所提升，玉米与小麦的末来销量
+存在增长趋向，平均年增长率居于5%与10%间，其余作物销量波动在土5%之间，单亩农作物产量受
+气候影响存在土10%的波动。市场条件影响下，作物种植成本预计年均增长率大约为5%，根食类农作
+物单价大致保持平稳：蔬菜类趋向于增长，大约年均增长5%：可食用大型真菌售价趋势稳定，每年稍
+有下降1%-5%，其中，羊肚菌降幅尤为突出，达到5%，全面考虑上述各因素的不确定性及暗含种植风
+险，求解2024-2030年该乡村最优种植策略，并填写附件3.
+间题三：由于真实情况下，各类农作物间存在相当程度的可替代关系与互补关系，其预期销量、售
+价与种植成本间具有一定关联性，基于向题二，统筹考虑多要素，制定2024-2030年最优种植方案。利
+用模拟数据求解后，与月题二结果进行对比分析。
+
+===== PAGE 3 =====
+问题分析
+2.1问题一的分析
+问题一中，假定后续每一年的策略规划中，其预期销售量、种植成本、亩产量都与2023年相同。基
+于此分别考虑超过部分滞销和按照50%折价出售的种植策略情况，可以构建线性规划模型，对连种约
+束和豆类种植等约束进行限制后，使用求解器进行求解或构建贪心策略，依次遍历每块土地，选取对当
+前土地性价比最高的作物优先进行种植。同时考虑豆类种植约束，要求任何连续三年内豆类作物种植面
+积大于当前土地面积，则可以保证三年内每亩地都种过一次豆类作物。
+2.2问题二的分析
+问题二中，在问题一构建的优化模型基础上，增加了作物预期销售量、种植成本、销售价格的变化
+条件。为输出最优的种植方案，需要在各种不确定因素和种植风险中选择一个能够在不同的预期销售
+量、种植成本、销售价格的变化条件中相对都有较好表现的种植策略。求解过程可以考虑使用蒙特卡洛
+算法生成多个随机序列，模拟不同的现实情况。
+2.3问题三的分析
+问题三中，基于问题二构建的增加变量扰动的优化模型，进一步考虑农作物之间的可替代性和互补
+性，并综合考虑预期销售量与销售价格、种植成本之间的相关性，从而使构建的种植策略优化模型更加
+接近现实情况。首先，可依据农作物对总收人的灵缴度进行分析替代，从而减少农作物种类，优化种植
+结构。同时，对预期销售量与销售价格、种植成本进行相关性约束，从而构建增加了变量扰动和作物关
+联因素的种植优化模型。
+问
+预期销售量、由产量
+题
+种植成本、销售价格
+单独考虑各作物及地块种植情况
+一
+相对2023相对稳定
+问
+二
+问
+超额无法售出/
+制定/优化
+超额折价销售
+三
+栽种策略
+参数存在波动
+发挥替代性、互补性及相关性
+图2问题分析
+中国大学生在线
+dxs.moe.gov.cn
+
+===== PAGE 4 =====
+三模型假设
+1.假设当季种植的农作物在当季销售，无库存。
+2.假设问题一中每种农作物的未来预期销量、种植成本、亩产量和售价相较于2023年保持稳定。
+3.假设间题二相关销量、售价等变量波动符合正态分布。
+4.假设问题三中各种农作物预期销售量与销售价格、种植成本之间存在一定相关性。
+四符号说明
+号
+说明
+单位
+第个季度
+第年
+第块地成大
+第块地或大棚占地面积
+第种作物
+第j块地或大棚的地块或大棚类型
+Req
+第：季度第种作物的预期需量
+第种作物是否归属大互类作物
+ProdachiA
+第：季度第j块地上种植第种作物的亩产量
+斤
+Coslyjs
+Priova
+第：季度第块地种植第k种作物的种植成本
+第：季度第k种作物的平均销售价格
+元/斤
+元/面
+XnyA
+第：年的第季度，第j个地块或大棚上第k种作物的最种面积
+Yeu
+第季度是否在第块地上种植作物
+五模型的建立与求解
+全部替换删除后，进行后续数据分析及模型建立。
+由于部分数据在数据表中带有空格后组，影响数据读取，因此需对于单元格格式进行修改，将空格
+根据不网地决类型包括的地块区域，进行区块划分可视化：
+申：电
+图 3 区城划分
+
+===== PAGE 5 =====
+查阅相关资料并结合题目已知，可知综合考虑经济效益与实际因素，各类地块或大棚可种植农作物
+如下：
+1.地块
+（1）平旱地（A）为无灌条件的平坦土地，完全依赖天然降水进行作物种植；梯田（B）为在山坡上
+开垦的阶梯状耕地，山坡地（C）为坡度较大的山地、该类地块适合种植耐旱、需水较少的单季粮食作物
+（水稻除外），以配合作物生长的自然节奏。
+（2）水浇地（D）每年可以单季种植水稻或两季种植蔬菜作物。由于水稻生长周期较长，因此一年一
+季；蔬菜生产周期较短，一年可分为两季种植。从水稻角度考虑，该类地块可通过稳定的灌溉设施确保
+水稻作为典型的水生作物，在种植期间充分的水分供应。从蔬菜角度考虑，第一季水资源充足，适宜种
+植需水量高的蔬菜，因此不包含大白菜、白萝卜与红萝卜；第二季响应季节要求，贴合耐寒蔬菜生长需
+求，并简化管理，仅选择大白菜、白萝卜或红萝下中的一类种植。
+2.大棚
+大棚维护成本高，粮食作物经济效益低，不适宜粮食类低附加值作物。此外，棚内空间密闭，对于
+易遭受特定病虫害的萝卜类作物与大白菜易积累病虫害；棚内空间较为狭小，土层较浅，无法容纳萝卜
+类作物与大白菜发达的根系。
+（1）普通大棚（E）利用塑料薄膜或玻璃覆盖作物，形成可控的小气候环境，因此每年可种植两季作
+物，第一季可种植多种蔬菜（大白菜、白萝卜和红萝卜除外），但由于其环境调节能力的局限性，无法
+支持第二季多种蔬菜的生长条件，仅适宜种植对湿度与温度要求较低的作物，即食用菌。
+（2）智慧大棚（F）是普通大棚的升级版本，依托多方面现代技术，实时监控并调控温度、湿度、光
+照等环境因素，优化作物生长条件，因此可种植两季蔬菜（大白菜、白萝卜和红萝卜除外）。
+表1农作物种植要求
+作物名称
+作物类别
+种植耕地
+耕种时期
+备注
+黄豆、黑豆、红豆、绿豆、爬豆
+豆类
+小麦、玉来、容子、高乘、黍子
+粮食
+A、B、C
+单季种植
+荞麦、南瓜、红薯、莜麦、大麦
+水稻
+D
+单季种植
+虹豆、刀豆、芸豆
+豆类
+土豆、西红柿、茄子、菠菜、青椒
+蔬菜
+D、E
+第一季
+菜花、包菜、油麦菜、小青菜、黄瓜
+F
+二集一集
+生菜、辣椒、空心菜、黄心菜、芹菜
+大白菜、白萝卜、红萝卜
+D
+第二季
+榆黄菇、香菇、白灵菇、羊肚菌
+食用菌
+E
+第二季
+通常水浇地受季节性降水和灌溉影响大，因此种植季节集中灌资源较丰富的时间段，如夏秋季；
+普通大棚具有一定适应能力，种植季节时间段边长，但并不具备完全的调控能力，因此仍需避开极端天
+气，如醋暑；为确保作物的高产与环境的长期稳定，智慧大棚需留存一定土壤修复时间。综上，分为两
+季耕种的地块或大棚的两个季的时间分布可表示为：
+中国大学生在线
+
+===== PAGE 6 =====
+水浇地
+种植季节
+普通大棚
+第一季
+二送
+智禁大楼
+1月
+2月
+5月1
+61
+7月
+月10月11月12月
+图4时间分布
+5.1模型一的建立与求解
+5.1.1模型一的建立
+根据问题一假设，各类农作物后续预期销量、售价、种植成本和亩产量相较于2023年保持稳定，因
+此对2023年销售及产出情况进行分析：
+分析附件2中2023年销量与售价，可知不同情形下种植得作物单价相等，即假设不同情形作物生
+长情况相同，市场行情等价。统计不同作物不同地块类型的不同时期下的亩产量与对应成本后，为便于
+后续决策，从经济利益角度出发，利用单位产量带来的净收益与每单位成本支出所带来收益，进行边际
+收入与性价比分析，并将边际收入从高至低排序展示，可得：
+作物名称
+地块类型
+种植季次
+亩产量
+亩成本
+销售单价
+单位成本
+边际收人
+性价比
+榆黄菇
+普通大桶
+第二季
+5000
+3000
+57.5
+0.60
+95.8300
+56.90
+香菇
+普通大棚
+第二季
+4000
+2000
+19
+0.50
+38.0000
+18.50
+黄瓜
+普通大棚
+第一季
+15000
+3500
+7
+0.23
+30.0000
+6.77
+黄瓜
+智慧大棚
+第二季
+13500
+3850
+8.4
+0.29
+29.4500
+8.11
+芹菜
+水浇地
+第一季
+5500
+006
+4
+0.16
+24.4400
+3.84
+.
+红薯
+梯田
+单季
+2100
+2000
+3.25
+0.95
+3.4125
+2.30
+黄豆
+平旱地
+单季
+400
+400
+3.25
+1.00
+3.2500
+2.25
+红薯
+山坡地
+单季
+2000
+2000
+3.25
+1.00
+3.2500
+2.25
+黄豆
+梯田
+单季
+380
+400
+3.25
+1.05
+3.0875
+2.20
+黄豆
+山坡地
+单季
+360
+400
+3.25
+1.11
+2.9250
+2.14
+(1)
+·变量及参数准备
+1.决策变量
+为制定耕种策略，需调节每一时间节点上每一空间所需耕种作物，因此可将决策变量设置为第t年
+的第i季度时，在第块地种植第k种作物的种植面积，利用序数变量进行如下表示：
+Xtigk
+其中，t表示年份，表示季度，表示地块编号，表示作物编号。
+中国大学生征线
+6
+dxs.moe.gov.
+
+===== PAGE 7 =====
+·利用名义变量对进行表示：
+第
+季度
+(3)
+1，第二季度
+对于单季种植作物，默认其归属于第一季度，后续对其所属年份的第二季度进行约束即可。
+·利用0-1变量Y表示第i季度是否在第块地上种植作物k
+0.第i季度未在第j块地上种植作物k
+(4)
+1.第i季度在第j块地上种植作物k
+利用大M法链接Xtk与Yk：
+X<M·Yt,i,j,k
+(5)
+X>0.01-YVt,i,j,k
+(6)
+其中，M表示大常数。
+表2作物名称与对应编号
+作物编号
+作物名称
+作物编号
+作物名称
+作物编号
+作物名称
+作物编号
+作物名称
+1
+黄豆
+12
+南瓜
+22
+茄子
+32
+空心菜
+黑豆
+13
+红薯
+23
+获菜
+33
+黄心菜
+3
+红豆
+14
+莜麦
+24
+青椒
+34
+芹菜
+4
+绿豆
+15
+大麦
+25
+菜花
+35
+大白菜
+5
+爬豆
+16
+水稻
+26
+包菜
+36
+白萝卜
+6
+小麦
+17
+虹豆
+27
+油麦菜
+37
+红萝卜
+7
+玉米
+18
+刀豆
+28
+小青菜
+38
+榆黄菇
+8
+谷子
+19
+芸豆
+29
+黄瓜
+39
+香菇
+9
+高梁
+20
+土豆
+21
+30
+生菜
+40
+白灵菇
+10
+黍子
+西红柿
+31
+辣椒
+41
+羊肚菌
+11
+荞麦
+2.已知参数
+·利用0-1变量I表示作物k是否为豆类作物：
+为豆类作物
+(7)
+k非豆类作物
+·S表示第块地的面积；
+·Request表示第i季度第k种作物的预期需量；
+中国大学生在线
+2
+
+===== PAGE 8 =====
+·Produceaisk表示第i季度第j块地上种植第k种作物的亩产量；
+·Priceik表示第i季度第k种作物的平均销售价格；
+·Costk表示第i季度第j块地种植第k种作物的种植成本；
+·Ztu：第季度第k类作物的实际销量。
+·利用名义变量T表示第块地的地块类型
+1,平旱地
+2,梯日
+3,山坡地
+T=
+4,水浇地
+(8)
+5,普通大棚
+6.智慧大棚
+·目标函数
+该模型目标为最大化种植收益，即售价与对应成本差值所带来的净收入，因此可将优化目标表示
+为：
+Max Z
+(9)
+·约束条件
+1.实际经济收益Z的定义
+Z=总收人-总成本
+(o1)
+针对情况一
+仅仅可售出预期需求量内的销量，超出部分无法获得资金回笼：
+=Z
+Pricek-Zk
+(11)
+针对情况二
+预期需量内销售作物按照正常情况进行销售，超额部分折价50%：
+Z=）
+PriceZtk + 0.5 ·Priceg Ze,ik 
+Costisk
+(12)
+.f.k
+其中，Zexs,k表示超出部分产量，即超出部分销量。
+2.可耕种地块面积约束
+根据实际情况，任意时刻的各个地块面积存在限制，实际耕种面积不可超出实际面积，因此对于所
+有同一时刻进行耕种的相同编号的地块面积所种植的所有k类作物所占面积进行求和：
+Xk≤Svti,j
+
+===== PAGE 9 =====
+其中，S表示第块地的实际面积。
+3.实际可售量限制
+由于当季产出当即售卖，不进行存储，因此对于每年的各季度进行比较约束。
+1）实际销量无法超出真实产出：
+Zuk<Produceyk·XVt,i,k
+(14)
+其中，Producerik表示第i季度第j块地上种植第k种作物的亩产量
+针对情况一
+2）由于存在预期销售量限制，实际销量无法超过市场需求：
+Zuk ≤Requestt,i,k
+(15)
+其中，Request表示第季度第k种作物的预期需量。根据题设，本题预期需求相较于2023年
+需求量保持相对稳定，由于2023年已实际发生，因此其真实需求等价其真实销量。
+针对情况二
+2）实际销量可超出市场需求，但由于其价格相较于原价格有变动，为计算实际收益，需划分出超出
+部分，单独计算：
+Zexces,i=（ProduoeXyk Request）
+(16)
+4.连作限制
+同种作物连作会劣化土壤而导致生长发育障碍，因此需限制同一土地上不可连年栽种同一类作物，
+等价于所有土地前后两年未被相同作物赖种过，因此两年种植覆盖面积之和不可大于总面积。
+·粮食类作物（编号1-15）
+X0j, + X+1,pj,x ≤ SVt,j,k ∈ (1,2,.·.,15)
+(17)
+·蔬菜类作物（编号17-37）
+蔬菜类作物在水浇地及普通大棚中仅种植于第一季的时间段内，面智能大棚（F）中为两季都可种
+植，因此需要避免重在种植：
+Yokak=0t,k∈{17,18,...,37},T=6
+(18)
+Yojk(t-1)yk =0t,k ∈{17,18,..,37),T =6
+(61)
+Yx(x+1)k=0Vt,k∈{17,18,...,37)，T=6
+(20)
+·食用菌类作物（编号38-41）
+食用菌类作物仅为第二季耕作，不会导致连作结果产生，无需约束。
+5.作物自身载种限制
+·豆类轮作限制
+中国大学生在线
+
+===== PAGE 10 =====
+基于豆类作物的固氮作用，结合土地实际情况，为提升种植质量，刻画任意一年及后续两年，一块
+土地的所有面积均豆类被覆盖过，利用L进行判定后，将面积求和与实际面积比较：
+0+2
+I·Xu≥SVj
+(21)
+其中，I表示作物k是否为豆类作物。
+·非水稻粮食类作物（编号1-15）可裁种范围限制
+若为非水稻粮食类作物，则仅可种植于平旱地、梯日与山坡地，
+Yk=1Vt,i,k ∈ {1,2,...,15)， T∈ {1,2,3)
+(22)
+·水稻（编号16）可栽种范围限制
+若为水稻，则仅可种植于水浇地，因此：
+=f'9I=y²²2AI=0x
+(23)
+同时由于水稻为单季作物，单季时间为3月-10月，因此其后续第二季无法种植其余作物，面水浇
+地可种植作物仅有水稻和蔬菜（编号17-37），仅需约束水稻蔬菜互厅即可：
+Yo16k-Yojk =0Vt,k∈{17,...,37),T =4
+(24)
+6.地块类型对应作物裁种限制
+·平旱地（A)、梯田（B）、山坡地（C）作物栽种限制
+该类地块仅可种非水稻类粮食（编号1-15），且该类作物为单季作物：
+Yojk=0Vt,k(1,2,..,15),T∈{1,2,3)
+(25)
+·水浇地（D）作物栽种限制
+该类地块仅可种水稻（编号16）、第一季蔬菜（非大白菜、白萝卜、红萝卜编号17-34）、第二季
+大白菜、白萝下、红萝下（编号34-37）：
+Yojk=0Vt,i16,T=4
+(26)
+Yojk=0t,{17,18,...,34)，T =4
+(27)
+Ynjk =0Vt,i {35,36,37)，T = 4
+(28)
+·普通大（E）装种作物限制
+线
+该类地块第一季可耕种蔬菜（除大白菜、白萝卜、红萝卜）（编号17-34），第二季可耕种食用菌类作
+中国大子
+10
+
+===== PAGE 11 =====
+物（编号38-41）：
+Yok=0t,k{17,18,...,34},T =5
+(29)
+Yk=0t,k{38,39,..,41}，T=5
+(30)
+·智慧大棚（F）栽种作物限制
+该类大棚仅可种植大白菜、白萝卜、红萝卜外的蔬菜类作物（编号17-34）：
+Yujk=0Vt,i,kg{17,18,-..,34},T = 6
+(31)
+7.科学管理约束
+为便于管理，节省应避免各作物过于分散，可分别进行横向与纵向管理
+·纵向管理
+利用一个时间节点上，对于同一片土地上的作物类别上限进行约束，上限设置为p
+Yu≤pV,ij
+(32)
+横向管理
+利用一个时间节点上，对于同一种作物所裁种的地块类别上限进行约束，上限设置为q：
+Yuik≤qVt,i,k
+(33)
+综上，多地块类型耕种策略优化模型如下：
+Max Z
+(34)
+中国大学生在线
+11
+
+===== PAGE 12 =====
+■针对情况一
+Z=tPriceZt-CostkXtik）
+Xk≤S;Vt,,j
+Zuk<Producegk·Xst,,k
+Zuik≤RequestVt,i,k
+X0+X+1ojk≤St,j,k∈{1,2,..,15)
+Yojk·Yyk=0Vt,k∈{17,18,...,37},T=6
+Ymjx·Y（t-1）1=0Vt,k∈{17,18,...,37},T;=6
+YnkY（+1）k =0vt,k∈{17,18,...,37)}，T=6
+AS
+Yk=1t,,k∈{1，2,...,15），T∈{1,2,3}
+s.t.=
+Yk=1Vt,i,k=16,T=4
+(35)
+Yo16k-Yjk=0Vt,k∈{17,...,37}，T=4
+Yoj=0Vt,k{1,2,..,15},T ∈{1,2,3}
+Yjk=0Vt,16,T=4
+Yok=0t,ig{17,18,...,34}，T=4
+Ynk=0t,i{35,36,37},T=4
+Y=0t,k{17,18,..,34)，T=5
+Yuk=0t,k{38,39,...,41)，T=5
+Yjk=0t,i,kg{17,18,...,34}，T=6
+kYk≤pVt,,j
+Ysk≤qvt,i,k
+中国大学生在线
+12
+
+===== PAGE 13 =====
+■针对情况二
+Z=x（PriceZ+0.5·PriceZe-Cost-X
+Xk≤SVt,,j
+Ztk≤Producek·XykVt,i,k
+Zescess,k=（ProducetjkXykRequestgk）
+Xtok+X+1,0k≤SVt,j,k∈{1,2,...,15)
+YokYnk=0t,k∈{17,18,...,37}，T=6
+Yo（e-1）=0t,k∈{17,18,...,37)，T =6
+Ya（+1)k =0t，k∈ {17,18,...,37)，T=6
+Yjk =1Vt,,k∈ {1,2,...,15),T∈{1,2,3}
+s.t.=
+Ytk=1Vt,i,k=16,T=4
+(36)
+Yo16k·Yojk=0Vt,k∈{17,...,37}，T=4
+Yo = 0vt,k{1,2,...,15}, T ∈ {1,2,3)
+Yoj=0t,i≠16,T=4
+Yo=0vt,i{17,18,...,34},T=4
+Yjk=0t,i{35,36,37},T=4
+Yojk=0Vt,k{17,18,...,34}，T=5
+Yjk=0Vt,k{38,39,...,41}，T=5
+Y=0t,i,k{17,18,.·.,34)，T=6
+Yk≤pt,i，j
+Yu≤qti,k
+5.1.2模型一的求解
+·求解器
+利用求解器可得求解结果如下：
+表3p、q对目标结果影响（情况一）
+表4p、g对目标结果影响（情况二）
+qp
+3
+4
+qP
+3
+4
+40074981.11
+40090847.97
+56325297.78
+56425735.23
+8
+40244799.20
+40318460.40
+4
+57486637.53
+57543540.01
+9
+40348792.18
+40320676.02
+58853858.52
+58860743.46
+（注p为一片土地上作物类别的上限，q为一种作物栽种的地块数量上限）
+比较结果，协调科学管理与提高经济效益的关系后：
+针对情况一：选择p=3，q=8；针对情况二：选择p=3，q=3。
+中国大学生在线
+13
+
+===== PAGE 14 =====
+贪心算法
+仅考虑当前情况下的最优耕种策略，保证每一步尽可能最优后得到最终全局最优耕种策略。
+初始化变量
+确认豆类补种面积
+否
+豆类面积是否足够？
+否
+作物选择
+选择性价比最高的作物
+是
+能否种植？
+更新记录
+下一块土地或大棚
+结束并输出结果
+图5贪心策略
+step1初始化对于S、Request、Producerijk、Priceak等参数进行初始化设置；
+step2作物选择
+1.进行类别搜索，根据前两年豆类作物种植记录，计算前两年豆类作物种植面积是否满足约束，判
+断是否补种大豆或栽种其他类别作物。
+2.选择类别后，由于越往后可种植空间越小，因此应有优先选择高性价比作物，带来高收益，因此
+应从当前可种植最高经济价值作物开始裁种物。
+step3数量约束
+超出部分滞销的情况：限定每种作物的种植数量最大值为2023年预计销量
+超出部分50%销售情况：若种植数量超出作物预计销量，则重新计算作物的性价比，对每个地块
+上作物性价比重新进行排序。
+step4更新记录更新记录，保证后续需求满足当前种植情形，接着进人下一块地块或大棚进行后
+续循环。
+最终，两种算法求解结果展示如下：
+中国大学生在线
+14
+
+===== PAGE 15 =====
+表5两种情况下两种求解方法总收入比较
+序号
+情况
+总收入（元）
+求解器
+超出滞销
+40,244,799.20
+超出半价
+56,325,297.78
+贪心算法
+超出滞销
+36,848,378.08
+超出半价
+46,724,871.84
+5.1.3结果分析
+销售情况二计算的最大利润比情况一的更优，因为情况二相较于情况一，高收益作物会在满足限制
+条件最多可栽种地块的情况下，反复种植，因为其在售价减去50%后仍然可以取得不错的收益，比如
+黄瓜等作物，因此情况二在对作物最大种植土地数约束时，会对目标函数产生较大的影响。
+5.2模型二的建立与求解
+5.2.1模型二的建立
+·变量及参数准备
+由于预期销量、亩产量、种植成本、售价相较于问题一失去稳定性，会随时间发生波动，因此对于
+部分未含有时间概念变量及参数需增加时间维度，其余变量相较于间题一不做改变：
+·Pricet：在第t年第i季度第k作物的销售价格；
+Pricestik：相应s情景下对应售价
+·Costij：在第t年第i季度在第j块地上种植第k作物的亩成本；
+Costtijk：相应s情景下对应亩成本
+·Requestk：在第t年第i季度第k作物的预期需求量；
+Requesta：相应s情景下对应与其需求。
+同时建立如下集合：
+·集合A记录变动前可行策略解
+·集合S记录各变量发生波动场景，其概率分布为P，求解时依次读取内部各参数值即可
+·目标函数
+为抵抗不稳定性，取期望，最终求解期望最大对应策略：
+Max E(income(An).)
+(37)
+约束条件
+中国大学生在线
+15
+
+===== PAGE 16 =====
+1.期望值E（income（A）.）的定义如下：
+E(income(A）)
+income(A)P
+(38)
+income(An)=
+(39)
+k
+由于总体条件未作改变，仅调整不同参数值，其余约束条件不变。
+综上，多地块类型耕种策略优化模型如下：
+Ma
+come（A）.
+(40)
+income(An）=（PriceZukCostsXtk）
+∑Xk≤S;t,ij
+Zk<ProducekXtkt,i,k
+Zik≤RequestkVt,i,k
+Xx+X+1A≤St,j,k∈{1,2,...,15)
+YojYyk=0vt,k∈{17,18,.·.,37}，T=6
+Yojx(1）1jk=0Vt,k∈{17,18,·.,37},T =6
+YxY(+1）k=0vt,k∈{17,18,...,37}，T=6
+Y =1t,,k∈{1,2,...,15),T∈{1,2,3)
+s.t.
+Yk =1t,i,k =16,T =4
+(41)
+Yo16k·Y∞jk=0Vt,k∈{17,...,37}，T=4
+Yojk=0t,k{1,2,...,15}，T∈{1,2,3)
+Yojk=0t,i16,T=4
+Yok=0t,{17,18,.·.,34)，T=4
+Yk=0t,ig{35,36,37}，T=4
+Yoj=0t,k{17,18,...,34}，T=5
+Yyk=0t,k{38,39,...,41}，T=5
+Y =0Vt,i,k{17,18,.，34)，T=6
+Yuk≤pVt,ij
+Yuk≤qvtik
+中国大学生在线
+16
+
+===== PAGE 17 =====
+5.2.2模型二的求解
+查网参考文献可细，华北增减产率的概率分布近似正态分布，因此对于任意一个变量序列，都对
+应一个出现的概率，随机生成100个随机变量序列，并使用求解器选代产生100种种植策略，使用
+环给每种种检策略求解在100个随机变量x序列下的收人均值，再风得到的100个收入均值中选取最
+大的作为受其他因索波动影响最小的种植策略。得到最优种植策略的收人均值为：51667432.02。将结果
+存人reuk2.shx，这里选取最优策略的前十种收人情况作为结果展示：种植经济效益均值
+表6总收人与变量序列
+序号
+变量序列
+总收人
+变量序列1
+变量序列2
+51397067.98
+变量序列3
+51151854.36
+变量序列4
+52365835.69
+变量序列5
+50430382.96
+51900609.99
+变量序列7
+变量净列6
+51871244.50
+771821915
+变量序列8
+变量序列9
+51859868.20
+51488932.56
+变量序列10
+61667432.02
+图6始十个变量序列结聚可视化
+5.2.3结果分析
+在增加随机扰动因素后，模型二的结果比模型一的结果要大，这是国为，在所有的扰动因子中，小
+麦和玉求的预期销售量以及益菜类作物的销售价格都是呈现稳定增长的，面其他作物增长率无法确定，
+植，从西使整体结果呈现增长。
+属于不稳定作物，所以在根型二的最优解结构中，应当增加收人稳定增长的作物，减少不稳定作物的种
+5.3模型三的建立与求解
+5.3.1模型三的建立
+可替代性与互补性分析
+
+===== PAGE 18 =====
+1.可替代性
+可替代性发生于性质相似、用途趋同的农作物间相互替代。结合生活常识，查阅相关文献与各大类
+作物划分、耕种要求与性价比，2011年和2012年市场上就出现过小麦大量替代玉米的现象。2011年
+到2012年国内玉米价格高位运行，部分地区玉米-小麦价差达到500-600元/吨（张春良，2012）、在此
+背景下，大量词料企业纷纷采用小麦替代玉米，辅以酶制剂的使用，当时饲料中小麦的替代比例已经能
+达到50%2，可猜测下列作物间有一定可能存在可替代性：
+表7可替代性分析
+作物名称
+作物类型
+耕种要求
+性价比
+营养成分
+小麦
+粮食
+平旱地、梯田、山坡地
+2070
+碳水化合物
+谷子
+粮食
+平旱地、梯田、山坡地
+2070
+碳水化合物
+青概
+蔬菜
+水浇地、大棚
+13750
+膳食纤维、维生素
+辣
+蔬菜
+水浇地、大棚
+13300
+膳食纤维、维生素
+尝试对上述作物进行替代，当替代作物满足被替代作物的原始应满足需求时，并且从农民角度出发，
+当一种作物替代另一种作物后，不会对优化耕种策略对应的经济效益产生较大影响时，则两作物ko、k
+之间存在可替代性，作物之间的替代有利于减少作物种类，简化耕种流程，减小生产成本：
+替代公式：替代因子α属于[0,1]，
+Requesttik+=a×Requesttk;，Requesttik=Requestuik;×(1-a)
+求解可得如下表：
+表8可替代性分析
+替换方案
+原始收益
+替换后收益
+小麦替换谷子
+40244799.1993
+39210519.8953
+青椒替代辣椒
+40244799.1993
+40203379.8178
+因此，当一种作物的产量、价格降低或成本升高时，可以考虑用其替代作物进行替代；通过作物的
+替换，能够有效的减少耕地种植的产物种类，减少维护所需的成本。
+同时由模型二分析可得，小麦、玉米的预期销售量能够保持稳定增长，蔬菜类作物的销售价格能够
+保持稳定增长。因此，相对其他变化未知的作物面言，这三种作物能够带来更加稳定的收入预期，可以
+考虑使用小麦、玉米以及蔬菜替代其他的粮食作物。
+2.互补性
+互补性发生于两样相互依存的农作物间相互支持或补充。
+·查阅文献国可知豆科作物和非豆科作物间的多样化轮作不仅有利于降低豆科作物的根腐病，同时
+可以提高轮作系统的综合生产力。在这里，将豆科作物与非豆科作物协作带来的产量影响因素设
+置为1%：
+单位产量=原产量*1.01
+(42)
+·大面积耕地为A、B、C类耕地，而该耕地仅用于粮食种植，其中小麦和稻子多使用收割机收割，
+当合并种植后可同步进行收割作业，节省收割成本。其节约成本系数设置为1%：
+单位成本=原成本*0.99
+(43)
+18
+
+===== PAGE 19 =====
+·相关性分析
+1.预期销量与销售价格
+Pricc = H(Rcqucst)
+(44)
+宏观上看，预期销量增长，对于农户来说如果要达到利益最大化的目标，则应当提高销售价格，因
+面作物的预期销量和销售价格成正相关。也就是说，在预期销量增加的情况下，商家极有可能拍高物价。
+因面做出假设，如果农作物的预期销售量变化幅度与农作物的销售价格相同。
+2.预期销量与种植成本
+Cost = Hg(Requcst)
+(45)
+预期销量增长，相对面言同一块地种植同种作物的面积也会增大，则管理成本减小，因而考虑预期
+销量与种植成本成负相关，从面做出假设：农作物的预期销售量变化与农作物种植成本变化幅度成相反
+数.
+2.销售价格与种植成本
+对于任何一种农作物其销售价格与种植成本必然成正相关，从面作出假设，农作物的销售价格与种
+植成本的变化幅度相间
+销售价格
+种植成本
+预期销售量
+图7相关性分析
+变量及参数准备
+由于预期销量、亩产量、种植成本、售价相较于间题一失去稳定性，会随时间发生波动，因此对于
+部分未含有时间概念变量及参数需增加时间维度，其余变量相较于间题一不做改变：
+·Priceu在第r年第i季度第k作物的销售价格；
+Pricea ：相应 s情景下对应售价
+·Cosx在第r年第i季度在第j块地上种植第k作物的亩成本；
+Co:相应s情景下对应亩成本
+·Reques在第r年第季度第k作物的预期需求量；
+Requesma：相应情景下对应与其需求。替代公式：替代因子α属于[0.1]，
+Requcsta, += o × Requestea, , Requeslet,  Requcslea, × (1  a) 
+19
+
+===== PAGE 20 =====
+同时建立如下集合：
+·集合A记录变动前可行策略解
+·集合S记录各变量发生波动场景，其概率分布为P，求解时依次读取内部各参数值即可
+·单位产量=原产量*1.01
+·单位成本=原成本*0.99
+·目标函数
+为抵抗不稳定性，取期望，最终求解期望最大对应策略：
+Max E(income(An),)
+(46)
+约束条件
+1.期望值E（income（An））的定义如下：
+E (income(A).)
+ncome(A).P
+(47)
+income(An),=
+(48)
+t,k
+由于总体条件未作改变，仅调整不同参数值，其余约束条件不变。
+综上，多地块类型耕种策略优化模型如下：
+Max
+income(A）P
+(49)
+其余约束同模型二
+5.3.2模型三的求解
+在第二问的模型基础上，增加了替代作物的条件互补性和相关性的影响。对于构建得到的新的线性
+规划模型，使用求解器进行求解。同样随机生成100个随机变量序列，符合正态分布的规律，并使用求
+解器选代产生20种种植策略，使用循环给每种种植策略求解在100个随机变量x序列下的收人均值。
+再从得到的100个收人均值中选取最大的作为受其他因素波动影响最小的种植策略。得到最佳种植策
+略的收人期望为：53078389.86。下面展示在十个随机变量序列中最优种植策略的收人表现。
+中国大学生在线
+20
+
+===== PAGE 21 =====
+表9变量序列及其对应值
+台
+变量序列
+53465542.8490
+收入值
+变量序列2
+变量序列1
+变量序列3
+54226261.2048
+变量序列4
+54300097,6131
+变量序列5
+1106'T0195289
+51162180.1083
+变量序列7
+变量字列6
+1682140229
+变量序列9
+变量序列8
+54140485.6243
+51580210,6559
+变量序列10
+51474677.1141
+均价
+53078389.86
+图始十个变量序列结果可现化
+5.3.3结果分析
+阿题三的求解结果：53078389.86，问题二的求解结第：51667432.02，满足对模型的优化目标：分
+析优化内容如下：
+1.用预期需求量稳定增长的作物，在答代性前提下，替代了其他不稳定的作物
+2.考虑了作物网的互补影响，互类轮种改善了土质，整体提高了产量
+3.通过分析需求-价格-成本的关系，用其相关性预测更为合理的结策。
+总结：综合考虑更多的变量之润的影响，能够是高模型的适应性，优化根型的结累。
+UTF8/ctesart booktabs
+表10风题二和阿题三的求能结果
+向题
+求解结果
+51667432.02
+向三
+53078389.86
+
+===== PAGE 22 =====
+六模型的评价
+6.1模型的合理性与准确性
+本模型基于合理的假设和现实中的约束条件，充分考虑了不同地块类型、作物特性、种植成本、市
+场需求等多种因素，构建了线性规划和随机优化模型。通过求解器和贪心算法两种方法，能够在有限土
+地资源下合理分配种植策略，使得种植经济效益最大化，种植经济效益期望最大化、模型计算结果符合
+题目要求，具备良好的准确性和可解释性，鲁棒性强。
+6.2模型的创新性
+·在模型中同时考虑了作物种植中的替代性和互补性，提高种植收益和资源利用效率。，用预期销售
+量稳定提升的作物去替代一些不稳定的作物，提升模型对环境变化的适应性。
+·将随机因素引人模型，利用蒙特卡洛方法生成多个波动场景，从面能够更好地模拟真实种植环境
+和市场条件的变化，提升模垂的鲁棒性。
+·通过豆类作物的轮作优化以及不同地块、作物的灵活安排，有效避免了土壤退化和资源浪费，提
+升了整体种植规划的可持续性。
+6.3模型的局限性
+·模型未考虑极端天气、自然灾害等不可控因素，这可能对实际种植收益产生较大影响。
+·由于数据量较大且作物种类繁多，模型的复杂度较高，求解时间相对较长，在大规模场景下可能
+需要进一步简化或改进算法以提高计算效率。
+6.4结论
+该模型对农业生产活动能起到一定的辅助作用。使用随机优化，对于复杂的作物市场环境给出了最
+优种植策略，从而最大化土地产出、并提供求解器和贪心算法两种方式求解。而局限性存在于现实中土
+壤情况更为复杂，同一片土地类型也存在不同的土壤情况，影响模型的进一步推广，可以进一步分类土
+地以更加精细化指定策略。
+参考文献
+[1]王静，方锋，王素萍，李臻琦，基于概率统计方法的中国农作物生产风险评估[J].气象与环境科学
+2023, 46 (02): 9-18.
+[2毛雨，粮食消费结构演变背景下价格对饲料粮品种替代的影响机制D].西南财经大学，2023
+[3李军贤，豆科作物轮作对半干旱地区农作系统氮平衡和生产力的影响[D].甘肃农业大学，2019
+中国大学生在线
+22
+
+===== PAGE 23 =====
+附录
+附录一：问题一（1）求解器求解
+inport pandas as pd
+inport gurobipy as gP
+frou gurobipy inport GRB
+import openpyx1
+读取Excel文件中的地块面积数据
+file1=*附件1.xlsx
+data1-pd.road_excel（file1，sboet_name=乡村的现有桥地）
+10
+data2=pd.read_xcel（file1，abeet_name='乡村种植的农作物）
+11
+12
+file2-·附件2.xlsx
+13
+data3=pd.read_excel（f1le2，sboet_nano=2023年的农作物种植情况）
+14
+data4=pd.read_excel（file2，sbeet_name=2023年统计的相关数据）
+15
+16
+已如数据（需根据实际情况初始化）
+17
+T=7=年数
+18
+I=2=季节数
+19
+J=54地块数
+8
+K=
+41作物种类数
+p=4
+22
+q=9
+23
+=100000
+24
+S=
+datai['地块面积/亩].toliat（）
+25
+I_k=data2['Ix'].tolist()
+26
+Pr1ce -[[3.25,7.5,8.25,7,6.75,
+27
+3.5,3,6.75,6,7.5,40,1.5,
+3.25,5.5,3.5,7,8,6.75,6.5,
+29
+3.75,6.25,5.5,5.75,5.25,5.5.
+30
+6.5,5,5.75,7,5.25,7.25,4.5,
+31
+4.5,4,0,0,0,0,0,0,0].
+82
+[0,0,0,0,0,0,0,0,0,0,0,0,
+83
+0,0,0,0,9.6,8.1,7.8,4.5,7.5,
+34
+6.6,6.9,6.8,6.6,7.8,6,6.9,
+35
+8.4,6.3,8.7,5.4,5.4,4.8,2.5,
+36
+2.5,3.25,57.5,19,16,1001]
+37
+Request=[[57000,21850,22400,33040,9875,
+38
+170840,132750,71400,30000,12500,
+$9
+1500,35100,36000,14000,10000,21000,
+36480,26880,6480,30000,35400,43200,
+41
+0,1800,3600,4050,4500,34400,9000,1500,
+4
+1200,3600,1800,0,0,0,0,0,0,0,0].
+43
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,810,2160,900,810,0,0,
+23
+中国大学生在线
+
+===== PAGE 24 =====
+0,1080,4050,1350,0,0,0,1800,150000
+100000,36000,9000,7200,18000,4200]]
+47
+df1=pd.read_ezcel（*cost.xlsx”，sheet_nae=*第一手）
+69
+df2=pd.read_ezcel（'cost.xlsx”，sheet_name='第二手)
+80
+Cost1 = df1.values.transpose()
+51
+Cost2 = df2.values.transpose()
+Cost=[Cost1,Cost2]
+53
+56
+df3=pd.read_ozcel（'Produce.xlex'，sheet_nane='第-手）
+55
+df4-pd.read_ezcel('Produce.xlsx'，sheet_name=*第二季)
+66
+Produce1=df3.values.transpose()
+57
+Produce2= df4.values.transpose()
+Produce=[Produce1,Produce2]
+59
+60
+创建模型
+61
+mode1 = gp.Model(“Crop_Planting*)
+62
+决策变量
+64
+Xsodel.addVars(T,I,J, K，vtype=GRB.CONTINUOUS,naneI)
+Y =sodel.addVars(T, I, J, K，vtype=GRB.BINARY, name=Y)
+Z =sodel.addVars(T, I,K,vtype=GRB.CONTINUOUS,name=*Z*)
+67
+Z_rice =model.addVars(T,range(27,35),vtype=GRB.BINARY，name=*Z_Rice*)
+68
+69
+定又目标函数
+70
+model.setObjective(
+n1
+8P·quicksus(Price[1][x] ▪ Z[t, 1, z] - gP·quicksus（Cost[1][j]x] ▪ X[t,1. j, x] for j n range(J)
+72
+for t in range(T) for 1 in range(I) for k in range(K)),
+73
+GRB.MAXIMIZE
+74
+75
+约束1：销量不超过作物总产量
+77
+model.addConstrs（(Z[t，1,x]<= gP-quicksum(Produce[1][j][x]▪X[t,1,j,k]for j in range（J）)
+78
+for t in range(T) for 1 in range(I) for k in range(K)).name=*Production_Li=it°)
+79
+80
+约京2：销量不超过市场需求
+81
+（（x）xTxx（I）uuTx（1）uxx[x][T]bg>[x‘‘]z））sxuppep
+Denand_Linit")
+$
+$3
+约束3：是否种植该作物
+model.addConstrs（(X[t, 1， J,k]<=  •Y[t，1, j.x]
+for t in range（T） for 1 in range(I） for j in range（J) for k in range(K））,
+86
+nase=*X_UpperBound_Y*)
+87
+odel.addConstrs（（x[t,1，j，k]>= 0.01 *Y[t,1，j.k]
+89
+24
+中国大
+
+===== PAGE 25 =====
+na=e="X_LoverBound_Y")
+92
+约京4：每块地每季度种植面积总和不能超过地块总面积
+98
+for t in range(T):
+94
+for 1 in range(I):
+95
+for j in range(J):
+96
+model.addConstr(gP-quicksum(X[t,1,J，x] for x 1n range(K）)<= S[j].name=fArea_(t}_(1}_{j}")
+98
+约束5：三年内必须至少种植一次豆类作物
+（（x）uex uxx（）uu xg（）exux[x]xI*[x]）=nxb·））upp
+>=S[]
+100
+for J in range(J)).
+101
+nase=*Legume_First_Tvo_Years°)
+109
+for j in range(J):
+108
+fortinrange（T-2）：以3年为单位进行检查
+104
+model.addConstr（gP·quiczsum(X[tt,1,J,x]▪I_z[k]for tt in range（t,t▪3） for 1 in range(I） for x
+1n range(K)) > S[j], name=fLeguze_{j}_{t}*)
+105
+106
+约束6：同一种作物在间一片土地上不能连续两个季度种植
+107
+mode1.addConstrs（（x[t，1，J，x]·x[t，1+1，j.x]<=S[j]
+109
+for tin range（T) for j in range(J)fork in range(K）for 1 in range(I-1））,
+109
+name=*No_Consecutive_Planting*)
+110
+model.addConstrs（（X[t,1+1,j.k]·x[t+1.1.j.x]<= S[j]
+111
+for t in range(T-1) for J in range(J) for k in range(K) for 1 in range(I-1)),
+112
+nase=*No_Connecutive_Planting*)
+113
+114
+约束7：最多种楼p种作物
+115
+nodel.addConstrs((gp.quicksu=(Y[t, 1, j. x] for k in range(K)) <= p
+116
+for t in range(T) for 1 in range(I) for j in range(J)),
+117
+name=*Max_Three_Crops)
+118
+119
+添加约束：每种作物最多种在q块地上
+120
+model.addConstrs((gP·quicksu=(Y[t， 1， j.x]fox j in range(J)) <= q
+121
+for t in range(T) for 1 in range(I) for k in range(K)).
+122
+name=*Nax_Five_Plots_Per_Crop*)
+123
+124
+约末8：确保粮食作物在连续年份的第一季不能连种
+125
+model.addConstrs（（x[t,0.j.x]+x[t+1,0，j.x]<=S[j]
+126
+for t in range(T-1) for j in range(J) for k in range(1, 16)),
+12r
+nase=*No_Consecutive_Years_For_Grain*)
+128
+129
+约束：编号为1-26的土地在第二季不种桂任何作物
+180
+model.addConstrs（(X[t, 1， j，k] == 0
+1.31
+for t 1n range(T) for j in range(26) for k in range (K)),
+12
+naze=*No_Planting_Second_Season_For_Lands_1_26")
+133
+中国大学生在线
+25
+
+===== PAGE 26 =====
+约京：编号为1-26的土地上只能种植编号为1-15的作物
+185
+sodel.addConstrs（(X[t，1，j，x] == 0
+1.36
+for t in range(T) for 1 in range(I) for j in range(26) for k in range(15, 41)),
+187
+name=*No_Planting_Crops_16_41_On_Lands_1_26*)
+138
+1.89
+14)
+约末：编号为1-15的作物只能种桂在编号为1-26的土地上
+141
+nodel.addConstrs（（X[t,1.j.k]== 0
+1
+for t in range(T) for 1 in range(I) for j in range(26, J) for k in range(15)),
+141
+nane=*No_Planting_Crops_1_15_On_Lands_27_54")
+144
+145
+约京：输号为27-34的土地种植水稻
+145
+nodel.addConstrs((gp·quicksus(x[t, 1, j. x] for 1 in range(I) for k in range(K) if x == 15) <=  ▪ Z_rice[t,
+147
+for t in range（T) for j in range(27.35)).
+14
+nase=*Rice_Planting_Omly_Once*)
+149
+180
+确保水稻只能种植在单季
+151
+nodel.addConstrs((gP.quicksu=(I[t, 1. j. 15] for 1 in range(I)) <= S[j]
+162
+for t 1n range(T) for j 1n range(27, 35)),
+1
+name=*Single_Season_Rice")
+154
+1
+添加约束1：如渠种桂了水福，则第二季不种植任何作物
+156
+nodel.addConstrs((gp·quicksu=(x[t, 1, j, x] fox k in range(K)) <=  * (1 - Z_rice[t, j])
+15r
+for t in range(T) for j in range(27, 35)),
+158
+naze=*No_Second_Season_If_Rice*)
+159
+160
+添加约束2：第一季只能种植17-34号作物
+161
+x[x]x）b·d（（9）ux x[x0]）=xb.d））pp
+range(16,35))
+162
+for t in range(T) for j in range(27, 35)),
+168
+name=*First_Season_Crops_17_34°)
+164
+165
+添加的束3：第二季只能种植35-37号作物
+166
+xx[x]x）xd（（）xxx[x]x）=bd8））xpo
+range(34,38）)
+167
+for t in range(T) for j in range(27,35)),
+108
+nane=*Second_Season_Crops_35_37")
+169
+170
+添加束：编号为35-37的作物只能种核在编号为27-34的土地上
+171
+model.addConstrs((X[t, 1， j, x] == 0
+1.79
+for tin range（T）for 1in range(I) for j in range（26）for kin range(34,37+1）),
+173
+name=*No_Planting_Crops_35_37_0n_Lands_1_26*)
+174
+175
+添加约束1：编号为38-41的作物只能在35-50号地的第二手种植
+1.76
+node1.addConatrs（（x[t，1.J,x]-=0
+中国大学生在线
+26
+
+===== PAGE 27 =====
+1.7r
+for t in range（T) for j in range(35)for x 1n range(37, 41）),
+179
+name=*No_Planting_Crops_38_41_0n_Lands_1_34*)
+1.79
+180
+添加约束2：编号为38-41的作物只能种植在第二季
+181
+nodel.addConstrs（（X[t，0，j，k] = 0
+180
+for t in range（T) for j in range(35,51) for k in range(37,41）).
+183
+nase=*No_Planting_Crops_38_41_First_Season)
+184
+185
+置相对Gap
+186
+model.setParam(*MIPGap′.0.01)
+187
+188
+189
+优化模型
+190
+sodel.opti=ize()
+191
+190
+输出结果
+198
+1f =odel.status == GRB.OPTIMAL:
+194
+print(f"0ptimal solution found with objective value:{model.objVal))
+195
+for t in range(T):
+196
+for 1 in range(I):
+197
+for j in range(J):
+198
+for k in range (K):
+199
+ifx[t，1.j，x].x>0:
+200
+print(f"Year {t+1},Season {1+1).Land {j+1),Crop {k+1}:{x[t, 1. J.x].x} acres planted
+201
+print(f"0pti=al solution found vith objective value:{=odel.objVal}(元）)
+附录二：间题一（2）求解要求解
+import pandas as pd
+isport gurobipy as gp
+from gurobipy inport GRB
+inport openpyx1
+读取Excel文件中的地块面积数据
+f11e1附件1.xlmx修改为附件1的实际文件路径
+data1=pd.read_excel（file1，sbeet_name='乡村的现有桥地）
+10
+data2=pd.read_excel（file1，sbeet_name=乡村种植的农作物）
+11
+12
+file2·*附件2.xlax修改为附件1的实际文件路径
+13
+data3=pd.read_excel（file2，sheet_name=2023年的农作物种植情况)
+14
+data4=pd.read_excel（f1e2，sboet_nano=2023年统讨的相关数据)
+15
+已知数据（根据实际情况初始化）
+中国大学生在线
+27
+
+===== PAGE 28 =====
+P=4
+29
+q=5
+23
+=100000
+S=data1[地块面积/亩'].tolist（）
+25
+I_k=data2['Ix].tolist()
+Price =
+[[3.25,7.5,8.25,7,6.75,
+27
+3.5,3,6.75,6,7.5,40,1.5,
+28
+3.25,5.5,3.5,7,8,6.75,6.5.
+29
+3.75,6.25,5.5,5.75,5.25,5.5,
+80
+6.5,5,5.75,7,5.25,7.25,4.5,
+4.5,4,0,0,0,0,0,0,0],
+82
+[0,0,0,0,0,0,0,0,0,0,0,0,
+33
+0,0,0,0,9.6,8.1,7.8,4.5,7.5,
+34
+6.6,6.9,6.8,6.6,7.8,6,6.9,
+8.4,6.3,8.7,5.4,5.4,4.8,2.5,
+36
+2.5,3.25,57.5,19,16,100]]
+37
+Request=[[57000,21850,22400,33040,9875,
+38
+170840,132750,71400,30000,12500,
+89
+1500,35100,36000,14000,10000,21000
+40
+36480,26880,6480,30000,35400,43200,
+0.1800,3600,4050,4500,34400,9000,1500,
+42
+1200,3600,1800,0,0,0,0,0,0,0,0],
+43
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0.0.
+44
+0,0,0,0,0,810,2160,900,810,0,0,
+0,1080,4050,1350,0,0,0,1800,150000,
+100000,36000,9000,7200,18000,4200]]
+4?
+48
+df1=pd.read_excel('cost.xlsx'，sheet_name=*第-季)
+49
+df2-pd.read_ezcel（'cost.xlex'，sheet_naze=*第二手)
+80
+Cost1 = df1.values.transpose()
+51
+Cost2 =df2.values.transpose()
+Cost=[Cost1,Coat2]
+53
+54
+df3=pd.read_ezcel（'Produce.xlsx',sheot_na=e=*第一季）
+55
+df4-pd.read_ezcel（'Produco.xlsx'，sheet_name='第二季）
+56
+Produce1 = df3.values.transpose()
+57
+Produce2 = df4.values.transpose()
+58
+Produce=[Produce1,Produce2]
+59
+60
+创建模型
+61
+nodel = gp.Mode1(*Crop_Plant ing)
+62
+63
+决策变量
+64
+X-odel.addVars（T,I,J,K，vtype=GRB.CONTINUOUS,name*I）
+28
+中国大学生在线
+
+===== PAGE 29 =====
+sodel.addVars(T, I, J, X, vtype=GRB.BINARY, nane=*Y)
+Z_rice =model.addVars(T,range(27,35),vtype=GRB.BINARY, name=*Z_Rice°)
+61
+sodel.addVars(T, I, K, vtype=GRB.cONTINUouS, name=*Z_So1d°)
+Z_excess =model.addVars(T,I,K,vtype=GRB.CONTINUouS,name=*Z_Excess)
+69
+定义目标函数
+model.setObjective(
+71
+&P·quicksus(
+Price[i][x]▪Z[t,1,k]+0.5▪Price[1][x]*Z_excess[t，1,x]
+73
+-gP.quicksun(Cost[1][j][x] ▪X[t, 1,j,k] for j 1n range(J）)
+76
+for t in range（T) for 1 in range(I) for k in range(K)
+75
+).
+n6
+GRB.KAXIMIZE
+78
+79
+添加的束：Z_sold不能超过求
+model.addConstrs（（Z[t,1,x]<=Request[1][x] for t in rango（T) for 1 in range(I) for x in range(K）,name=
+Sold_Li=it")
+81
+82
+添加约束：Z_sold不能旭过总产量
+83
+mode1.addConstrs((Z[t, 1,x]<= gP-quicksum(Produce[1][j][x]•X[t,1, J, k] for j in range(J))
+84
+for t in range（T) for 1 in range(I） for k in range(K)),name=Produetion_Linit_Sold)
+85
+添加约束：超出部分Z_ezcs
+8
+]z-（（）x[x[x]x▪[x]]]ox）xbd=[x]esxz）)sxpep
+1,x]
+for t in range(T) for 1 in range(I) for k in range(K)),name=*Ercess_Calculation*)
+89
+90
+约束3：是否种植该作物
+nodel.addConstrs（（Xx[t，1，j.x]<=H*Y[t，1，j.x]
+92
+for t in range(T) for 1 in range(I) for j in range(J) for k in range(K)),
+93
+name=*x_UpperBound_Y")
+94
+model.addConstrs（（x[t,1，j,x]>=0.01 ▪Y[t,1,j.x]
+96
+for t in range(T) for 1 in range(I) for j in range(J) for k in range(K)).
+name=*X_LowerBound_Y")
+99
+99
+约束4：每块地每季度种植面积总和不能超过地块总面积
+100
+for t in range(T):
+101
+for 1 in range(I) :
+109
+for j in range(J）:
+108
+model.addConstr(gp.quicksum(X[t, 1, j,x] for k in range(K)) <= S[j], name=f*Area_{t}_(1}_{j})
+104
+105
+约束5：三年内必须至少种植一次豆类作物
+106
+nodel.addConstrs((gP·quickeu(x[t, 1, j. x] ▪ I_x[x] for t in rango（2） for 1 in range(I) for x n range(K）)
+>= S[j]
+107
+for j in range(J)).
+67
+
+===== PAGE 30 =====
+108
+nase=*Legume_First_Tvo_Years")
+109
+for j in range(J):
+110
+for t in range(T -2）:
+111
+model.addConstr(gP·quicksum(X[tt, 1, j. x] ▪ I_x[k] for tt in range(t,t + 3） for 1 in range(I) for k
+in range(K))>=S[j]，name=f“Legue_(j}_(t})
+112
+113
+约末6：网一种作物在同一片土地上不能连续两个季度种植
+114
+model.addConstrs（（x[t,1.j.k]▪I[t,1+1,j.k]<= S[j]
+115
+for t in range(T) for j in range(J) for x in range(K) for 1 in range(I-1)),
+116
+name=*No_Connecutive_Planting*)
+117
+model.addConstrs（（X[t，1+1，J,k]▪X[t+1,1，j.x]<= S[j]
+118
+for t in range(T-1) for j in range(J) for k in range(K) for 1 in range(I-1)),
+119
+name=*No_Consecutive_Planting*)
+130
+121
+约束7：最多种楼p种作物
+129
+sodel.addConstrs（（gp·quicksu=(Y[t，1,j,x] for x in range(K)）<= p
+128
+for t in range(T) for 1 in range(I) for j in range(J)),
+124
+125
+126
+添加约束：每种作物最多种在q块地上
+127
+model.addConstrs（（gP.quicksu=（Y[t，i.j.x]for j in range（J））<=q
+128
+for t in range(T) for 1 in range(I) for k in range(K)),
+129
+name=*Max_Five_Plots_Per_Crop")
+13)
+181
+约末8：确保核食作物在连续年份的第一季不能选种
+132
+model.addConstrs（（X[t，0，j，x]+x[t+1,0，j.x]<=S[j]
+13
+for t in range(T-1) for j in rango(J) for k in range(1, 16)),
+134
+nase=*No_Consecutive_Years_For_Grain*)
+1.35
+135
+约束：编号为1-26的土地在第二季不种植任何作物
+187
+model.addConstrs（（x[t,1.J.x] = 0
+188
+for t in range(T) for j in range(26) for k in range (K)),
+189
+naze=*No_Planting_Second_Season_For_Lands_1_26")
+140
+141
+约束：编号为1-26的土地上只能种桂编号为1-15的作物
+10
+model.addConstrs（（X[t,1.j.x]== 0
+141
+for t in range(T) for 1 in range(I) for j in range(26) for x in range(15, 41)),
+1.44
+name=*No_Planting_Cropo_16_41_On_Lands_1_26)
+145
+14
+约束：福号为1-15的作物只能种桂在编号为1-26的土地上
+147
+model.addConstrs((X[t, 1， j,x] == 0
+148
+for tin range（T）for 1in range(I) for j in range（26,J） for k in range(15））,
+149
+nase=*No_Planting_Crops_1_15_On_Lands_27_54)
+150
+151
+约束：编号为27-34的土地种植水都
+1emodel.addConstrs(（gp.quicksu=（I[t，1,j,x]for 1 in range（I） for k in range(K）if k-15)<=·Z_rice[t,
+30
+
+===== PAGE 31 =====
+153
+for t in range(T) for j in range(27, 35)),
+154
+name=*Rice_Planting_Only_Once*)
+155
+156
+保水稻只能种植在单季
+157
+model.addConstrs((gp·quicksu=(x[t, 1, j. 15] for 1 in range(I)) <= S[j]
+158
+for t in range（T) for j in range(27,35））,
+159
+nase=*Single_Season_Rico")
+160
+161
+添加的束1：如果种桂了水福，则第二季不种检任何作物
+162
+sodel.addConstrs((gp.quicksu=(x[t, 1, J.x] for k in range(K)）<=M ▪(1 -Z_rice[t，j])
+163
+for t in range(T) for j in range(27,35)),
+164
+nase=*No_Second_Season_If_Rice)
+165
+166
+添加药束2：第一季只能种植17-34号作物
+167
+xx[x0]x）xd（（g“9）uxx[x]x）=bd））ppo
+range(16,35))
+168
+for t in range(T) for j 1n range(27, 35)),
+169
+nane=*First_Season_Crops_17_34°)
+170
+171
+添加约束3：第二季只能种椎35-37号作物
+1 72
+range(34,38))
+173
+for t in range(T) for j in range(27, 35)),
+174
+nase=*Second_Season_Cropa_35_37")
+175
+1.76
+添加约束：编号为35-37的作物只能种植在编号为27-34的土地上
+177
+nodel.addConstrs（(X[t， 1，j，x] = 0
+1.79
+for tin range(T) for 1 in range(I) for j in range(26)for x in range(34,37+1）),
+179
+name=*No_Planting_Crops_35_37_0n_Lands_1_26)
+180
+181
+添加约束1：编号为38-41的作物只能在35-50号地的第二手种植
+182
+model.addConstrs（（x[t，1.j，x]=0
+188
+for t in range（T) for j in range(35)for k in range（37.41）),
+184
+name=*No_Planting_Crops_38_41_On_Lands_1_34°)
+185
+186
+添加约末2：编号为38-41的作物只能种植在第二季
+187
+model.addConstrs（（x[t,0.j.x]=0
+188
+for t in range(T) for j in range(35, 51) for k in range(37, 41)),
+189
+name=*No_Planting_Crops_38_41_Firat_Season°)
+190
+191
+设置相对Gap为0.5%（相对误差）
+199
+model.setParam(*MIPGap′,0.01)
+199
+194
+优化模型
+195
+model.optinize()
+中国大学生在线
+31
+
+===== PAGE 32 =====
+197
+输出结果
+198
+1f =odel.status == GRB.OPTIMAL:
+199
+print(fOptimal solution found with objective value:(=odel.objVal)*)
+200
+for t in range(T):
+201
+for 1 in range(I）:
+202
+for j in range(J):
+208
+for k in range (K):
+204
+ifx[t，1.j，x].x>0:
+205
+print(f*Year {t+1)，Soason (1+1),Land {j+1），Crop {k+1）:{x[t，1.j.x].x） acres planted
+.)
+206
+print（fOptimal solution found vith objective value:{codel.objVal}(元))
+20r
+208
+加载Excel文件
+209
+file_path=‘附件3/result1_1.xlsx
+210
+vb=openpyx1.1oad_vorzboox(f1le_path)
+211
+212
+选择每年的表格
+213
+fortinrange（T）：遍历每一年
+214
+vswb.worksheets[t]a选择第t+1依表
+215
+216
+for 1 in range(I):
+217
+for j in range（J):
+318
+for k in range (K):
+219
+ifx[t, 1.j.x].x > 0：
+220
+ifi==0:
+291
+rov=j▪2
+222
++x=n
+223
+vs.cell（rov=rov,column=column,value=X[t，1，J,x].x)
+224
+else:
+225
+ifj>=26:
+226
+rov=j+30
+22
+column=k+3
+228
+vs.cell（rov=rov,colunn=column，value=I[t，1.j.x].x)
+229
+280
+21
+保存修改后的文件
+232
+vb.save（*附件3/result1_1.xlox）
+233
+334
+print（*结果已成功写入7个表对应的Excel文件！）
+235
+236
+print（“结果已成功写入Excel文件！）
+附录三：问题一贪心算法求解
+#coding=utf-8
+中国大学生在线
+
+===== PAGE 33 =====
+inport pandas as pd
+inport numpy as np
+读取Excel文件中的特定工作表
+filepath1-“附件1.xlsx
+filepath2=附件2.xlsx
+data1_land_info=pd.read_excel（filepath1，sheet_name=*乡村的现有桥地")
+11
+data1_zv_info=pd.read_excel(filepathl，sheet_name=*乡村种桂的农作物*)
+12
+data2_land_2023_info=pd.read_excel（filepath2，sheet_name=*2023年的农作物种桂情况)
+13
+data2_zv_2023_info=pd.read_ezcel（filepath2，sheet_nane=*2023年统计的相关数据")
+14
+land_info·datal_land_info[[地块名称，'地块类型'，地块面积/亩]]
+15
+z_info=datal_z_info[[作物编号'，·作物名称，作物类型·]]
+land_2023_info=data2_land_2023_info[[种植地块'，·作物编号'，作物名称’，·作物类型'，种桂面积/亩'，种植手次
+地块类型】
+zv_2023_info=data2_zv_2023_info[[·作物编号'，·作物名称'，·地块类型，种植季次，·亩产量/斤'，·种植成本/（元/亩
+），销售单价/（元/斤），‘单价·]】
+zv_2023_info[性价比]-zv_2023_info[*亩产量/斤·]·zv_2023_info[*单价]-zv_2023_info['种植成本/（元/亩）]
+19
+planting_history =}
+2)
+def initialize_planting_history(land_2023_info):
+for index,rov in 1and_2023_info.iterrovs():
+2#
+land_namerov[“种植地块’]
+24
+season=rov[种植季次’]
+crop_nae·rov[*作物名称]
+arearov[种枝面积/官]
+27
+1f land_nane not in planting_history:
+planting_history[land_name] = {}
+29
+1f 2023 not in planting_history[land_name]:
+80
+planting_history[1and_naze] [2023] ={}
+81
+planting_history[1and_name][2023][season]-{作物名称*：crop_nane，‘种桂面积/亩*：area}
+82
+83
+和始化2023年数据
+34
+print(initialize_planting_history(land_2023_info))
+35
+36
+记录每年的种植信息
+87
+def record_planting(year,land_name,season,crop_na=e,allocated_area):
+38
+if land_nase not in planting_history:
+39
+planting_history[land_name] = (}
+4)
+if year not in planting_hiatory[land_name]:
+41
+planting_history[land_name] [year] = {}
+planting_hiatory[land_name][year][season]=（'作物名称'：crop_na=e，‘种植面积/亩'：allocated_area}
+43
+44
+定义函数计算每个地块的产量
+def find_yield(roz):
+（[..[.guz）]z
+33
+中国大学生在线
+
+===== PAGE 34 =====
+（zv_2023_1nfo[地块类型·]rov[地块类型·]）&
+（zv_2023_info[种植季次]==rov[*种植季次·]）]
+49
+ifnot match.enpty:
+returm=atch.1loc[o]['亩产量/斤]·rov[‘种桂面积/亩]
+51
+else:
+return None
+53
+54
+55
+计算总产量
+56
+data2_land_2023_info[产量/斤·]=data2_land_2023_info.apply（find_yield，axis=1)
+87
+计算作物的总产量
+58
+crop_total_yield=data2_1and_2023_info.groupby（[*作物编号·.*作物名称*.·种挂季次]）[总产量/斤].sum（）.
+reset_index()
+9
+60
+根据地块类型、种植季次、作物编号等进行分组，并按照性价比降序排序
+61
+land_crop_efficiency_rank=z_2023_info.groupby（[池块类型'，*种植手次·]）.apply（
+62
+lanbda x：x.sort_values('性价比*，ascending=False)）.reset_index（drop=True)
+63
+64
+将性价比结果保存到Excel文件中
+68
+output_file=性价比排行榜.xlsx
+66
+land_crop_efficiency_rank.to_ezcel(output_file,indez=False)
+67
+print（f性价比结果已保存至{output_file}）
+8
+69
+贪心算法实现：生成2024-2030年的种植策略
+def greedy_crop_strategy_ABC_DEF(land_info, crop_efficiency_rank, crop_total_yield_initial):
+71
+total_profit=0
+years=range(2024,2031)
+保存分配结果
+74
+planting_plan - []
+75
+记录每块地去年种植的作物
+76
+last_year_crop ={land_name:None for land_nane in land_info[地块名称‘]}
+77
+78
+for year in years:
+79
+year_profit=o=每年的收益
+80
+始化地块的剩余面积
+81
+land_info[剩余面积/亩]-land_info[地块面积/亩]
+82
+crop_total_yield = crop_total_yield_initial.copy()
+83
+$4
+速历每块土地
+for idx,land in land_info.iterrows():
+86
+land_name=land['地块名称·]
+87
+land_type=land[地块类型·]
+88
+remaining_area=land[*到余面积/亩]
+89
+90
+对于ABC类土地的处理逻辑
+9
+1f land_name[o]in [A',B’,C']:
+中国大学生在线
+34
+
+===== PAGE 35 =====
+beans=[黄耳'，·黑耳'，‘红豆·.绿卫，·爬豆]
+98
+如果是2025年及以后，检查前两年豆类种植面积
+94
+if year >=2025:
+past_tvo_years_bean_area = 0
+96
+计算前两年的卫类作物种植面积
+for past_year in range(year - 2. year):
+98
+：[seupet]xosrqurtd ut reeed pe xoseruSuad u eupr 
+9g
+for season in planting_history[land_naze] [past_year] .values():
+100
+ifseason[作物名称']inbeans：
+101
+past_tvo_years_bean_area *=season[种植面积/亩]
+102
+103
+如果前两年豆类种植面积小于当前地块面积，则优先补种耳类
+104
+ifpast_tvo_years_bean_area<land[*地块面积/亩]：
+105
+eqxeoned-[/p=reuqpxbx
+106
+10
+获取性价比最高且剪求未饱和的亚类作物
+108
+ava1lable_beans = crop_efficiency_rank[
+109
+（crop_efficiency_ranx[*作物名称·].1sin（beans））
+110
+（crop_efficiency_rank['地块类型·]==land_type)
+111
+】
+112
+113
+for _, bean_crop in available_beans.iterrovs():
+114
+bean_crop_1d=bean_crop[*作物编号’]
+115
+bean_crop_nane =bean_crop[*作物名称]
+116
+bean_efficiency=bean_erop[性价比’]
+117
+118
+获取互类作物的需求
+119
+bean_demand - crop_total_yie1d[
+120
+（crop_total_yield[作物编号·]--bean_crop_1d）
+121
+122
+1f not bean_desand.enpty:
+128
+total_demand =bean_demand[总产量/斤'].values[0]
+124
+125
+if total_demand > 0 and required_bean_area > 0:
+126
+分配亚类作物的种植面积
+127
+allocated_area=min（required_bean_area，total_deand / bean_crop[*亩产量/斤·])
+128
+total_de=and-=allocated_area*bean_crop[’亩产量/斤]
+129
+remaining_area -= allocated_area
+180
+required_bean_area -= allocated_area
+181
+132
+计算收益
+183
+year_profit += allocated_area * bean_efficiency
+134
+1.35
+灵新互类丽水
+13
+crop_total_yield.loc[
+（crop_total_yield[作物编号·]--
+35
+中国大
+
+===== PAGE 36 =====
+]=total_dena
+139
+140
+保存豆类种植记录
+141
+planting_plan.append((
+142
+地块名称'：land_name，
+1.43
+作物编号*：bean_crop_id.
+144
+作物名称'：bean_crop_nae,
+145
+种植面积/亩'：allocated_area，
+146
+种植季次'：f"{year}第1季*，
+147
+性价比'：bean_efficiency
+148
+)
+149
+150
+记录种植售息
+151
+record_planting(year，land_nase,f“第1手*，bean_crop_naze，allocated_area)
+152
+1.53
+if resaining_area = 0:
+154
+break#地块种植面积已满，退出
+155
+156
+如果豆类补种后仍有剩余面积，期继续种植性价比高的其他作物
+157
+1f resaining_area > 0:
+159
+available_crops = crop_efficiency_rant[
+159
+(crop_efficiency_rank[地块类型·]==land_type)
+160
+]
+161
+149
+检查前一年种核的作物，确保不重复种植
+163
+1ast_year_crop_naze = None
+164
+1f year > 2023:
+165
+last_year_crop_nase = planting_history-get(land_naze，{}) get(year - 1,{).get(*第-
+166
+{}）.get(
+167
+作物名称，Mone）
+168
+169
+for_,crop 1n available_crops.iterrovs():
+1.70
+crop_id=crop[作物编号]
+171
+crop_namecrop[*作物名称’]
+17
+crop_efficiency=crop[性价比’]
+173
+1.76
+检查是否与前一年种植的作物相网
+175
+1f crop_nase -* 1ast_year_crop_nane:
+176
+continue如采相网，现过该作物
+177
+179
+获取该作物的需求
+179
+poreodoxo=ppdo
+180
+（crop_total_yield[·作物编号·]crop_id）
+181
+182
+1f not crop_desand.espty:
+中国大学生在线
+36
+
+===== PAGE 37 =====
+183
+total_deand-crop_demand[产量/斤·].values[0]
+184
+if total_demand>0:
+185
+vhile renaining_area > 0 and total_desand > 0:
+185
+分配给作物的面积
+187
+allocated_area“min（remaining_area,total_deand /crop[‘言产量/斤·])
+189
+total_demand-=allocated_aroa·crop[*亩产量/斤·]
+189
+recaining_area -=allocated_area
+190
+191
+计算收益
+192
+year_profit += allocated_area * crop_efficiency
+199
+194
+页新术
+195
+crop_total_y1eld.1oc[
+196
+（crop_total_yield[作物编号·]=crop_id），总产量/斤
+197
+]= total_dezand
+199
+199
+保存分配记录
+200
+planting_plan.append((
+201
+地块名称'：land_nae.
+202
+作物编号’：crop_1d.
+203
+作物名称'：crop_name，
+204
+种植面积/亩'：allocated_area，
+208
+种桂季次：f"(year}第1季*，这里是第一季
+206
+性价比：crop_efficiency
+307
+})
+208
+209
+记录出前种植信息
+210
+record_planting(year, land_nase,f*第 1 季°, crop_nase,allocated_area)
+211
+212
+if renaining_area == 0:
+23
+break
+214
+215
+如果是2024年，正常种植逻辑
+216
+else:
+217
+获取当前土地可种核的作物
+218
+available_crops=crop_efficiency_rani[
+219
+（crop_efficiency_rank[‘地块类型']--land_type）
+220
+】
+221
+222
+检查前一年种植的作物，确保不重复种植
+228
+last_year_crop_name = Jone
+234
+ifyear>2023:
+225
+last_year_crop_nane = planting_history.get(land_name,{)).get(year -1，{}).get(*第$
+22
+(1）.get(
+227
+作物名称'.Mone）
+中国大学生在线
+37
+
+===== PAGE 38 =====
+229
+for _,crop in available_crops.iterrovs():
+280
+crop_id=crop[“作物编号]
+281
+crop_namecrop[作物名称]
+289
+crop_efficlency=crop[性价比]
+233
+234
+检查是否与前一年种植的作物相间
+285
+1fcrop_naze = last_year_crop_name:
+2M
+continue如果相网，鼎过该作物
+237
+238
+获取该作物的需求
+239
+crop_dezand = crop_total_yie1d[
+24)
+（crop_total_yield[作物编号*]-*crop_id）
+241
+】
+242
+if not crop_desand.espty:
+243
+total_denand=crop_desand[总产量/斤·].values[0]
+244
+1f total_deand>0:
+245
+while resaining_area > 0 and total_demand > 0:
+245
+分配给作物的面积
+247
+allocated_area =min（renaining_area，total_demand/crop[亩产量/斤]）
+248
+total_denand-=allocated_area·crop[“亩产量/斤’]
+249
+remaining_area -=allocated_area
+250
+21
+计算收益
+352
+year_profit += allocated_area * crop_efficiency
+33
+254
+新求
+crop_total_y1eld.1oc[
+256
+（crop_total_yield[*作物编号]*crop_id），总产量/斤
+257
+]-total_dezand
+258
+25
+保存分配记录
+260
+planting_plan.append({
+261
+地块名称'：land_name，
+260
+作物编号*：crop_1d，
+268
+作物名称'：crop_nae，
+264
+种植面积/亩'：allocated_area，
+265
+种植季次'：f{year}第1季*，这里是第一季
+206
+性价比：crop_efficiency
+267
+})
+268
+269
+记录当前种植信息
+270
+record_planting（year，land_nase，f“第1手*，crop_name，allocated_area)
+271
+22
+if resaining_area 0:
+273
+break
+274
+中国大学生在线
+38
+
+===== PAGE 39 =====
+27g
+276
+277
+对于DEF类土地的处理逻辑（多季次）
+279
+elif land_na=e[0] in [D,E，F·]:
+279
+#print（f*为（land_na=e}（（land_type））分配土地{year}年*）
+280
+flag=0
+281
+每个年份的季次环
+282
+for season in [1,2]:
+283
+ifland_type水浇地：
+284
+if season =1:
+285
+记录已经分配给该地块的作物，避免重复分配
+28
+assigmed_crops=sot(plan[*作物名称] for plan in planting_plan if
+28
+plan[地块名称·]=land_name and plan[
+289
+种植季次·]=f“（yoar）第（1）手）
+289
+290
+获取当前性价比最高且剪求未饱和的作物
+291
+for _,highest_efficiency_crop in crop_efficiency_rank[
+292
+（
+298
+作物名称].isin（[大白菜，白萝卜，红萝卜·]）].iterrows（）：
+294
+295
+highest_efficiency_crop_id=highest_efficiency_crop[作物编号’]
+296
+297
+检查当前作物是否已经分配过，进免重复分配
+298
+if highest_efficiency_crop_naze in assigned_crops:
+299
+cont inue
+300
+301
+获取该作物的当前需求量
+302
+total_deand = crop_total_yield.1oc[
+303
+crop_total_yield[·作物编号·]=highest_efficiency_crop_id，‘地产量/斤·].values
+[o]
+304
+305
+if total_demand >0:
+306
+1f highest_efficiency_crop_name
+水：
+307
+flag = 1
+308
+第一季优先种植水相，第二手不再种植任何作物
+309
+allocated_area = min(resaining_area,
+310
+311
+recaining_area -= allocated_area
+312
+year_profit += allocated_area▪highest_efficlency_crop[‘性价比’]
+313
+314
+更新水格的求量
+315
+crop_total_yield.1oc[
+316
+crop_total_yield[*作物编号·]-highest_eff1ciency_crop_id，·总产量/斤
+317
+]-=allocated_area·highest_efficiency_crop['亩产量/斤]
+318
+319
+保存分配记录
+39
+中国大学生在
+
+===== PAGE 40 =====
+320
+planting_plan.append((
+821
+地块名称'：land_name，
+322
+作物名称：水稻，
+328
+种植面积/亩*：allocated_area，
+324
+种植季次'：f（year}第1季
+325
+“性价比’：highest_efficiency_crop[性价比]
+326
+})
+327
+#print(
+328
+fAllocated {allocated_area}acres of rico to(land_name}in {year}第
+1季）
+329
+330
+设置flag，第二季不再种植作物
+331
+flag = True
+339
+bra我到求未饱和的水格后，进出循环
+388
+else:
+334
+第一季种核施菜，非水稻作物
+385
+vhile remaining_area > 0 and total_demand > 0:
+336
+'].
+337
+total_deand)/highest_efficiency_crop[‘亩产量/斤]
+339
+resaining_area -= allocated_area
+339
+340
+year_profit +=allocated_area •highent_efficiency_crop[性价比]
+341
+34
+更新蔬莱作物的留求量
+343
+crop_total_yield.1oc[
+344
+（crop_total_yield[·作物编号·]=highest_efficiency_crop_id）&
+345
+（crop_total_yield[°种植季次·]-第一季），“总产量/斤
+345
+]-total_desand
+347
+348
+保存分配记录
+349
+planting_plan.append((
+350
+“地块名称'：land_nae，
+351
+“作物名称'：highest_efficiency_crop_name,
+32
+种植面积/亩*：allocated_area，
+353
+种植季次'：f"{yoar}第1季
+354
+性价比'：highest_efficiency_crop[“性价比]
+355
+})
+356
+# print(
+357
+f"Allocated (allocated_area} acres of {highent_efficien
+acy_crop_na
+}to{land_name}in{year}第1季“)
+38
+359
+如果种植完当前作物后地块还有别余面积，继续寻找下一个未饱和的作物
+360
+1f resaining_area>0:
+361
+for _.nezt_highest_crop in crop_efficiency_rank[
+362
+（[.）
+中国
+
+===== PAGE 41 =====
+363
+（）
+364
+（crop_efficiency_rank[作物名称·]!=highest_efficiency_crop_nane)
+365
+].iterrovs():
+366
+367
+next_highest_crop_id=next_highest_crop[*作物编号’]
+368
+next_highest_crop_nane =next_highest_crop[*作物名称]
+369
+next_total_de=and = crop_total_yield.loc[
+370
+crop_total_yield[*作物编号]==next_highest_crop_id，*总产量/斤
+371
+].values[0]
+372
+373
+if next_total_desand >0:
+374
+继续分配下
+个作物
+375
+vhile remaining_area > 0 and next_total_desand > 0:
+376
+allocated_area_nezt = in(renaining_area,
+377
+next_total_demand / next_highest_crop[
+3.79
+亩产量/斤]）
+379
+renaining_area -= allocated_area_next
+380
+nezt_total_dezand -=allocated_aroa_next ·next_highest_crop[
+381
+亩产量/斤
+382
+year_profit += allocated_area_nezt *next_highest_crop[’性价比
+383
+384
+更新求量
+385
+crop_total_yield.1oc[
+38
+crop_total_yield[
+387
+作物输号·]=next_highest_crop_id，*总产量/斤
+388
+]= next_total_desand
+389
+390
+保存分配记录
+391
+planting_plan.append({
+392
+“地块名称：land_name，
+398
+“作物名称'：next_highest_crop_name，
+394
+种盐面积/官'：allocated_area_next，
+395
+“种植季次'：f"{year}第1季”.
+396
+“性价比*：nezt_highest_crop[“性价比’]
+397
+})
+398
+# print(
+399
+f*Allocated {allocated_area_next}acres of{
+next_highest_crop_name} to {1and_nase}in {year} 第 1 $
+400
+401
+如果地块已经没有剩余面积，则退出循环
+409
+if remaining_area == 0:
+409
+breaz
+404
+break#找到未饱和的菜作物后，退出循环
+405
+中国大学生在线
+41
+
+===== PAGE 42 =====
+406
+第一手种完蔬某后，第二手选择不同的作物
+407
+ifnotflag：只有第一季种蔬菜时才继续种第二季
+408
+409
+remaining_area=land[地块面积/亩]
+410
+寻找剪求未饱和的性价比最商的符合条件的作物，直到地块没有剩余面积
+411
+for _. second_highest_efficiency_crop in crop_efficiency_rank[
+412
+（[.]xox）
+413
+（crop_efficiency_rank[作物名称]1=highest_efficiency_crop_name）
+414
+（crop_efficiency_xank[“作物名称].isin（[大白菜'，“白萝卜，“红萝卜·]））
+415
+].iterrovs():
+416
+417
+second_highest_officiency_crop_1d=second_highest_eff1ciency_crop[作物编号]
+418
+second_highest_efficiency_crop_nae = second_highest_efficiency_crop[*作物名称
+419
+second_total_demand = crop_total_yield.1oc[
+420
+crop_total_y1eld[
+421
+作物编号·]==second_highest_efficiency_crop_id，·总产量/斤].values[o]
+422
+423
+ifsecond_total_denand>0:
+424
+第二季种植性价比最高的作物，直到则余面积用尽
+425
+vhile remaining_area >0and second_total_deand>0:
+426
+allocated_area_second_season = =in(resaining_area, second_total_decand /
+427
+second_highest_efficiency_crop[
+428
+官产量/斤·）
+429
+resaining_area -= allocated_area_second_season
+430
+second_total_desand -= allocated_area_second_seascn *\
+41
+second_highest_efficiency_crop[‘亩产量/斤’]
+492
+year_profit + allocated_area_second_season *\
+433
+second_highest_officiency_crop[“性价比']
+434
+435
+更新第二季作物的留求量
+435
+crop_total_yield.1oc[
+437
+(crop_total_yield[作物编号']=second_highest_efficiency_crop_id)&
+438
+（crop_total_yield[*种植季次·）--，第二季*），·总产量/斤
+439
+] =second_total_demand
+440
+44
+保存分配记录
+442
+planting_plan.append((
+443
+地块名称'：land_name，
+644
+作物名称'：second_highest_efficiency_crop_name,
+445
+种植面积/亩'：allocated_area_second_season,
+441
+种植季次'："{yoar}第2季”，
+447
+性价比’：second_highest_efficiency_crop[“性价比·])）
+443
+print(
+449
+f"Allocated (allocated_area_second_season}acres of
+42
+
+===== PAGE 43 =====
+手）
+450
+451
+如果地块已经没有剩余面积，退出循环
+4
+if renaining_area == 0:
+453
+break
+454
+455
+else:
+456
+第二季不再种植作物
+457
+if flag:
+458
+print（f*（1and_nae}在第2季不行种核）
+459
+flag = False
+460
+continue
+461
+469
+处理普通大和智慧大棚
+468
+ifland_type =普通大：
+464
+第一手可以种核多种蔬菜
+465
+if season == 1:
+466
+467
+（crop_efficiency_rank['地块类型·]=land_type）
+468
+（（，，，）[)
+469
+470
+for _,veggie in vegs.iterrovs():
+41
+vegg1o_1d=voggie[*作物编号·]
+472
+veggie_name=veggie[“作物名称’]
+473
+veggie_off1ciency=veggie[性价比]
+474
+veggie_desand = crop_total_yield[
+475
+（crop_total_yield[*作物编号·]==veggie_id）
+476
+1
+477
+1f not veggie_desand.empty:
+479
+total_denand=veggie_demand[*产量/斤’].values[0]
+479
+1f total_demand > 0:
+480
+allocated_area =min（remaining_area,total_desand /veggie[*盲产量/斤·])
+481
+total_deand-=allocated_area·veggie[‘亩产量/斤]
+4R0
+remaining_area -= allocated_area
+483
+484
+计算收益
+485
+year_profit += allocated_area *veggie_eff1iciency
+4B6
+print(
+487
+f"Allocated {allocated_area} acres of {veggie_na=e} to {land_nace} in {
+year}第1季）
+48
+489
+更新需水
+490
+crop_total_y1eld.1oc[
+491
+（crop_total_yield[·作物编号]=veggie_id），总产量/斤
+492
+]=total_denand
+493
+43
+中国大学生在线
+
+===== PAGE 44 =====
+9H4
+保存分配记录
+495
+planting_plan.append({
+496
+地块名称'：land_name，
+497
+作物编号*：veggie_1d.
+498
+作物名称'：veggie_name，
+499
+种植面积/亩'：allocated_area,
+500
+种检季次'：f"{year）第1季，
+501
+性价比：veggie_officiency
+502
+})
+509
+if resaining_area =0:
+504
+break
+505
+else:
+506
+print（“种植第二季·）
+807
+第二季只能种植食用菌，重置剩余面积
+808
+reaining_area=land[地块面积/官]
+509
+sushroomscrop_efficiency_rank[
+510
+（crop_efficiency_rank['地块类型·]==land_type）
+511
+（crop_efficiency_rank['作物名称·].isin（[检黄菇'，香菇'，白灵菇，‘羊肚菌·]））
+512
+]
+513
+514
+print(mushrooms)
+515
+for _,mushroom in mushroons.iterrovs():
+516
+mushroom_1d==ushroo=[作物编号·]
+517
+mushroos_name =sushroos[*作物名称’]
+518
+mushroos_efficiency=mushroo[性价比]
+519
+820
+mushroos_demand = crop_total_yield[
+521
+（crop_total_yield[*作物编号·]*ushroos_1d）
+522
+529
+print(zushroos_denand)
+524
+1f not mushroos_demand.eapty:
+525
+total_demand=mushroom_demand[总产量/斤·].values[o]
+526
+if total_deand >0:
+527
+allocated_area =min（reaining_area，total_demand/mushroo=['亩产量/斤]）
+528
+total_deand-=allocated_area*=ushroo=[亩产量/斤]
+529
+resaining_area -= allocated_area
+530
+531
+计算收益
+532
+year_profit += allocated_area ▪ mushroos_eff1ciency
+533
+N9
+print(
+835
+f"Allocated （allocated_area}acres of{=ushroo=_na=e} to (land_na=e} in
+{jear}第2季）
+587
+更新求
+538
+crop_total_y1eld.1oc[
+中国大学生在线
+44
+
+===== PAGE 45 =====
+（crop_total_yield[·作物编号·]-=mushroom_id），·总产量/斤
+540
+]=total_demand
+541
+54
+保存分配记录
+543
+planting_plan.append((
+544
+地块名称：land_name，
+545
+作物编号'：mushroom_id，
+5 4t
+作物名称'：mushroom_naze，
+547
+种桂面积/亩'：allocated_area，
+543
+种桂季次'：f"{year}第2季
+549
+性价比'：mushroos_efficiency
+550
+(f
+551
+if renaining_area == 0:
+553
+554
+555
+556
+557
+558
+elif land_type =·智慧大：
+559
+beans=[红耳'，刀互·，荟互]
+560
+从2025年开始检查前两年卫类作物的种桂情况
+561
+if season * 1:
+562
+1f year >= 2025:
+863
+获取前两年的互类作物种植面积
+564
+past_tvo_years_beans_area =0
+568
+for past_year in [year - 2,year - 1]:
+566
+1f land_naze in planting_history and past_year in planting_history[land_name]:
+567
+for season_data in planting_history[1and_name] [past_year] .values() :
+568
+ifseason_data[作物名称]in beans：
+569
+past_tvo_years_beans_area*season_data[种桂面积/亩']
+570
+计算三年互类种植面积的求
+571
+required_bean_area=land['地块面积/言]-past_tvo_years_beans_area
+572
+#如果前两年豆类作物面积不足，优先种植互类
+573
+1f required_bean_area > 0:
+574
+print（f*(land_na=e}前两年互类作物不足，必须种植《required_bean_aroa}亩互类作物
+575
+获取性价比最高的互类作物
+576
+beans_crops - crop_efficiency_rant[
+57r
+（crop_efficiency_rank[地块类型]land_type）a
+578
+(crop_efficiency_rank[*作物名称·].1sin(beans）)
+579
+580
+分配豆类作物，直到剩余面积为0或求满足
+581
+for_,bean_crop in beans_crops.iterrovs():
+582
+bean_id=bean_crop[“作物编号]
+583
+bean_nane=bean_crop[作物名称·]
+中国大学生在线
+45
+
+===== PAGE 46 =====
+56
+bean_efficiency-bean_crop[‘性价比·]
+585
+bean_de=and = crop_total_yield[
+586
+crop_total_yleld[作物编号·]--bean_id
+58T
+][*总产量/斤].values[o]
+588
+1f bean_desand>0:
+589
+nd/bean_crop['盲产量
+/斤）
+590
+required_bean_area -= allocated_area
+591
+resaining_area -= allocated_area
+592
+bean_deand-=allocated_area*bean_crop['亩产量/斤]
+593
+year_profit += allocated_area * bean_efficiency
+594
+更新互类作物的需求量
+595
+crop_total_yield.1oc[
+896
+crop_total_yleld[*作物编号]=bean_id，*总产量/斤
+597
+] = bean_desand
+598
+保存分配记录
+599
+planting_plan.append({
+600
+地块名称'：land_name，
+601
+“作物编号'：bean_id.
+602
+作物名称'：bean_nane，
+603
+种桂面积/亩：allocated_area，
+604
+“种植季次'：1"{year}第（season}季”，
+605
+性价比'：bean_efficiency
+606
+(f
+60r
+记录种植历史
+608
+record_planting（year，land_naze，f"第{season}季*,bean_naze,
+allocated_area)
+609
+print(
+610
+fAllocated(allocated_area}acres of {bean_nane}to{land_name}in
+{year}第（season}季*）
+611
+如果卫类作物的菌求已经满足，出循环
+612
+1frequired_bean_area <= 0:
+613
+break
+614
+#如果留要种植互类作物，则鼎过其他作物分配
+615
+if required_bean_area > 0:
+616
+continue
+617
+获取上一年第二季的种植情况
+618
+last_year_second_season_crop =planting_history·get（land_name,{}）.get(2023,().get(
+第二季，0）.got（
+619
+作物名称'，Bome）
+620
+last_season_crop=one#记录上一手种植的作物
+621
+for season in [1,2]:
+629
+remaining_area=land['地块面积/亩]
+62
+智慧大棚每手都可以种多种蓝菜，拍除相邻两手种植同一种作物以及上一年第二手种植的作物
+624
+vegs = crop_efficiency_rank[
+625
+（crop_efficiency_ranx[地块类型]--land_type）
+46
+
+===== PAGE 47 =====
+（-crop_efficlency_rank[“作物名称·].1sin（['大白菜，“白萝卜·，“红萝卜]））
+627
+（
+628
+（[，）
+第二季种植的作物
+629
+1
+680
+for _.veggie in vegs.iterrovs():
+681
+veggie_id=veggie[“作物编号·]
+632
+veggie_name=veggie[*作物名称]
+633
+634
+veggie_efficiency=veggie[性价比]
+635
+6M
+veggie_demand = crop_total_y1eld[
+637
+6.38
+（crop_total_yield[*作物编号’]*voggie_id)
+639
+64)
+641
+6
+1f not veggie_demand.espty:
+643
+644
+total_dezand =veggie_denand[°总产量/斤·].values[0]
+647
+646
+1f total_denand > 0:
+647
+allocated_area*=in（reaining_area，total_decand/veggie[亩产量/斤·]）
+648
+64)
+total_decand-=allocated_area*veggie[‘亩产量/斤·]
+650
+651
+resaining_area -= allocated_area
+652
+653
+计算收益
+654
+65
+year_profit += allocated_area * veggie_efficiency
+656
+657
+print(
+658
+f*Allocated{allocated_area}acres of{reggie_naze} to{land_nae}
+1n{year}第（soason}手）
+659
+660
+更新需求
+661
+662
+crop_total_yield.1oc[
+663
+664
+（crop_total_yield[*作物编号·]==veggie_id）.·总产量/斤
+665
+666
+]= total_demand
+667
+668
+保存分配记录
+669
+47
+中国大学生在线
+
+===== PAGE 48 =====
+670
+planting_plan.append((
+671
+672
+地块名称'：land_nane，
+673
+674
+“作物编号'：veggie_id，
+615
+676
+作物名称'：veggle_naze，
+677
+678
+种植面积/亩'：allocated_area，
+679
+680
+种植季次'：f"{year}第（season}季”，
+681
+682
+“性价比'：veggie_efficiency
+683
+684
+(f
+685
+686
+记录种植历史
+687
+68
+record_planting（year,land_naze,f"第{season}手*,veggie_na=e
+allocated_area)
+689
+690
+记录当前季节的作物，以便下一季排除
+691
+692
+last_season_crop = veggie_naze
+693
+694
+1f resaining_area = 0:
+695
+breal
+696
+697
+cont inue
+698
+699
+print（f"(year）年的总收益为：（year_profit）元）
+700
+total_profit+=year_profit累积到总收益
+701
+70
+转换为DataFrame并返目
+708
+(udSuraued)ozexgeaegpd -gpetdSue
+704
+705
+输出总收益
+706
+print（f2024-2030年的总种植收益为：{total_profit}元）
+707
+returm planting_plan_df, total_profit
+709
+709
+710
+示例调用
+711
+调用该函数处理ABC和DEF类土地的分配
+712
+planting_plan_ABC_DEF, total_profit = greedy_crop_strategy_ABC_DEF(land_info, 1and_crop_efficiency_ranz,
+crop_total_yield)
+713
+中国大学生在
+4S
+
+===== PAGE 49 =====
+打印种检策略并保存到Excel文件
+715
+output_file_strategy-·ABC_DEF种桂策略.xlsx
+716
+planting_plan_ABC_DEF.to_excel(output_file_strategy. index=False)
+717
+print（f"种植策略已保存至{output_file_strategy}"）
+718
+print（f2024-2030年的总收益为：（total_profit）元）
+附录四：第二题求解器求解
+pd se sepued zod=y
+import gurobipy as gP
+from gurobipy inport GRB
+1sport openpyx1
+import numpy as np
+读取Excel文件中的地块面积数据
+f11e1=附件1.x1ax修改为附件1的实际文件路径
+10
+data1=pd.read_excel（file1，shoet_name=乡村的现有辨地）
+11
+data2=pd.read_excel（file1，sbeet_name='乡村种植的农作物)
+12
+13
+f1le2-附件2.xlsx=修改为附件1的实际文件路径
+data3-pd.read_excel（file2，obeet_name='2023年的农作物种植情况）
+15
+data4=pd.read_excel（file2，sbeet_name='2023年统计的相关数据'）
+16
+17
+已知数据
+T =7
+19
+I=2
+J=54
+21
+K = 41
+p=4
+23
+q=9
+24
+K=100000
+S-data1[*地块面积/亩].tolist（）
+96
+I_k=data2['Iz].tolist(
+27
+Price-[[3.25,7.5,8.25,7,6.75.
+28
+3.5,3,6.75,6,7.5,40,1.5,
+29
+3.25,5.5,3.5,7,8,6.75,6.5,
+30
+3.75,6.25,5.5,5.75,5.25,5.5,
+31
+6.5,5,5.75,7,5.25,7.25,4.5,
+2
+4.5,4,0,0,0,0,0,0,0],
+$3
+[0,0,0,0,0,0,0,0,0,0,0,0,
+84
+0,0,0,0,9.6,8.1,7.8,4.5,7.5,
+85
+6.6,6.9,6.8,6.6,7.8,6,6.9,
+8.4,6.3,8.7,5.4,5.4,4.8,2.5,
+37
+2.5,3.25,57.5,19,16,100]]
+定义嘴求的年增长率范围5%到10%
+growth_rate_=in =0.05
+61
+中国大学生在线
+
+===== PAGE 50 =====
+grovth_rate_=ax = O.10
+扣始化需求矩阵：第1季度第x种作物的初始需求量
+Request=[[57000,21850,22400,33040,9875,
+44
+170840,132750,71400,0000,1200
+1500,35100,36000,14000,10000,21000,
+46
+36480,26880,6480,30000,35400,43200,
+0,1800,3600,4050,4500,34400,9000,1500,
+48
+1200,3600,1800,0,0,0,0,0,0,0,0],
+49
+[0,0.0,0,0,0,0,0,0,0,0,0,0.0.0,
+50
+0,0,0,0,0,810,2160,900,810,0,0,
+1
+0.1080,4050,1350,0,0,0,1800,150000
+2
+100000,36000,9000,7200,18000,420011
+53
+54
+夏新每年求
+for t in range(1, T):
+56
+grovth_rate = np.random.uniforn(grovth_rate_min, grovth_rate_max)
+for 1 in range(I):
+for k in range(K):
+59
+Request[1][x]*=（1+grovth_rate）a更新菌求量
+60
+61
+df1=pd.read_ezcel（'cost.xlsx'，sheet_naze='第一手)
+63
+Cost1 = df1.values.transpose()
+64
+Cost2 = df2.values.transpose()
+65
+Cost=[Cost1,Cost2]
+66
+67
+df3-pd.read_ezcel（'Produce.xlsx'，sheet_name*第一季)
+68
+df4-pd.read_ezcel（'Produce.xlsx'，sheet_name=*第二手·)
+69
+Produce1 = df3.values.transpose()
+70
+Produce2- df4.values.transpose()
+71.
+Produce=[Produce1,Produce2]
+72
+73
+创建模型
+74
+nodel =gP.Model(*Crop_Plant ing)
+T5
+76
+决策变量
+77
+I=sodel.addVars(T.I.J,K,vtype=GRB.CONTINUOUS,nane=*K)
+Y = sodel.addVars(T, I, J, X,vtype=GRB.BINARY, nase=Y)
+79
+Z =sodel.addVars(T, I,K,vtype=GRB.CONTINUOuS,name=*Z)
+80
+Z_rice = model.addVars(T, range(27, 35), vtype=GRB.BINARY, name=*Z_Rice*)
+81
+8
+定义目标函数
+83
+sodel.setObjective(
+84
+gP·quicksum(Price[1][x]▪Z[t, 1.x]-gP·quicksum（Cost[1][j][x]▪x[t,1.J.x] for jin range(J）)
+85
+for t in range(T) for 1 in range(I) for k in range(K)),
+50
+中国大三
+
+===== PAGE 51 =====
+GRB.MAXIMIZE
+88
+约束1：销量不超过作物总产量
+C
+nodel.addConstrs((Z[t,1,x]<= gP-quicksum(Produce[1][j][x]▪X[t, 1,j,x] for j in range(J）)
+for t in range（T) for 1 in range(I） for k in range(K)),name=*Production_Li=it*)
+约束：销量不超过市场需求
+94
+nodel.addConstrs(（Z[t,1,x] <= Request[i][x] for t in range(T) for 1 in range(I) for x in range(K)),nane=
+Denand_Linit")
+96
+约末3：是否种植该作物
+97
+model.addConstrs（（X[t， 1， j，x]<= H▪Y[t，1, j，k]
+98
+for t in range(T) for 1 in range(I) for j in range(J) for k in range (K)),
+99
+nasea*X_UpperBound_Y*)
+100
+101
+model.addConstrs（（X[t,1.j,k]>=0.01 *Y[t，1,j.k]
+102
+for t in range(T) for 1 in range(I) for j in range(J) for k in range(K)),
+108
+name=*X_LoverBound_Y")
+104
+105
+约京4：每块地每季度种植面积总和不能超过地块总面积
+106
+for t in range(T):
+10r
+for 1 in range(I):
+108
+for j in range(J):
+109
+（}（}}xyu[]s>（（x）xuxx[x]x）xb）xpp
+110
+111
+约束5：三年内必须至少种植一次亚类作物
+112
+（（x）xx（）（）x[x]x•[x]x）=b））p
+>=S[]
+113
+for j in range(J)),
+114
+name=*Logune_Firat_Tvo_Yeara°)
+115
+for j in range(J):
+116
+ortinrange（T-2）：以3年为单位进行检查
+117
+model.addConstr(gP·quicksum(X[tt, 1, j.k] * I_k[k] for tt in range(t, t + 3) for 1 in range(I) for k
+1n range(K)) > S[j], name=fLegue_{j}_(t})
+118
+119
+约末6：同一种作物在同一开土地上不能连续两个季度种植
+120
+model.addConstrs（（x[t，1.j.x]·I[t，i+1,j.x]<= S[j]
+121
+for t in range(T) for j in range(J) for k in range (K) for 1 in range(I-1)),
+122
+nase=*No_Consecutive_Planting*)
+128
+model.addConstrs（(X[t，1+1,j，k] ·x[t+1,1， j.x]<= S[j]
+134
+for t in range(T-1) for j in range（J） for k in range (K) for 1 in range(I-1）),
+125
+name=*No_Consecutive_Planting*)
+126
+127
+约束7：最多种植p种作物
+128
+node1.addConstrs((gP·quicksu=(Y[t，1.J.x] for k1n range(K））<= p
+中国大学生在线
+51
+
+===== PAGE 52 =====
+129
+for t in range(T) for 1 in range(I) for j in range(J)),
+180
+name=*Max_Three_Cropa)
+1.81
+132
+添加约束：每种作物最多种在q块地上
+183
+model.addConstrs(（gp.quicksu=（Y[t，1，j,x]for j in range(J））<=q
+134
+for t in range(T) for 1 in range(I) for k in range(K)),
+135
+naze=*Max_Five_Plots_Per_Crop*)
+13
+137
+约束8：确保粮食作物在连续年份的第一季不能连种
+139
+model.addConstrs（（x[t,0.j.x]+x[t+1,0，j.x]<=S[j]
+139
+for t in range(T-1) for j in range(J) for k in range(1, 16)),
+14)
+nane=*No_Consecutive_Years_For_Grain°)
+1.41
+140
+约束：编号为1-26的土地在第二手不种植任何作物
+143
+model.addConstrs（（X[t，1，j，k]== 0
+144
+for t in range（T) for j in range(26) for x 1n range(K)),
+145
+name=*No_Planting_Second_Season_For_Lands_1_26")
+146
+147
+约京：编号为1-26的土地上只能种桂编号为1-15的作物
+148
+model.addConstrs（(X[t, 1. J,x] = 0
+149
+for tin range（T）for 1 in range（I)for jin range(26）for xin range（15,41））,
+150
+name=*No_Planting_Cropa_16_41_On_Lands_1_26°)
+1
+162
+153
+约京：号为1-15的作物只能种桂在编号为1-26的土地上
+154
+nodel.addConstrs（（X[t，1，j，x] =0
+for t in range(T) for 1 in range(I) for J in range(26, J) for k 1n range(15)),
+156
+nase=*No_Planting_Crops_1_15_On_Lands_27_54*)
+157
+158
+约束：编号为27-34的土地种植水格
+159
+model.addConstrs((gp·quicksu=(X[t, 1. j.x] for 1 in range(I) for k in range (K) if k = 15) <=  ▪ Z_rice[t,
+160
+for t in range（T) for j in range(27,35)）,
+161
+name=*Rice_Planting_Omly_Once*)
+162
+163
+确保水稻只能种植在单季
+164
+model.addConstrs((gP.quicksu=(x[t, 1,j, 15] for 1 in range(I)) <= S[j]
+165
+for t in range（T) for j in range(27,35)）.
+166
+nase=*Single_Season_Rice")
+167
+168
+添加约束1：如果种楼了水福，则第二季不种植任何作物
+169
+nodel.addConstrs(（gp，quicksu=（x[t，1. j.x]for x 1n range(K））<=·(1 - Z_rice[t， j])
+170
+for t in range(T) for j in range(27, 35)),
+171
+nase=*No_Second_Season_If_Rice)
+172
+173
+添加约末2：第一季只能种植17-34号作物
+52
+中国大学生在线
+
+===== PAGE 53 =====
+uxxg[x0]x）xbd（（9）uxxg[x0]x）=xb·d））xppo
+range(16,35))
+175
+for t in range(T) for j in range(27,35)),
+176
+naze=*First_Season_Crops_17_34°)
+177
+1.79
+添加约束3：第二季只能种植35-37号作物
+179
+xx[x]x）bd（）xxx[x]x）=xb.d））xepp
+range(34,38))
+180
+for t in range(T) for j in range(27,35）),
+181
+nane=*Second_Seanon_Cropn_35_37")
+182
+183
+添加药束：编号为35-37的作物只能种植在编号为27-34的土地上
+184
+model.addConstrs（(X[t， 1， j， k] == 0
+185
+for t in range (T) for 1 in range(I) for j in range(26) for  in range(34,37+1)),
+186
+name=*No_Plamting_Crops_35_37_On_Lands_1_26)
+187
+188
+添加药束1：播号为38-41的作物只能在35-50号地的第二手种楼
+189
+nodel.addConstrs（（X[t，1，J.x] = 0
+190
+for t in range(T) for j in range(35) for k in range(37, 41）).
+191
+name=*No_P1anting_Crops_38_41_On_Lands_1_34°)
+190
+198
+添加约束2：编号为38-41的作物只能种桂在第二手
+194
+model.addConstrs（（X[t，0.j，x]=0
+195
+for t in range(T) for j in range(35, 51) for k 1n range(37, 41)),
+196
+nase=*No_Planting_Crops_38_41_Firat_Season*)
+197
+199
+设置相对Gap
+199
+model.setPara=(*MIPGap′,0.01)
+200
+201
+200
+优化模型
+208
+model.optinize()
+204
+205
+输出结果
+206
+1f =odel.status == GRB.OPTIMAL:
+207
+print(f"Opti=al solution found vith objective value:{=odel.objVal))
+208
+for t in range(T):
+209
+for 1 in range(I):
+210
+for j in range(J):
+211
+for k in range (K):
+212
+if x[t,1. j,k].x > 0:
+213
+print（f*Year (t+1）,Season {1+1),Land{j+1），Crop (x+1):(x[t,1.j.k].x）acres planted
+.")
+214
+print（f"Opti=alsolution foundvithobjective value:(=odel.objVal)(元）)
+53
+
+===== PAGE 54 =====
+附录五：问题三求解器求解
+pd se sepued zod=y
+i=port gurobipy as gP
+fro= gurobipy inport GRB
+1=port openpyx1
+isport nuspy as np
+读Excel文件中的地块面积数据
+file1='附件1.xlsx
+10
+data1-pd.read_excel（file1，nhoet_nane=乡村的现有桥地）
+11
+data2=pd.read_excel（file1，sheet_name=乡村种植的农作物)
+12
+13
+f1le2=*M件2.xlsx
+14
+data3=pd.road_oxcel（file2，oboet_name=*2023年的农作物种拉情况）
+15
+data4=pd.read_excel（file2，shoet_nane=2023年统计的相关数据*)
+16
+17
+已知数据（需根据实际情况初始化）
+18
+T-7
+19
+I-2
+J =54
+91
+K=41
+22
+p=4
+q=9
+24
+M=100000
+S=
+datal['地块面积/亩].tolist（）
+26
+I_k=data2['Ix'].tolist()
+27
+Pr1ce-[[3.25,7.5,8.25.7,6.75,
+3.5,3,6.75,6,7.5,40,1.5,
+29
+3.25,5.5,3.5,7,8,6.75,6.5,
+80
+3.75,6.25,5.5,5.75,5.25,5.5,
+81
+6.5,5,5.75,7,5.25,7.25,4.5,
+82
+4.5,4,0,0,0,0,0,0,0].
+33
+[0,0,0,0,0,0,0,0,0,0,0,0,
+34
+0,0,0,0,9.6,8.1,7.8,4.5,7.5,
+S5
+6.6,6.9,6.8,6.6,7.8,6,6.9,
+3M6
+8.4,6.3,8.7,5.4,5.4,4.8,2.5,
+87
+2.5,3.25,57.5,19,16,100]]
+38
+定义求的年增长率范围5%到10%
+68
+grovth_rate_=in = 0.05
+grovth_rate_=ax =O.10
+4
+始化需求矩阵：第1手度第种作物的初始覆求量
+43
+quest=[[57000,21850,22400,33040,9875,
+64
+170840,132750,71400,30000,12500,
+1500,35100,36000,14000,10000,21000,
+54
+中国大学生在线
+
+===== PAGE 55 =====
+36480,26880,6480,30000,35400,43200,
+0,3000,3600,4050,4500,34400,9000,1500,
+48
+0,3600,1800,0,0,0,0,0,0,0,0],
+[0.0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+80
+0,0,0,0,0,810,2160,900,810,0,0,
+0,1080,4050,1350,0,0,0,1800,150000,
+100000,36000,9000,7200,18000,4200]]
+9
+更新每年需水
+55
+fortinrange（1，T）：#从第二年开始（t=1），国为第一年求是已知的
+56
+grovth_rate = np.random.umiforn(grovth_rate_min, grovth_rate_max)
+57
+for 1 in range(I):
+58
+for k in range(K):
+59
+Request[1][x]*=（1+grovth_rate）=更新需求量
+60
+df1-pd.read_ozcel（*cost.xlsx'，sheet_naze=第一手·）
+62
+df2=pd.read_excel（'cost.xlsx'，sheet_naze=*第二手)
+63
+Cost1-df1.values.transpose()
+64
+Cost2=df2.values.transpose()
+68
+Cost=[Cost1,Cost2]
+66
+67
+df3=pd.read_ezcel（'Produce.xlsx',sheet_name=第—手·)
+68
+df4=pd.read_ozcel（'Produce.xlax'，sheet_na=e=第二季·）
+69
+Produce1 = df3.values.transpose()
+Produce2= df4.values.transpose()
+71
+Produce1 =Produce1 *1.05
+Produce2=Produce2▪1.05
+73
+Produce -[Produce1,Produce2]
+74
+创建模型
+nodel -gp.Model(*Crop_Plant ing)
+77
+T8
+决策交量
+79
+I==odel.addVars(T,I,J,K.vtype=GRB.CONTINUOUS,name=*x)
+Y = sodel.addVars(T, I, J, K, vtype=GRB.BINARY, name=*Y")
+81
+Z =sodel.addVars（T,I,K,vtype=GRB.CONTINUOUS,nae=Z)
+80
+Z_rice =sodel.addVars(T,range(27,35),vtype=GRB.BINARY，naze=*Z_Rice)
+83
+sa
+定义目标函数
+model.setObjective(
+86
+gp.quicksus(Price[1][x] ▪ Z[t, 1, x] - gp-quicksus(Cost[1][j][x] ▪ X[t, 1, j,x] for j in range(J))
+87
+for t in range(T) for 1 in range(I) for k in range(K)）,
+88
+GRB.MAXIMIZE
+89
+90
+9
+约束1：销量不超过作物总产量
+中国大学生在线
+55
+
+===== PAGE 56 =====
+del.addConstrs((Z[t,1,x]<= gP-quicksum(Produce[1][j][x]▪X[t, 1,j.k]for j in range(J))
+98
+for t in range(T) for 1 in range(I) for k in range(K)).name=*Production_Li=it°)
+94
+约束：销量不超过市场需求
+model.addConstrs((Z[t,1,x]<= Request[1][z] for t in range(T) for 1 in range(I） for k in range(K)),nane
+Desand_Li=it")
+99
+约束3：是否种植该作物
+66
+model.addConstrs（（X[t，1，j，x]<=H*Y[t，1,j，x]
+100
+for t in range(T) for 1 in range(I) for j in range(J) for k in range(K)).
+101
+nase**X_UpperBound_Y*)
+109
+108
+model.addConstrs((X[t, 1， j,k] >= 0.01 *Y[t, 1， j,k]
+104
+for t in range(T) for 1 in range(I) for j in range(J) for k in range (K)),
+105
+name=*X_LoverBound_Y*)
+106
+107
+约束4：每块地每举度种植面积总和不能超过地块总面积
+108
+for t in range(T):
+109
+for 1 in range(I):
+110
+for j in range(J):
+111
+model.addConstr(gp-quicksum(X[t， 1. j. x] for x in range(K））<= S[j].name=f"Area_(t）_(1}_{j})
+112
+113
+约束5：三年内必须至少种核一次豆类作物
+114
+nodel.addConstrs((gp·quicksu=(X[t, 1, j, x] * I_k[x] for t 1n range(2) for 1 in range(I) for k in range(K))
+>= S[]
+115
+for J in range(J）),
+116
+nase=*Leguze_First_Tvo_Yoars)
+117
+for j in range(J):
+118
+fortinrange（T-2）：以3年为单位造行检查
+119
+model.addConstr(gp.quicksum(X[tt,1，J.x]▪I_z[k]for tt in range（t,t+3） for 1 in range(I) for k
+1n range(K)) > S[j]. name=f“Legume_(j}_(t}*)
+120
+121
+约末6：同一种作物在间一月土地上不能连续两个手度种植
+129
+model.addConstrs（（x[t,1，j.k]▪I[t，1+1,j.k]<=S[j]
+128
+for t in range(T) for j in range(J) for x 1n range (K) for 1 in range(I-1)),
+124
+name=*No_Consecutive_Planting*)
+125
+model.addConstrs（（x[t，1+1,j,x]·x[t+1,1，j.x]<= S[j]
+126
+for t in range(T-1) for j in range(J) for k in range(K) for 1 in range(I-1)).
+127
+name=*No_Consecutive_Planting*)
+128
+129
+约束7：最多种植p种作物
+180
+model.addConstrs((gP·quicksu=(Y[t,1, j.x] for k in range(K)) <= p
+131
+for t in range(T) for 1 in range(I) for j in range(J)),
+182
+nase=*Nax_Three_Crops*)
+133
+184
+添加约束：每种作物最多种在q块地上
+中国大学生在线
+56
+
+===== PAGE 57 =====
+：
+del.addConstrs((gp·quicksu=(Y[t,1, j. x]for j in range(J)) <= q
+1.85
+for t in range(T) for 1 in range(I) for k in range(K)),
+137
+name=*Max_Five_Plots_Per_Crop")
+139
+189
+约束8：确保核食作物在连续年份的第一季不能连种
+140
+model.addConstrs（（X[t，0.j.k]+I[t+1,0,j.k]<= S[j]
+14
+for t in range（T-1) for j in range（J） for k in range(1,16)).
+1
+nase=*No_Consecutive_Years_For_Grain*)
+143
+144
+约束：编号为1-26的土地在第二季不种核任何作物
+145
+sodel.addConstrs（（X[t， 1，J,x] = 0
+146
+for t in range(T) for j in range(26) for k in range (K)),
+14r
+nase=*No_Planting_Second_Season_For_Lands_1_26")
+148
+149
+约束：号为1-26的土地上只能种桂号为1-15的作物
+1.50
+model.addConstrs（（x[t，1，j，x]=0
+151
+for t 1n range(T) for 1 in range(I) for j in range(26) for k in range(15, 41)),
+162
+nase=*No_Planting_Crops_16_41_On_Lands_1_26)
+153
+154
+约京：淄号为1-15的作物只能种桂在编号为1-26的土地上
+156
+model.addConstrs（(X[t,1，j.x] == 0
+for t in range(T) for 1 in range(I) for j in range(26, J) for k in range（15)),
+158
+name=*No_Plamting_Crops_1_15_On_Lands_27_54°)
+159
+160
+约京：编号为27-34的土地种植水格
+161
+node1.addConstrs((gP·quicksus(X[t, 1, j, x] for 1 in range(I) for k in range K) 1f x == 15)<=  ▪ Z_rice[t,
+162
+for t in range(T) for j in range(27, 35)),
+163
+name=*Rice_Planting_Omly_Once*)
+164
+165
+确保水稻只能种植在单手
+166
+model.addConstrs((gP·quicksu=(I[t, 1, j.15]for 1 1n range（I)) <= S[j]
+167
+for t 1n range(T) for j in range(27. 35)).
+18
+169
+170
+添加约束1：如果种椎了水档，则第二季不种根任何作物
+171
+nodel.addConstrs((gp·quickeu=（x[t, 1. j. x] for k in range(K)）<= M ▪(1 - Z_rice[t， j])
+172
+for t in range(T) for j in range(27, 35)),
+173
+nase=*No_Second_Season_If_Rice*)
+174
+175
+添加约末2：第一季只能种桂17-34号作物
+1 79
+ux[x]xx=（（9）xx[xx）b）pp
+range(16,35))
+177
+for t in range(T) for j in range(27, 35)),
+178
+nase=*First_Season_Crops_17_34°)
+中国大学生在纪
+57
+
+===== PAGE 58 =====
+1 79
+180
+添加约束3：第二季只能种楼35-37号作物
+181
+x[x]x）d（（）uxx[x]）xb.））
+range(34,38))
+182
+for t in range(T) for j in range(27,35）),
+188
+name=*Second_Season_Crops_35_37")
+184
+185
+添加的束：确号为35-37的作物只能种被在编号为27-34的土地上
+186
+sodel.addConstrs（(X[t, 1， J，x] = 0
+187
+for tin range（T) for 1 in range(I） for j in range(26）for  in range(34,37+1）).
+188
+name=*No_Planting_Crops_35_37_On_Lands_1_26)
+1.89
+190
+添加约束1：编号为38-41的作物只能在35-50号地的第二手种植
+191
+sodel.addConstrs（(X[t,1，j，x] = 0
+199
+for t in range(T) for j in range(35) for k in range(37.41）),
+193
+nase=*No_Planting_Crops_38_41_On_Lands_1_34*)
+194
+198
+添加约末2：编号为38-41的作物只能种植在第二季
+196
+nodel.addConstrs（（X[t,0.j.k]==0
+197
+for t in range(T) for j in range(35, 51) for k 1n range(37, 41)),
+198
+name=*No_Planting_Crops_38_41_First_Season*)
+199
+200
+设置相对Gap
+201
+nodel.setPara=(*MIPGap′、0.01)
+209
+208
+204
+优化模型
+205
+nodel.optinize()
+206
+207
+输出结果
+208
+1fmodel.status = GRB.OPTIMAL:
+209
+print(f"Optimalsolution found withobjective value:(model.objVal))
+210
+for t in range(T):
+211
+for 1 in range(I):
+212
+for j 1n range(J):
+213
+for k in range (K):
+214
+1fx[t,1,j,x].x>0:
+215
+print(f"Year (t+1）.Season {i+1).Land{j+1}.Crop {k+1):{x[t，1.j.k].x} acres planted
+.)
+316
+print(f"Opti=al solution found withobjective value:{model.objVal}(元))
+中国大学生在线
+58
+
+===== PAGE 59 =====
+415
+2026年全国大学生
+国家安全知识答题

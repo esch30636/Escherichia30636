@@ -1,0 +1,30 @@
+% ============================================================
+% 问题四的附加扩展内容：潜热模型。
+% 与主文件 sec44_guosai.tex 分开保存，按需插入论文“模型改进”等位置。
+% ============================================================
+
+\subsection{考虑相变耗能的扩展模型}
+\label{subsec:q4_latent_extension}
+
+在主模型基础上，可进一步考虑水分相变引起的能量消耗。由初始湿密度换算干物质密度，并按仿射收缩更新：
+\begin{equation}
+\rho_{d0}=\frac{760+90C_0}{1+C_0},\qquad
+\rho_d(t)=\rho_{d0}\left(\frac{R_0}{R(t)}\right)^2.
+\end{equation}
+取汽化潜热$L_v=2.383\times10^6\ \mathrm{J/kg}$，分别构造表面型和体积型两种替代模型。表面型仅修改能量边界：
+\begin{equation}
+-\frac{k}{R}\left.\frac{\partial T}{\partial\xi}\right|_{\xi=1}
+=h(T_s-T_a)+L_v\rho_d h_m(C_s-C_a).
+\end{equation}
+体积型则保留原热边界，在能量方程中加入与局部含水率变化对应的等效能量汇。两种形式代表不同的相变位置假设，因此分别计算而不同时叠加。
+
+在数据末值环境、400单元条件下，不含相变耗能时连续临界时刻为$50.8245\ \mathrm h$；表面型模型为$56.1643\ \mathrm h$，体积型模型为$58.2531\ \mathrm h$。图\ref{fig:q4_latent}给出相应对照，其中“单位系数”仅用于数值敏感性试验，不作为物理标定结果。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{figures/fig06_latent.pdf}
+  \caption{相变耗能扩展模型对连续临界时刻的影响。}
+  \label{fig:q4_latent}
+\end{figure}
+
+由于题目未提供相变位置及额外标定参数，该扩展用于说明能量闭合假设对干燥时长的影响，不用于替换第四问主结果。

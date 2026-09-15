@@ -1,0 +1,25 @@
+{
+  "温度": {
+    "rows": 10800,
+    "radii": 21,
+    "values": 226800,
+    "max_rounding_difference": 0.0,
+    "range": [
+      28.0,
+      49.9664
+    ],
+    "freeze_panes": "B2"
+  },
+  "水分浓度": {
+    "rows": 10800,
+    "radii": 21,
+    "values": 226800,
+    "max_rounding_difference": 0.0,
+    "range": [
+      1.0081,
+      2.55
+    ],
+    "freeze_panes": "B2"
+  },
+  "sha256": "c44490994600a2b1d625869b332a88e4d5efc09beacb84630ad2c0f0dea711f7"
+}

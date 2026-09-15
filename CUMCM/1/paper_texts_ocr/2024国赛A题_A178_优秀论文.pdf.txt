@@ -1,0 +1,2168 @@
+
+===== PAGE 1 =====
+摘要
+“板凳龙”，亦称作“盘龙”，在浙江与福建地区广为流传，作为一种传统的民俗文
+化活动而备受推崇。本论文旨在深入探讨并优化”板凳龙”表演的行进路径与速度控制，
+以提升其表演的艺术性和观赏性。
+针对问题一，我们针对“板凳龙”的运动构建了一个数学模型，通过螺线轨迹描述
+“板凳龙”的行进过程。首先，我们基于螺线的极坐标方程，确定各把手的运动轨迹。
+接着利用微元法得到龙头运动的微分方程，然后基于板凳把手均位于螺线上、板凳不可
+伸长等假设得到各把手位置及速度的递推关系。最终，将问题一的参数代入计算，利用
+数值方法求解0s~300s每秒的各节龙身位置与速度，并将0s、60s、120s、180s、240s、
+300s时，龙头前把手、龙头后面第1、51、101、151、201节龙身前把手和龙尾后把手
+的运动数据记录在表（2）与表（3）中。
+得到碰撞的大致时刻。接着建立碰撞判断模型，并利用叉乘法判断点是否位于三角形内
+部，从而判断两板凳是否相撞。在模型求解时，我们首先根据同心圆近似碰撞模型计算
+出碰撞时间大约为410s，然后在[400，420]秒的时间区间内进行变步长搜索，最终确定
+碰撞时间为412.4739s。我们将该时刻龙身的位置和速度数据保存在文件中，并将龙头、
+第1、51、101、151、201节龙身以及龙尾的运动数据记录在表（4）与表（5）中。
+针对问题三，为简化计算，我们仅考虑龙头与第一节龙身的碰撞情况，并只计算进
+入调头空间前一段时间是否会发生碰撞。接着，采用二分法求解最小螺距，通过不断缩
+小搜索区间并判断碰撞情况，最终得到满足精度要求的最小螺距0.4000m。
+针对问题四，首先根据调头空间，我们将运动过程划分为四个阶段：盘入，调头第
+一段圆弧，调头第二段圆弧，盘出。针对每个阶段，分别建立了“板凳龙”的运动方程。
+由于运动轨迹关于极角为多值函数，在求解位置时，对极角的约束十分复杂，因此我们
+使用单值函数用于龙身位置和速度的求解。此外，我们证明了调头曲线长度不变性。最
+后，我们求解了特殊节点的位置和速度，并分析了龙身各节点的运动规律，并将-100s、
+-50s、0s、50s、100s时，龙头前把手、龙头后面第1、51、101、151、201节龙身前把
+手和龙尾后把手的运动数据记录在表（6）与表（7）中。
+针对问题五，我们首先探究了“板凳龙”运动中把手最大速度的分布规律，分析曲
+率半径、速度与板凳方向夹角之间的关系，猜想最大速度出现位置不随龙头行进速度变
+化，出现在第二段小圆弧末端附近。为了验证这一规律，我们针对不同的龙头行进速度
+进行了数值计算，并选取了200个时间点进行分析。结果表明，最大速度的变化呈现周
+期性，且最大速度峰值均出现在第100至125个时间点之间的特定位置范围内。最终我
+们采用了二分法对该时间段进行搜索，通过不断送代逼近，得到了龙头的最大行进速度
+为1.2462m/s，误差控制在0.0001m/s之内。
+关键词：等距螺线：仿真模拟：微元法：二分法
+
+===== PAGE 2 =====
+一、问题重述
+1.1问题背景
+“板凳龙”是浙闽地区元宵节期间的传统民俗活动之一，表演形式类似舞龙，但
+使用板凳串联模拟龙形。整个表演过程中，“板凳龙”的行进需要呈现出豌蜓曲折的形
+状，具有强烈的观赏性。表演的核心在于控制队伍的行进路线，使得整个龙队的盘入
+盘出流畅自然，避免出现队伍拥堵或碰撞的情况。此外，合理的速度控制和路径规划
+也是保证表演顺利进行的关键。
+1.2问题提出
+“板凳龙”由223节板凳组成，包括1节龙头、221节龙身、1节龙尾。其中，龙
+头板长为341cm，龙身和龙尾板长均为220cm，所有板凳的板宽为30cm；每节板凳上
+有两个孔，孔径为5.5cm，孔的中心均距离板头27.5cm：板凳通过把手连接，每节板
+凳上的前把手和后把手位于板凳的两端，连接处通过孔固定。
+针对问题一，模拟“板凳龙”沿螺距为55cm的等距螺线顺时针盘入的过程，给
+出从初始时刻到300秒为止，每秒”板凳龙”各把手的位置和速度，并将结果保存到
+文件result1.xlsx中。同时，提供0s、60s、120s、180s、240s、300s时，龙头前把
+手、龙头后面第1、51、101、151、201节龙身前把手和龙尾后把手的位置和速度数
+据。
+针对问题二，在确保“板凳龙”不发生碰撞的情况下，计算能够盘入的最晚时刻
+并计算此时刻龙头及龙身各关键节点（同问题一）的前把手、龙尾后把手的位置和速
+度。
+针对问题三，在“板凳龙”表演中，盘入后需要进行调头，调头空间为以螺线中
+心为圆心、直径为9米的圆形区域。确定最小螺距，使得龙头前把手能够沿着相应的
+螺线盘入到调头空间的边界。
+针对问题四，“板凳龙”沿螺距为1.7m的螺线盘入和盘出，调头空间为直径9m
+的圆形区域，调头路径为由两段圆弧相切连接而成的S形曲线。确定是否可以调整圆
+弧，仍保持各部分相切，使得调头曲线变短。给出从-100s开始到100s为止，每秒
+“板凳龙”各把手的位置和速度，将结果存放到文件result4.xlsx中，同时提供-100s、
+50s、0s、50s、100s时，龙头及龙身各关键节点（同问题一）的前把手、龙尾后把手
+的位置和速度。
+针对问题五，“板凳龙”沿问题四设计的路径行进，要求计算龙头的最大行进速
+度，使得“板凳龙”各把手的速度均不超过2m/s。
+二、问题分析
+2.1问题一的分析
+针对问题一，我们假设龙头把手沿等距螺线运动，通过螺距确定螺线的极坐标方
+程，并建立极角与时间的微分方程描述运动：随后，我们利用相邻把手之间的距离关
+系，建立各把手位置的递推方程组。最后沿板凳方向分解速度，建立各把手速度的递
+推关系。通过数值求解，得到把手位置和速度的时间变化规律。
+2.2问题二的分析
+身位置和速度数据，我们首先建立了同心圆碰撞近似模型。该模型将板凳龙的螺线轨
+迹近似为两个同心圆，当内圈板凳最远点极径大于等于外圈板凳最内点极径时，认为
+2
+
+===== PAGE 3 =====
+发生碰撞。
+利用几何关系，估计碰撞时刻，并在其附近进行精细搜索。随后，我们对板凳龙
+的行进过程进行仿真模拟，利用叉乘法建立板凳龙的碰撞判断模型。最终，对估计区
+间进行变步长搜索，得到精确的碰撞时间。
+2.3问题三的分析
+针对问题三，由于龙身位置出现的对称性，为简化问题，只考虑龙头与第一节板
+凳的碰撞情况。最后我们采用二分法求解满足最大速度条件的最小螺距，通过选代调
+整螺距区间，最终得到最小螺距，确保龙头能够安全进入调头空间。
+2.4问题四的分析
+针对问题四，首先我们分析了“板凳龙”调头轨迹，将其划分为四个阶段：盘
+入，调头第一段圆弧，调头第二段圆弧，盘出，然后讨论调头曲线的长度。针对每个
+阶段，我们分别建立了相应的运动方程，并基于问题一中位置和速度的递推模型，通
+过引入单值函数求解“板凳龙”龙头和龙身的准确位置和速度。
+2.5问题五的分析
+针对问题五，在探究“板凳龙”最大速度分布规律时，龙头前把手离开第二段圆
+弧时最大速度出现明显峰值，之后呈现周期性变化。通过分析曲率半径和速度与板凳
+方向夹角的关系，我们得出结论：最大速度出现位置不随龙头行进速度变化，出现在
+第二段小圆弧末端附近。因此，我们确定最大速度出现在龙头前把手离开第二段圆弧
+附近的一段时间区间内，并采用二分法求解龙头行进的最大速度。
+三、模型假设
+1.假设板凳不可伸长，即沿板凳方向各点速度相同。
+2.假设各把手中心始终位于螺线上，忽略其他因素影响。
+3.假设“板凳龙”在行进过程中不会倒退。
+4.假设板凳始终平行于地面，不会发生倾斜，简化为二维运动模型。
+四、符号说明
+表1符号说明
+符号
+符号说明
+单位
+(r,0)
+第节龙身前把手中心在极坐标系中的坐标
+(m,rad)
+(zy)
+第节龙身前把手中心在平面直角坐标系中的坐标
+(m,m)
+d
+等距螺线的间距
+m
+1
+龙身前后把手的距离
+m
+L
+龙头前后把手的距离
+m
+U
+第节龙身前把手的速度
+m/s
+D,
+孔的中心距离最近的板头的距离
+m
+D
+龙身板宽的二分之一
+m
+
+===== PAGE 4 =====
+五、问题一模型的建立与求解
+5.1模型建立
+5.1.1龙头运动模型
+根据题意，龙头前把手沿着等距螺线顺时针盘入。以螺线中心为极点，极轴指向
+出发点方向，建立极坐标系，则等距螺线方程为：
+r(0）=aθ
+(1)
+其中a为常数，0为螺线的极角，r（0）为螺线的径向距离。
+当极角相差2π时，对应极径相差为螺距d，于是有：
+r（0+2π）-r（0）=α·2π=d
+(2)
+解得a=
+d
+2π
+因此，螺线的极坐标方程为：
+r(0)
+(3)
+将其转化为平面直角坐标系下的参数方程，整理得：
+[x（0）=α·0.cosθ
+y（0）=α·0·sinθ
+(4)
+利用微元法推理极角9与行进时间t的关系。考虑t时刻A点运动到t+d时刻B
+点的过程，d充分小。
+de
+图1龙头运动模型
+根据图（1），有：
+OC=OB=a0
+(5)
+OA=α(0+dθ)
+(6)
+AC=OA-OC=αdθ
+(7)
+由于d9极小，故可以认为OAOB，OA⊥BC，且BC=BC，则有：
+tana=tanBAC=
+BC_a0d0
+AC
+ada
+=0
+(8)
+BC=OB-d0=α0d0
+(6)
+根据
+AB
+AC
+ado
+D=
+P
+cosa.dt
+p.D790
+(10)
+4
+
+===== PAGE 5 =====
+将式（8）代入式（10），整理得微分方程：
+θP
+a√1+g
+(11)
+解得解析解：
+θ√6²+1+1n（0+√0²+1）=2
+2+C
+(12)
+又根据题意，在初始时刻时，9=32π，计算得：
+C=32π√（32π）²+1+1n（32π+√（32π）²+1）
+(13)
+5.1.2把手位置模型
+记上文中的螺线方程（4）为F（z，y）=0，根据假设，各把手中心均位于螺线上，
+则各节板凳前把手中心（zy）均满足螺线方程：
+F（zy）=0
+(14)
+F（z,1）=0
+(15)
+又根据题意，第i节龙身、第i+1节龙身前把手之间的距离即为第i节龙身前后把
+手的距离，记为l，于是有：
+√(x-x+）²+（-+)²=1
+(16)
+此处将龙头看作第0节龙身，则：
+√(x-x）²+（yo-）²=L
+(17)
+此外，考虑第i+1节龙身前把手运动的极角的范围：
+≥g-1+g≥0
+(18)
+综上，整理得各把手中心的位置方程组：
+F（zy）=0
+F(x+1+2）=0
+√(x-+2）²+（-+）²=1
+(19)
+≥g-1+g≥0
+根据方程组（19）整理得：
+0²+0+²-200+cos（0-0+）=
+(20)
+5.1.3把手速度模型
+0:+1
+(x,y)
+(x+1,3+1)
+图2把手速度模型
+根据螺线的参数方程（4）计算得螺线的切线方向e=
+(2(6）.y(0）)
+
+===== PAGE 6 =====
+x’（0）=a（cosθ-θsinθ)
+(21)
+y’（0）=α（sin0,+0,cosθ)
+(22)
+于是第节龙身前把手的速度为：
+u;=lole
+(23)
+记第节龙身后把手指向第节板凳前把手的方向为第节龙身的板凳方向：
+ets+x=（z-z+1sy-+1）)
+(24)
+由于假设板凳不可伸缩，因此第节板凳前把手中心沿板凳方向的分速度与第i十1
+节板凳前把手中心沿板凳方向的分速度相同，于是有：
+U·e+1=+x·et+1
+(25)
+5.2模型求解结果
+我们将参数d=0.55m，=1m/s代入模型进行求解，以1s的时间间隔将龙身位置
+和速度数据记录在文件resultl.xlsx中。
+以300s时刻为例，我们绘制如图（3）所示的板凳龙位置图，此刻把手均位于螺
+线上，符合题目要求。
+300s时刻板凳龙位置图
+10.0
+绿线
+板
+电
+7.5
+5.0
+2.5
+0.0
+2.5
+5.0
+-7.5
+10.0
+7.5
+5.0
+25
+2.5
+图3300s“板凳龙”位置
+根据题目要求，我们给出0s、60s、120s、180s、240s、300s时，龙头前把手、龙
+头后面第1、51、101、151、201节龙身前把手和龙尾后把手的位置和速度数据，结果
+如表（2），表（3）所示：
+
+===== PAGE 7 =====
+表2特殊节点位置结果
+0 s
+60 s
+120 s
+180 s
+240 s
+300 s
+龙头x（m）
+8.800000
+5.799209
+4.084887
+-2.963609
+2.594494
+4.420274
+龙头y（m）
+0.000000
+-5.771092
+-6.304479
+6.094780
+-5.356743
+2.320429
+第1节龙身x（m）
+8.363824
+7.456758
+-1.445473
+-5.237118
+4.821221
+2.459489
+第1节龙身y（m）
+2.826544
+-3.440399
+-7.405883
+4.359627
+-3.561949
+4.402476
+第51节龙身x（m）
+-9.518732
+-8.686317
+-5.543150
+2.890455
+5.980011
+-6.301346
+第51节龙身y（m）
+1.341137
+2.540108
+6.377946
+7.249289
+-3.827758
+0.465829
+第101节龙身x（m）
+2.913983
+5.687116
+5.361939
+1.898794
+-4.917371
+-6.237722
+第101节龙身y（m）
+-9.918311
+-8.001384
+-7.557638
+-8.471614
+-6.379874
+3.936008
+第151节龙身x（m）
+10.861726
+6.682311
+2.388757
+1.005154
+2.965378
+7.040740
+第151节龙身y（m）
+1.828754
+8.134544
+9.727411
+9.424751
+8.399721
+4.393013
+第201节龙身x（m）
+4.555102
+-6.619664
+-10.627211
+-9.287720
+-7.457151
+-7.458662
+第201节龙身y（m）
+10.725118
+9.025570
+1.359847
+-4.246673
+-6.180726
+-5.263384
+龙尾（后）x（m）
+-5.305444
+7.364557
+10.974348
+7.383896
+3.241051
+1.785033
+龙尾（后）y（m）
+-10.676584
+-8.797992
+0.843473
+7.492371
+9.469336
+9.301164
+表3特殊节点速度结果
+0 s
+60 s
+120 s
+180 s
+240 s
+300s
+龙头（m/s）
+1.000000
+1.000000
+1.000000
+1.000000
+1.000000
+1.000000
+第1节龙身（m/s）
+0.999971
+0.999961
+0.999945
+0.999917
+0.999859
+0.999709
+第51节龙身（m/s）
+0.999742
+0.999662
+0.999538
+0.999331
+0.998941
+0.998065
+第101节龙身（m/s）
+0.999575
+0.999453
+0.999269
+0.998971
+0.998435
+0.997302
+第151节龙身（m/s）
+0.999448
+0.999299
+0.999078
+0.998727
+0.998115
+0.996861
+第201节龙身（m/s）
+0.999348
+0.999180
+0.998935
+0.997894
+0.996574
+龙尾（后）（m/s）
+0.999311
+0.999136
+0.998883
+0.998489
+0.997816
+0.996478
+六、问题二模型的建立与求解
+6.1模型建立
+由等距螺线曲率半径公式川，
+(0²+1）²
+（0²+2）θ
+→1(9→00）
+(26)
+T
+因此，我们认为当9较大时，p与r近似相等。于是建立如下同心圆碰撞近似模
+型。
+6.1.1同心圆碰撞近似模型
+我们将板凳龙运动的螺线轨迹近似为两个同心圆，其中内圆半径为R，外圆半径
+为R+d，其中R可任意取值，如图（4）所示。
+我们认为，当内圈板凳最远点极径R大于等于外圈板凳最内点极径R时，发生
+碰撞。根据同心圆的对称性，第一次碰撞可确定发生在龙头处。
+
+===== PAGE 8 =====
+R+
+0
+图4同心圆轨迹碰撞示意图
+记h为圆心到外圆板中轴线距离，h为圆心到内圆板中轴线距离，则根据勾股定
+理：
+h=OD=
+(R+d)²
+(27)
+(28)
+由于R为板凳移动时距离圆心最近的距离，因此我们过圆心向板凳下边缘作垂
+线，有：
+RW=h-0.15
+(29)
+由于R为板凳移动时距离圆心最远的距离，则R即为圆心与板凳上边缘顶点之
+间的距离：
+OA=R
+(30)
+当0A=h一0.15时，判定龙头和龙身相撞，下计算0A的长度：
+根据几何关系，我们有：
+tanABC=
+AC
+BC
+(31)
+AB=√AC²+BC²
+(32)
+则ABC=arctan
+AC
+ABO
+T
++arctan
+AC
+BC
+2
+BC
+根据余弦定理：OA²=AB²+BO-2AB·BO·COSABO即可计算OA。
+中国大学生在线
+
+===== PAGE 9 =====
+6.1.2“板凳龙”碰撞仿真模拟
+计算板凳四个顶点坐标
+P
+P()
+D
+eii+1
+P
+图5板凳顶点示意图
+由图（5），第节龙身后把手指向第节龙身前把手的方向为：
+（2-+1,-y+2）
+e4i+1
+(33)
+1
+对应的法向量为：
+nus+1
+（3+1-y+1-x）
+(34)
+计算顶点P、P、P、P的坐标：
+P=（zy）-(l+D）·e+x+D·n+1
+P=（xy）+D·e+x+D·n+1
+P=（zy）+D·e+1-D·n+1
+(35)
+P=（xy）-(1+D）·e+-D·n+1
+当=0时，1替换为L。
+碰撞判断模型
+P(
+P()
+PG
+P()
+图6碰撞判断模型
+当第节龙身的顶点P、P在口PPPP内部时，我们判定第节龙身与第节
+龙身碰撞。如图（6）将口PPPP沿对角线划分为两个三角形，分别判断P、P
+是否在两个三角形内部，以判断P是否在△PPP内部为例进行说明。
+判断一个点是否位于三角形内部，可以通过叉乘法来实现。构造从三角形顶点
+到点P的向量，并计算三个向量之间的叉乘，如果叉乘结果都为正，或者都为负，则
+点P位于三角形内部。
+<(dxd)(dxdd)
+<(xdd）·(ddxd）
+(36)
+(PRXPP）.(RP×PP）>0
+
+===== PAGE 10 =====
+6.2模型求解方法
+根据同心圆碰撞近似模型，我们计算出发生碰撞的上界时间420s。我们在时间区
+间[400s，420s]之间变步长遍历搜索D，计算碰撞时间，具体遍历步骤如下图（7）所
+示：
+开始
+结束
+时刻r
+险入一
+输出
+YES
+计算所有把
+NO
+判新
+手位置
+撞
+计算所有板
+对所有板
+确定该板免相等
+竞预点位置
+凳海历
+球线上的取是
+图7判断碰撞算法流程图
+6.3模型求解结果
+我们首先以t=1s的步长进行遍历，缩小碰撞时间范围至[412s,413s]：最后以
+t=0.0001s变步长进行精细搜索，计算板凳发生碰撞时间为412.4739s。按照题目要
+求，
+我们将此刻龙身位置和速度数据记录在文件resuli2.xlsx中，并给出此刻龙头前把
+手、龙头后面第1、51、101、151、201节龙身前把手和龙尾后把手的位置和速度数
+据，结果如表（4），表（5）所示：
+表4特殊节点位置结果
+龙头x（m)
+1.209983
+第101节龙身y（(m）
+-5.880132
+龙头y（m）
+1.942749
+第151节龙身x(m)
+0.968780
+第1节龙身 x(m)
+-1.643745
+第151节龙身y(m)
+6.957487
+第1节龙身y（m）
+1.753440
+第201节龙身x（m）
+-7.893170
+第51节龙身x（m）
+1.281259
+第201节龙身y（m)
+-1.230704
+第51节龙身y（m）
+4.326570
+龙尾（后）x(m)
+0.956277
+第101 节龙身x（m）
+0.536307
+龙尾（后）y（m）
+8.322728
+表5特殊节点速度结果
+龙头
+第1节
+第51节
+第101节
+第151节
+第201节
+龙身（m/s)
+龙身(m/s)
+龙（ms)
+龙身（ms)
+龙身（m/s)
+龙尾（后）
+(m/s)
+(m’s)
+1.000000
+0.991551
+0.976858
+0.974550
+0.973608
+0.973096
+0.972938
+
+===== PAGE 11 =====
+七、问题三模型的建立与求解
+模型建立
+经过分析，螺距与碰撞时龙头前把手的极径呈现明显的单调递减关系。因此我们
+只需保证，在碰撞时龙头前把手的极径小于等于调头空间的半径的条件下，求解最小
+螺距。故建立如下优化模型：
+obj:min d
+(37)
+s.t.d∈S
+(38)
+其中，S表示龙头前把手进入调头空间前，未发生碰撞时螺距d组成的集合。
+模型求解
+在此基础上，采用二分法来求解最小螺距，具体步骤如下：
+1.参数初始化：首先，设定最小螺距的初始搜索区间，设定最小螺距的下界
+1=0.3m和上界r=0.55m，精度设为6=10m。
+2.最大速度条件验证：计算中间值mid=（l+r)2，并以0.01s为时间步长，判断
+时间区间（t-10，t）内是否发生碰撞。
+3.搜索区间调整：如果发生碰撞，更新下界l=mid：否则，更新上界r=mid。
+4.选代逼近：重复上述操作，直到r一1满足精度要求，此时，根据最终的搜索
+区间得到最小螺距d=（l+r）/2。
+通过二分法求解得最小螺距为0.4000m，误差控制在0.0001m之内。
+八、问题四模型的建立与求解
+8.1调头路径
+8.1.1调头路径几何特性
+A(zn,y=
+公切线！
+B(-z,-y)
+图8调头空间示意图
+记盘入螺线与调头空间边缘交点为（y），由题意，盘出螺线与盘入螺线关于螺
+线中心呈中心对称，则盘出螺线与调头空间边缘交点为（--m），且切线4。白
+于（my）处的切线方向为e=（z'y），法线方向为n=（-y'），记前一段圆弧的
+圆心0坐标为：
+O=（xym）+2入·n
+(39)
+其中，入为参数。由于前一段圆弧的半径是后一段圆弧半径的2倍，则后一段圆弧
+II
+
+===== PAGE 12 =====
+的圆心坐标0为：
+O2=（-xn-yn）-·n
+(40)
+此外，由于AO⊥4，BOLl，4，则AOBO。
+记R为前一段圆弧的半径，R为后一段圆弧的半径，于是有R=2入nl，
+R=入|n|。
+由于调头路径中的两段圆弧相切，则QOLI，QO⊥1，O、Q、O三点共线，两
+圆弧圆心0、O之间的距离等于两圆弧半径之和：
+[0,0|=3入|n|
+(41)
+记3为圆弧圆心角，根据几何关系和三角函数关系，我们有：
+sin
+_1.|AB|
+2=6R
+(42)
+解得：
+1|AB]
+(43)
+其中，
+8.1.2调头由线长度
+从图（8）中截取圆弧部分，如图（9）所示，进行调头曲线长度分析。
+C
+0
+R,
+2H
+图9调头空间内几何关系示意图
+记AO与BO之间的距离为H，根据上文，我们有AOBO，AO=2BO。过O
+点做AO、BO的垂线OC、OD，于是有OC=2H/3，OD=H/3，则此时sinZOAO
+=H/2R为一定值，因此β=π-2OAO恒不变。弧长C=β（R+R），其中
+R+R=H/sinβ为一定值
+因此，若进入调头空间后立刻开始沿圆弧调头，则无法通过调整圆弧，仍保持各
+部分相切，使得调头曲线变短，此时圆弧长度为13.621m。
+若进入调头空间后仍继续盘入，则可通过调整圆弧半径缩短调头曲线。具体分析
+如下：
+定义龙头开始调头的径向距离为调头半径，记为r：又弧长C=HB/sinβ，其中
+β=π-2arcsin（H/2r），可知弧长与调头半径正相关。根据假设，“板凳龙”在行进过
+程中不会倒退，小圆弧的直径大于等于龙头前后把手之间的距离，则2min{r，r）≥L。
+针对不同约束，可对最小弧长进行求解：
+
+===== PAGE 13 =====
+若仅调整调头半径，而不改变圆弧半径比例，调头半径最短为4.281m，此时圆弧
+长度为12.936m；
+若同时调整调头半径和圆弧半径比例，当比例为1:1时，调头半径最短为2.847m，
+此时圆弧长度为8.443m。
+8.2“板凳龙”位置速度模型的建立与求解
+8.2.1模型建立
+我们将“板凳龙”调头过程分为四个部分，分别为龙头进入盘入，调头第一段圆
+弧，调头第二段圆弧，盘出。记F（t)=（z，y）为“板凳龙”运动轨迹的分段函数。
+在龙头进入调头空间前，即-100s<t<0s时，“板凳龙”运动方程满足螺线参数
+方程（4）：
+F（t)=（aθ（t)cos（0（t）),aθ（t)sin(0（t)))
+(44)
+根据式（11）的解析解，修改初始条件为0。=0，其中0*表示龙头进入调头空
+间时的极角。此时，9满足：
+θ√θ²+1+1n（θ+√0²+1）=2t+C
+(45)
+C=0√0²+1+1n（0+√0²+1)
+W
+做顺时针运动，则：
+F（t）=
+{-2入ym'+Rco8（-wt））
+（ym-2xc'+Rsin（-wt））
+(46)
+其中，满足cos=
+Uim'
+Zin'
+2n+入yn+Rcos2+w
+F(t)=
+(47)
+-n-)zm'+Rsin
+其中，2=-β+π。
+在“板凳龙”离开调头空间后，即3
++<t<100s时，由于盘出螺线与盘
+入螺线关于螺线中心呈中心对称，有：
+F(t)=（a0(t)cos(0(t)+π),α0(t)sin(0(t)+π))
+(48)
+与第一种情况一致，修改初始条件为-（+)=，其中0表示龙头进入调头
+空间时的极角。此时，0满足：
+13
+
+===== PAGE 14 =====
+θ√θ²+1+1n（0+√0²+1）=
++C
+(49)
+C=0√0²+1+1m（0+√0²+1）-
+把手位置模型
+由于“板凳龙”的运动轨迹是关于9的多值函数，因为我们考虑将F（t）看作其余
+龙身的单值参数方程，将其代入各把手中心的位置方程组（19）：
+（F（t）=0
+F（t+1）=0
+D（t,t+1）=l
+(50)
+t-t+1>0
+其中，F（t）=0表示第节龙身把手在螺线轨迹上。
+把手速度模型
+在问题一的基础上，根据“板凳龙”位置分段函数F（调整龙头运动的切线方程
+F（）得：
+a（cosθ（t)-0（t）sinθ（t）））
+a（sinθ（t）+0（t）cosθ（t）））
+-100<t≤0
+（y（t)-yn-2xx，-z（t）+z-2）ym),0<t<
+P
+F（t）=（2，y）=
+(51)
+（-y（t）-y-2x'x（t）+z-2yn，
+(a（cos（0（t)+π）-0（t）sin（0（t）+π））
+(a（8in（0（t）+π）+0（t）cos（0（t）+π））
+t<100
+将F（t)代入把手速度模型求解即可。
+8.2.2模型求解结果
+根据题目所给的调整路径，我们对龙身位置和速度进行求解，并将其记录在文件
+result4.xlsx中，同时给出-100s、-50s、0s、50s、100s时，龙头前把手、龙头后面
+第1、51、101、151、201节龙身前把手和龙尾后把手的位置和速度，结果如表（6），
+表（7）所示：
+表6特殊节点位置结果
+100 s
+50 s
+0s
+50 s
+100s
+龙头x（m）
+7.778034
+6.608301
+-2.711856
+1.332696
+-3.157229
+龙头y（m）
+3.717164
+1.898865
+-3.591078
+6.175324
+7.548511
+第1节龙身x（m）
+6.209273
+5.366911
+-0.063534
+3.862265
+-0.346890
+第1节龙身y（m）
+6.108521
+4.475403
+4.670888
+4.840828
+8.079166
+第51节龙身x（m）
+-10.608038
+-3.629945
+2.459962
+-1.671385
+2.095033
+第51节龙身y（m）
+2.831491
+-8.963800
+-7.778145
+-6.076713
+4.033787
+第101节龙身x（m）
+-11.922761
+10.125787
+3.008493
+-7.591816
+-7.288774
+第101节龙身y（m）
+-4.802378
+-5.972247
+10.108539
+5.175487
+2.063875
+第151节龙身x（m）
+-14.351032
+12.974784
+-7.002789
+-4.605165
+9.462513
+第151节龙身y（m）
+-1.980993
+-3.810357
+10.337482
+-10.386988
+-3.540357
+第201节龙身x（m）
+-11.952942
+10.522509
+6.872842
+0.336952
+8.524374
+14
+
+===== PAGE 15 =====
+第201节龙身y（m）
+10.566998-10.80742512.382609-13.1776108.606933
+龙尾（后）x（m）
+-1.011059
+0.189809
+-1.933627
+5.859094
+-10.980157
+龙尾（后）y（m）
+-16.527573
+15.720588
+-14.713128 12.612894
+-6.770006
+表7特殊节点速度结果
+100 s
+50 s
+S 0
+50 s
+100 s
+龙头（m/s）
+1.000000
+0000001
+1.000000
+1.000000
+1.000000
+第1节龙身（m/s）
+0.999904
+0.999762
+0.998687
+1.000363
+1.000124
+第51节龙身（m/s）
+0.999346
+0.998642
+0.995134
+0.949935
+1.003966
+第101节龙身（m/s）
+0.999091
+0.998248
+0.994448
+0.948482
+1.096263
+第151节龙身（m/s）
+0.998944
+0.998047
+0.994156
+0.948038
+1.095306
+第201节龙身（m/s）
+0.998849
+0.997925
+0.993994
+1.094933
+龙尾（后）（m/s）
+0.998817
+0.997885
+0.993944
+0.947760
+1.094833
+九、问题五模型的建立与求解
+9.1最大速度分布规律探究
+当龙头速度为1m/s时，我们探索最大速度随时间变化的情况，如图（10）所示：
+最大速度随时间变化情况
+最大速康
+（s
+300
+400
+图10最大速度随时间变化情况
+我们发现图（10）中出现明显峰值A点，且A点之后最大速度的变化呈现周期
+性。经过计算，A点时刻为板凳龙"龙头前把手离开第二段圆弧时的时刻。下面说明
+出现明显峰值A点的原因。
+首先我们分析曲率半径p和速度与板凳方向夹角之间的关系：
+15
+
+===== PAGE 16 =====
+图11探究曲率半径与速度变化之间的关系
+根据几何关系得：
+sinp=
+2p
+(52)
+由于第节龙身前把手中心沿板凳方向的分速度与第i+1节龙身前把手中心沿板凳
+方向的分速度相同，则：
+·008+1·008+1
+(53)
+整理得：
+1-
++1
+4o:
+cOS+1
+U
+(54)
+V1-
+4p?
+u=u+1-μ·（²-p+1²)
+(55)
+其中，μ可近似为常数。
+离开第二段小圆弧位置，第二段圆弧曲率半径为p+1，盘出螺线曲率半径为p，相
+差最为明显，于是在此处附近的相邻节点速度变化较大，所以在此处最大速度出现明
+显峰值。
+根据上述分析，我们猜想，最大速度出现位置不随龙头行进速度变化，出现在龙
+头前把手离开第二段小圆弧的时刻附近。于是我们针对不同的龙头行进速度对最大速
+度出现位置的影响进行分析，记龙头前把手离开第二段小圆弧的时刻为t，以0.1s为
+步长，绘制（t-10，r+10）这一时间段中最大速度的图像如图（12）所示：
+
+===== PAGE 17 =====
+行进速度对最大速度位置的影响
+1.25m/s
+1.00 /
+3.0
+1.75
+1.50m/
+m/
+2.00
+2.5
+1. 5
+100
+125
+091
+175
+200
+t
+图12行进速度对最大速度位置的影响
+由图（12）可知，最大速度峰值出现后的最大速度变化呈时间周期性。此外，我
+们发现最大速度均在在100~125时刻的附近的位置范围内出现，该时间段对应龙头前
+把手离开第二段小圆弧的时间区间。因此，我们印证猜想，接下来我们对该区域进行
+精细搜索。
+9.2模型建立
+由上述分析，建立优化模型：
+obj:maxu
+(99)
+8.t.Umx≤2
+(57)
+其中，表示龙头前把手速度为v是“板凳龙”行进过程中，把手出现的最大速
+度。
+9.3模型求解结果
+根据最大速度分布规律探究的分析，我们发现当“板凳龙”龙头前把手离开第二段
+圆弧时，出现最大速度。根据计算，调头空间内的圆弧长度为C=13.621m：由t=8/v
+估算最大速度时间区间，以△t=0.001s为步长，计算（t-0.5，t+2.5）内的umx°
+我们采用二分法进行求解。具体步骤如下：
+1.参数初始化：首先，设定最大速度的初始搜索区间，设定最大速度的下界
+=1m/s和上界r=2m/s，精度要求为6=10-m/s。
+2.最大速度条件验证：计算中间值mid=（+r）2，并计算umx与2m/s进行比
+较。
+3.搜索区间调整：如果umx>2m/s，更新上界r=mid；否则，更新下界
+l=mid.
+4.选代逼近：重复上述操作，直到r一1满足精度要求，此时，根据最终的搜索
+区间得到龙头的最大行进速度=（+r）2。
+解得龙头的最大行进速度为1.2462m/s，其中误差控制在0.0001m/s之内。
+17
+
+===== PAGE 18 =====
+十、模型检验
+为检验运动模型的正确性，本节针对问题一对位置和速度模型分别进行验证
+10.1位置模型检验
+我们将螺线的极径近似为曲率半径，估计螺线中心为圆心，建立如下近似圆估计
+模型：
+θP
+=
+(58)
+其中，r为螺线的极径。代入问题一的初始条件0。=32π，解得：
+(59)
+计算其结果，与问题一的求解结果进行比较，计算误差：
+e=disy
+(60)
+其中，dis表示j时刻两个求解结果中第i节龙身前把手位置之间的距离。误差结
+果如下图（13）所示：
+近似圆算法和精确算法误差
+9.025
+0.020
+ts)
+200
+图13求解结果位置误差
+由图（13）可知，误差e随时间t增大，这是由于随着极径变短，曲率半径估计误
+差偏大引起的。
+10.2速度模型检验
+在问题一中，我们利用板凳的不可伸缩性，通过切线方程求解速度的理论值：此
+处我们利用差分算法进行速度近似值求解：
+利用差商近似微商，即=
+ds
+果进行比较，计算误差，最大误差数量级为10*m/s。
+
+===== PAGE 19 =====
+十一、模型优缺点
+11.1模型优点
+1.利用微元法获得微分方程，并求得解析解，避免了数值求解时带来的误差积
+累，提高求解效率和精度。
+2.问题二采取同心圆近似螺线估计碰撞时间，极大地减少了后续对时间遍历的搜
+索空间，减小求解成本：同时估计结果与真实结果较为接近，误差在1%以
+内。
+3.本文针对问题的最优子结构进行分析，分别采取二分法、变步长搜索等方法进
+行求解，保证结果的正确性。
+11.2模型缺点
+1.对于“板凳龙”运动这一连续过程，本文仅对离散时刻进行碰撞判定。
+2.考虑到实际问题中的随机因素存在误差。
+
+===== PAGE 20 =====
+参考文献
+[1]https://blog.csdn.net/BUAAerxuvang/article/details/135187865
+[2]https://blog.csdn.net/adolph vang/article/details/79123304
+[3]贾宝新，李峰，潘一山，等.基于变步长加速搜索的微震源定位方法[刀.岩土力
+学,2022,43(03):843-856.DOI:10.16285/j.rsm.2021.0872
+报,2024,39(02):71-76.DOI:10.13603/j.cnki.51-1621/z.2024.02.012.
+20
+火中国大学生在线
+
+===== PAGE 21 =====
+附录
+附录一支撑文件列表
+Problem1_1.py
+#圆半径近似计算位置和速度
+Problem1_2.py
+#精确计算位置和速度
+Problem1_3.py
+#差分算法计算速度
+Problem1_4.py
+#误差对比
+Problem2_1.py
+#同心圆估计碰撞时间
+Problem2_2.py
+#计算碰撞时刻，保存数据，绘制示意图
+Problem3_1.py
+#二分法计算最小螺距
+Problem4_1.py
+#精确计算问题四
+Problem4_2.py
+#差分算法计算速度
+Problem4_3.py
+#计算最短圆弧
+Problem5_1.py
+#二分法求最大速度
+Plot1_1.py
+#绘制300s时刻的精确版本的板凳龙位置图
+Plot4_1.py
+#绘制调整路径示意图
+Plot5_1.py
+#绘制最大速度随时间变化分布图
+Plot5_2.py
+#绘制最大速度随速度变化分布图
+Table.py
+#导出论文结果
+resultl.xlsx
+#问题一结果
+result2.xlsx
+#问题二结果
+result4.xlsx
+#问题四结果
+21
+
+===== PAGE 22 =====
+附录二程序代码
+本文采用Python进行编程。
+第一问精确计算位置和速度（Probleml2.py）
+#问题一：求解各把手位置和速度
+inport numpy as np
+import pandas as pd
+from numpyimport pi,sin,cos,sqrt,log
+from scipy.optimize import root
+#参数
+d=0.55
+#螺距（m）
+=1
+龙头行进速度（m/s）
+C=（32*pi）*sqrt（（32*pi）**2+1）+1og（（32*pi）+
+sqrt（（32*pi）**2+1））
+alpha=d/（2*pi）
+#给定时刻t，计算龙头的位置
+def head(t):
+theta=root（lanbda x:x*sqrt（x**2+1）+log（x+sqrt（x**2+
+1)）-C+2*v*t/alpha,10）.x[θ]
+theta
+#给定龙头的位置，计算各把手的位置
+def postition(theta):
+x_post,y_post，theta_post=[theta*alpha *cos(theta)]，[theta
+alpha*sin（theta)],[theta]
+#计算第一节龙身前把手
+def func(t1):
+t0,1=theta,2.86
+return t1**2+t0**2-2*t1*t0*cos（t1-t0）-（1/alpha）**2
+t1=root（func,theta+1）.x[θ]
+eydte）puaddesod（（t）soeydte）puaddesodx
+sin(t1));theta_post.append(t1)
+#计算后续的把手
+for_in range(222）:
+def func(t):
+1 =1.65
+return t**2+t1**2-2*t*t1*cos（t-t1）-（1/alpha）**
+22
+
+===== PAGE 23 =====
+t1=root（func,t1+1）.x[θ]
+x_post.append（t1*alpha*cos（t1）);y_post.append(t1*alpha
+sin(t1));theta_post.append(t1)
+return x_post,y_post, theta_post
+#给定龙头的速度和各把手的位置，计算各把手的速度
+def speed（x,y,theta）:
+v1=1
+speed=[1]
+for iinrange（223）:
+d1=np.array([cos(theta[i])-theta[i]*sin(theta[i]),
+sin(theta[i])+
+theta[i]*cos(theta[i])])
+上一把手速
+度方向
+d1=d1/np.linalg.norn(d1)
+d=np.array([cos(theta[i+1])-theta[i+1]*sin(theta[i+1]）,
+sin(theta[i+1])+theta[i+1]*cos(theta[i+1])])
+这一把手速度方向
+d=d/np.linalg.norm（d）
+vector=np.array（[x[i+1]-x[i],y[i+1]-y[i]]）
+#板凳方向
+v1=root（lambdav:np.dot（v1*d1,vector)-np.dot（v*d,
+vector)，v1).x[θ]
+speed.append(v1)
+return speed
+#主函数
+if
+_nane_
+main
+：
+#划分时间
+t=np.arange（0，301，step=1)
+post_result=pd.DataFrane(columns =t,index=range(224*2))
+speed_result = pd.DataFrame(columns =t,index = range(224))
+计算龙头前把手的位置和速度
+head_vec =np.vectorize(head)
+head_post_x, head_post_y， head_theta =head_vec(t)
+#计算各时刻把手的位置和速度
+for i,t in enunerate(head_theta):
+#计算把手位置
+handle_post_x,handle_post_y,handle_theta =
+postition(t)
+handle_post=[]
+23
+
+===== PAGE 24 =====
+for j in range(224）:
+handle_post.append(handle_post_x[j]);
+handle_post.append(handle_post_y[j])
+post_result[i]=handle_post
+#计算把手速度
+handle_speed -speed(handle_post_x,handle_post_y,
+handle_theta)
+speed_result[i]= handle_speed
+#保存答案
+post_result.round（6）.to_excel（问题一_位置.xlsx'）
+speed_result.round（6）.to_excel（*问题一_速度.xlsx'）
+第二问变步长搜索碰撞时间（Problem22.py）
+#问题二：变步长求解碰撞时刻
+inport numpy as np
+inport pandas as pd
+import matplotlib.pyplot as plt
+from scipy.optimize import root
+from numpy import pi,sin,cos，sqrt， arcsin,log
+#参数
+d=0.55
+#螺距（m）
+#龙头行进速度（m/s）
++（Td））o+（+*（））bs*（d）=）
+（（+（））bs
+alpha=d/(2*pi)
+#给出螺旋线方程
+def helix(theta):
+return np.array（[alpha *theta*cos（theta）,alpha *theta*
+sin(theta)])
+#判断点在矩形内部
+def Point_in_Polygon(point，polygon）:
+A,B,C，D=polygon[θ],polygon[1],polygon[2],polygon[3]
+P=np.array（[point[o],point[1]])
+flag1,flag2=0，0
+AB，BC，CA=B-A，C-B,A-C
+AP，BP,CP=P-A，P-B，P-C
+24
+
+===== PAGE 25 =====
+ifnp.sign(AB[θ]*AP[1]-AP[o]AB[1]）==np.sign（BC[θ]*
+BP[1]-BP[θ]*BC[1]）and
+np.sign（BC[θ]*BP[1]-BP[θ]*BC[1]）==
+np.sign（CA[θ]*CP[1]-CP[θ]*CA[1]）:
+flag1=1
+AD，DC，CA=D-A，C-D，A-C
+AP，DP，CP=P-A，P-D,P-C
+ifnp.sign(AD[θ]*AP[1]-AP[θ]*AD[1]）=np.sign（DC[θ]*
+==（[][]d-[]d[]）usdupue（[]a*[]d-[]d
+np.sign（CA[θ]*CP[1]-CP[θ]*CA[1])：
+flag2 = 1
+if flag2 or flag1:
+return True
+else:
+return False
+#根据前把手计算四个点：
+def vertices（front,back,L):
+D1=0.275;Dh=0.15
+handle1 =helix(front)
+handle2=helix(back)
+e=（handle1-handle2）/（L-θ.55）
+n=np.array（[-e[1],e[θ]]）
+points=np.array（[handle1-
+（L-D1）*e+Dh*n，
+handle1+D1*e+Dh*n,
+handle1+D1
+*e-Dh*n,
+handle1-（L-D1）*e-Dh*n，]）
+return points
+#判断前把手是否碰撞：所有点的位置信息，判断是否会发生碰撞
+def crash(theta):
+fori,tin enunerate（theta[:2]）:
+delta=2*arcsin（2.86/（2*alpha*t））
+#寻找外圈的板凳
+neighbor =[j+i for j,k in enumerate(theta[i:-1]） if t+ 2*pi
+delta<kandk<t+2*pi+delta]
+#效率版本
+#neighbor=[j for j,kin enumerate（theta[:-1]）ift
+<k
+andk<t+4*pi]
+#准确版本
+#碰撞点
+ifi==θ:
+point1 =vertices(theta[i], theta[i+1],3.41）[1]
+25
+
+===== PAGE 26 =====
+point2=vertices（theta[i],theta[i+1],3.41）[0]
+else:
+point1 =vertices（theta[i],theta[i+1],2.2)[1]
+point2=vertices（theta[i],theta[i+1],2.2)[θ]
+#判断是否碰撞
+for nei in neighbor:
+if Point_in_Polygon(point1,vertices（theta[nei],theta[nei
++1],2.2))or Point_in_Polygon(point2,vertices（theta[nei],
+theta[nei+1],2.2)):
+print（f'第{i+1}块板凳与第{nei+1）块板凳发生碰撞'）
+return True,（i，t，nei）
+print（未发生碰撞）
+return False,-1
+#给定时刻t，计算龙头的位置
+def head(t):
+theta=root（lanbda x:x*sqrt（x**2+1）+log（x+sqrt（x**2+
+1)）-C+2*v*t/alpha,10).x[0]
+return theta*alpha*cos（theta),theta*alpha *sin(theta）,
+theta
+#给定龙头的位置，计算各把手的位置
+def postition(theta):
+x_post，y_post，theta_post=[theta*alpha*cos（theta)]，[theta
+alpha *sin（theta)]，[theta]
+#计算第一节龙身前把手
+def func（t1):
+t0，1=theta,2.86
+returnt1**2+t0**2-2*t1*t0*cos（t1-t0）-（1/alpha)**2
+t1=root（func,theta+1）.x[θ]
+sin(t1));theta_post.append(t1)
+#计算后续的把手
+for_in range(222）:
+def func(t):
+1=1.65
+returnt**2+t1**2-2*t*t1*cos（t-t1）-（1/alpha）**
+t1=root（func,t1+1）.x[θ]
+26
+
+===== PAGE 27 =====
+sin(t1));theta_post.append(t1)
+return x_post,y_post,theta_post
+#给定龙头的速度和各把手的位置，计算各把手的速度
+def speed（x，y，theta）:
+v1=1
+speed=[1]
+for iin range(223）:
+d1=np.array([cos(theta[i])-theta[i]*sin(theta[i]),
+sin(theta[i])+
+theta[i]*cos(theta[i])])
+上一把手速
+度方向
+d1=d1/np.1inalg.norn（d1）
+d=np.array([cos(theta[1+1])-theta[i+1]*sin(theta[i+1]),
+sin(theta[i+1])+theta[i+1]*cos(theta[i+1])])
+这一把手速度方向
+d=d/np.1inalg.norm（d)
+vector=np.array（[x[i+1]-x[i],y[i+1]-y[i]])
+#板凳方向
+v1=root（lambda v:np.dot（v1*d1,vector)-np.dot（v*d,
+vector),v1).x[θ]
+speed.append(v1)
+return speed
+#绘图检查
+def draw(x,y,theta,t）:
+the =np.1inspace(0,32*pi,10000)
+x1,y1=helix（the）
+fig=plt.figure(figsize=（9,9))
+axes3=fig.add_subplot（1,1,1)
+#绘制板凳
+for i,tk in enumerate（theta[:-1]):
+ifi==θ:
+1=3.41
+else:
+1=2.2
+p=plt.Polygon(xy=vertices（theta[i],theta[i+1],1）,
+color='#C82423',alpha=0.8)
+axes3.add_patch(p)
+plt.plot（x1，y1，linestyle='--'，color='#2878B5'，label='螺族线'）
+plt.scatter（x，y，s=5，c='k'，label=把手）
+27
+
+===== PAGE 28 =====
+plt.legend(fontsize='large')
+plt.title（f'{round（t，4）}s时刻板凳龙位置图'，fontsize=22）
+plt.xlabel('x',fontsize=16）
+plt.ylabel('y',fontsize=16)
+##坐标轴调整
+plt.tick_params(labelsize=13)
+plt.subplots_adjust(top=0.9,bottom=0.1,1eft=0.1,right=0.9)#
+调整页边距
+plt.show()
+plt.close()
+#主函数
+if
+nane
+：uTew,==
+plt.rcParams['font.family']-['SimHei']
+#显示中文
+plt.rcParams['axes.unicode_minus']=False
+#显示负号
+plt.axis('equal')
+#等比例
+#划分时间
+time = np.arange(412.47,413,0.0001)
+#计算龙头前把手的位置和速度
+head_vec = np.vectorize(head)
+head_post_x,head_post_y,head_theta =head_vec(time)
+#计算各时刻把手的位置和速度
+fori,t in enunerate(head_theta):
+#计算把手位置
+handle_post_x,handle_post_y,handle_theta = postition(t)
+#绘制图片
+draw(handle_post_x,handle_post_y,handle_theta,tine[i])
+flag,mess = crash(handle_theta)
+if flag:
+break
+#保存结果
+
+===== PAGE 29 =====
+handle_speed=speed(handle_post_x,handle_post_y,
+handle_theta)
+result=pd.DataFrame({'x':handle_post_x,
+'y':handle_post_y,
+*v*:handle_speed))
+result.round（6）.to_excel（'间题二.xlsx'）
+#绘制结果
+the =np.1inspace(0,32*pi，10000)
+x1,y1=helix（the）
+fig=plt.figure（figsize=(9,9）)
+axes3=fig.add_subplot（1,1,1)
+#绘制板凳
+for j in [mess[e],mess[2]]:
+ifj==θ:
+1=3.41
+else:
+1=2.2
+p=plt.Polygon(xy=vertices(handle_theta[j],
+handle_theta[j+1],1),color='r',alpha=0.8)
+axes3.add_patch(p)
+plt.plot（x1，y1，1inestyle='--'，color='#2878B5'，label='螺族线'）
+plt.plot（handle_post_x，handle_post_y，c='#C82423'，1abel=板'，
+marker='o',markersize=0,1inewidth=2)
+plt.scatter(handle_post_x,handle_post_y,s=20,c='#934B43',
+label='把手'）
+plt.legend(fontsize='large')
+plt.title（f'{round（time[i]，4）}s时刻板凳龙位置图'，fontsize=22）
+plt.xlabel（'x',fontsize=16）
+plt.ylabel('y',fontsize=16)
+##坐标轴调整
+plt.tick_params(labelsize=13)
+plt.subplots_adjust(top=0.9,bottom=0.1,1eft=0.1,right=0.9)
+调整页边距
+plt.savefig（'碰撞结果.png'，format='png'，dpi=8θ0）
+plt.show()
+plt.close()
+29
+
+===== PAGE 30 =====
+第三问二分法计算最小螺距（Problem31.py）
+#二分法求解最小螺距
+import numpy as np
+inport matplotlib.pyplot as plt
+from numpy import pi，sin,cos,arcsin,sqrt，log
+from scipy.optimize import root
+plt.rcParans['font.family']=['SimHei"]
+#显示中文
+plt.rcParans['axes.unicode_minus']=False
+#显示负号
+plt.axis('equal')
+#等比例
+#参数
+=1
+#龙头行进速度（m/s）
++（Td））O+（+（））bS*（d）=）
+sqrt（（32*pi）**2+1））
+#上下界
+d1=0.4;dr=0.5
+whiledr-dl>0.0001:
+d=（d1+dr）/2
+alpha=d/（2*pi）
+#给出螺旋线方程
+def helix(theta):
+theta*sin(theta)])
+#判断前把手是否碰撞：所有点的位置信息，判断是否会发生碰撞
+def crash（theta):
+fori,t in enumerate（theta[:2]）:
+delta=2*arcsin(2.86/（2*alpha*t）)
+#寻找外图的板凳
+neighbor-[j+i for j,kin enumerate（theta[i:-1]）ift+
+2*pi-delta<k andk<t+2*pi+delta]
+#效率版本
+#neighbor=[j for j,kin enumerate（theta[:-1]）ift
+kandk<t+4*pi]
+#准确版本
+碰撞点
+ifi==0:
+point1=vertices（theta[i],theta[i+1],3.41）[1]
+point2 =vertices（theta[i], theta[i+1],3.41)[0]
+else:
+30
+
+===== PAGE 31 =====
+point1=vertices（theta[i],theta[i+1],2.2)[1]
+point2=vertices（theta[i],theta[i+1],2.2)[θ]
+#判断是否碰撞
+for nei in neighbor:
+if Point_in_Polygon(point1,vertices（theta[nei],
+theta[nei+1],2.2)）orPoint_in_Polygon（point2,
+vertices（theta[nei],theta[nei+1],2.2)):
+return True，（i,t,nei）
+return False,-1
+#判断点在矩形内部
+def Point_in_Polygon(point，polygon）:
+A,B,C,D=polygon[θ],polygon[1],polygon[2],polygon[3]
+P=np.array([point[θ],point[1]])
+flag1,f1ag2=0,0
+AB，BC，CA=B-A，C-B，A-C
+AP，BP，CP=P-A，P-B，P-C
+ifnp.sign（AB[θ]*AP[1]-AP[o]*AB[1])==np.sign（BC[θ]*
+=（[][]dg-[]d8[]a）usdupue（[]8[]da-[]d8
+np.sign（CA[θ]*CP[1]-CP[θ]*CA[1]）：
+flag1=1
+AD，DC，CA=D-A，C-D，A-C
+AP，DP，CP=P-A，P-D,P-C
+ifnp.sign（AD[θ]*AP[1]-AP[θ]*AD[1]）==np.sign（DC[θ]*
+==（[][]d-[]d[o]a）usdupue（[]*[]da-[]d
+np.sign(CA[θ]*CP[1]-CP[θ]*CA[1]）：
+flag2=1
+if flag2 or flag1:
+return True
+else:
+return False
+#根据前把手计算四个点：
+def vertices（front,back,L):
+D1=0.275;Dh=0.15
+handlel=helix（front)
+handle2=helix(back)
+e=（handle1-handle2）/（L-0.55）
+31
+
+===== PAGE 32 =====
+n=np.array([-e[1],e[o]]）
+points=np.array（[handle1-（L-Dl）*e+Dh*n，
+handle1+D1 *e+Dh*n,
+handle1+D1*e-Dh*n，
+handle1-（L-Dl）*e-Dh*n，]）
+return points
+#给定龙头的速度和各把手的位置，计算各把手的速度
+def speed(x,y，theta）:
+v1=1
+speed=[1]
+for i in range(223）:
+d1=np.array([cos(theta[i]）-theta[i]*sin(theta[i]）,
+sin(theta[i])+
+theta[i]*cos(theta[i])])
+#上一把手速
+度方向
+d1=d1 /np.1inalg.norm(d1)
+d=np.array([cos（theta[i+1]）-
+theta[i+1]*sin(theta[i+1]),sin(theta[i+1])+
+theta[i+1]*cos(theta[i+1])])
+这一把手速度方向
+d=d/np.1inalg.norm（d）
+vector=np.array([x[i+1]-x[i],y[i+1]-y[i]])
+#板
+凳方向
+v1=root（lanbda v:np.dot（v1*d1,vector)-np.dot（v*d,
+vector）,v1).x[0]
+speed.append(v1)
+return speed
+#计算theta
+def ode(t,y):
+（/）**（+**)/（+**)eyde/-u
+#给定时刻t，计算龙头的位置
+def head(t):
+theta=root(lambda x:x*sqrt（x**2+1)+1og（x+sqrt（x**2
+1））-C+2*v*t/alpha,10）.x[0]
+return theta*alpha*cos(theta),theta *alpha *sin（theta）,
+theta
+#给定龙头的位置，计算各把手的位置
+def postition(theta):
+32
+
+===== PAGE 33 =====
+x_post，y_post,theta_post=[theta*alpha*cos(theta)],
+[theta*alpha *sin(theta)],[theta]
+#计算第一节龙身前把手
+def func（t1):
+t0，1=theta,2.86
+return t1**2+tθ**2-2*t1*t0*cos（t1-t0）-（1/alpha）
+t1=root（func,theta+1).x[θ]
+x_post.append(t1*alpha*cos(t1));y_post.append(t1*alpha
+sin(t1));theta_post.append(t1)
+#计算后续的把手
+for_inrange(222）:
+def func(t):
+1=1.65
+returnt**2+t1**2-2*t*t1*cos（t-t1）-（1/alpha）
+t1=root（func,t1+1）.x[0]
+x_post.append(t1 *alpha *cos(t1));y_post.append(t1 *
+alpha*sin(t1));theta_post.append(t1)
+return x_post,y_post, theta_post
+#求进入圆弧的位置和时间
+in_theta=4.5/alpha
+in_time=（in_theta *sqrt（in_theta**2+1）+log（in_theta +
+sqrt（in_theta**2+1））-C）*alpha/2/v
+#划分时间
+time=np.arange（in_time-5,in_time,0.01)
+#计算龙头前把手的位置和速度
+head_vec =np.vectorize(head)
+head_post_x,head_post_y,head_theta =head_vec（time)
+#判断是否发生碰撞
+fori,t in enunerate（head_theta):
+#计算把手位置
+handle_post_x,handle_post_y,handle_theta =postition(t)
+flag,mess =crash(handle_theta)
+if flag:
+33
+
+===== PAGE 34 =====
+break
+if flag:
+d1=（d1+dr）/2
+print（f'{d}，d偏小'）
+else:
+dr=（d1+dr）/2
+print（f'{d}，d偏大'）
+print（f'二分搜索完成，最小螺距为：{（dl+dr）/2}）
+问题四精确计算问题四（Problem41.py）
+#问题四：计算位置和速度
+inport numpy as np
+inport pandas as pd
+from numpy import pi，sin,cos,sqrt,arcsin,arctan,log
+from scipy.optimize import root
+#参数
+d=1.7
+#螺距（m）
+=1
+#龙头行进速度（m/s）
+=4.5
+#调整区域半径（m）
+alpha=d/（2*pi）
+求入圆弧的位置和时间
+in_theta=R/alpha
+C1=in_theta *sqrt(in_theta**2+1)+log（in_theta +
+sqrt(in_theta**2+1）)
+in_time=（in_theta*sqrt（in_theta**2+1）+log（in_theta+
+sqrt（in_theta**2+1)）-C1）*alpha/2/v
+#求圆弧半径和圆心角
+k=2
+x0，yθ=alpha*in_theta*cos（in_theta），alpha*in_theta*
+sin(in_theta)
+rn=np.array（[cos（in_theta)-in_theta*sin（in_theta）,sin（in_theta)
++in_theta*cos(in_theta)])
+rt=np.array（[-rn[1],rn[e]])
+1=root（lambdax:x0**2-（k+1）*x*x0*rn[1]+yθ**2+
+（k+1）*x*rn[θ]*y0,-10）.x[0]
+g1=k*np.linalg.norm（rt）*]
+34
+
+===== PAGE 35 =====
+g2=np.linalg.norm（rt)*1
+w1=v/g1
+w2=v/g2
+beta=2*arcsin(sqrt（xo**2+yθ**2)/（k+1）/g2）
+t1=arctan（-rn[θ]/rn[1]）+pi
+t2=t1-beta+pi
+#求出圆弧的位置和时间
+out_theta=in_theta
+out_time=beta*（1/w1+1/w2）
+C2=out_theta*sqrt（out_theta**2+1)+log(out_theta +
+sqrt（out_theta**2+1）)-2*v*out_time/alpha
+#给定时间t，计算时间t时的角度
+def head(t):
+theta=root（1anbda x:x*sqrt（x**2+1）+1og（x+sqrt（x**2+
+1)）-C1+2*v*t/alpha,10）.x[0]
+return theta
+def tail(t):
+theta=root（lanbda x:x*sqrt（x**2+1）+log（x+sqrt（x**2+
+1))
+-C2-2*v*t/alpha,10）.x[0]
+return theta
+def post(t):
+ift<=0：
+theta =head(t)
+theta,0
+elift<=beta /w1:
+x,y=xθ-2*1*rn[1]+g1*cos（t1-t*w1）,yθ+2*1*rn[0]
+g1*sin（t1-t*w1）,
+returnx,y,sqrt（x**2+y**2）/alpha,1
+elift<=beta*（1/w1+1/w2）:
+x,y=-xθ+1*rn[1]+g2*cos（t2+（t-beta/w1）*w2），-yθ
+1*rn[θ]+g2*sin（t2+（t-beta/w1）*w2）
+return x,y,sqrt（x**2+y**2)/alpha，2
+（/+/）eq<
+theta=tail(t)
+returnalpha·theta*cos（theta+pi）,alpha*theta
+sin（theta +pi），theta,3
+35
+
+===== PAGE 36 =====
+#给定时间，计算把手位置
+def handle_post(t):
+x1，y1，theta1，flag1=post（t）
+x_lst,y_lst，theta_lst，flag_lst=[x1],[y1],[theta1],[flag1]
+#计算第一节龙身前把手
+def func(t):
+1=2.86
+x,y,theta,flag=post（t)
+t=root（func,t-1).x[θ]
+x1,y1，theta1，flag1 =post（t)
+x_lst.append(x1);y_lst.append(y1);theta_lst.append(theta1);
+flag_lst.append(flag1)
+#计算后续的把手
+for_in range(222）:
+def func(t):
+1=1.65
+x,y，theta,flag=post（t)
+return（x1-x）**2+（y1-y）**2-
+t=root（func,t-1）.x[θ]
+x1,y1,theta1,flag1=post（t）
+x_1st.append(x1);y_lst.append(y1);theta_1st.append(theta1);
+flag_lst.append(flag1)
+return x_lst,y_lst,theta_lst,flag_lst
+#给定时间，求单位切线方向：
+def direction(x,y，theta,flag）:
+if flag==0:
+rt=np.array([cos（theta)-theta*sin(theta）,sin(theta）+
+theta*cos(theta)])
+return -rt/np.linalg.norm（rt)
+elif flag == 1:
+rt=np.array（[y-yθ-2*1*rn[0],xθ-2*1*rn[1]-x]）
+return rt/np.linalg.norm(rt)
+elif flag =2:
+rt=np.array（[-yθ-1*rn[0]-y,x+xθ-1*rn[1]])
+return rt/np.linalg.norm(rt)
+else:
+rt=np.array([cos（theta +pi）-theta*sin（theta +pi）,
+sin（theta +pi)+theta*cos（theta+pi）]）
+36
+
+===== PAGE 37 =====
+return rt/np.linalg.norm（rt）
+#给定龙头的速度和各把手的位置，计算各把手的速度
+def speed(x,y,theta,flag）:
+v1=v
+speed=[v]
+foriinrange（223）:
+d1=direction（x[i],y[i],theta[i]
+flag[i])
+#上一把手速度方向
+d=
+direction(x[i+1],y[i+1],theta[i+1],
+flag[i+1])
+#这一把手速度方向
+vector=np.array（[x[i+1]-x[i],y[i+1]-y[i]])
+#板凳方向
+v1=root（lambda v:v1*（np.dot（d1,vector)）-v*（np.dot（d，
+vector)),v1).x[θ]
+speed.append(v1)
+return speed
+time =np.arange(-100, 101,1)
+post_result=pd.DataFrame（columns =time,index=range(224*2）)
+speed_result=pd.DataFrame(columns=time,index=range(224))
+#计算各时刻把手的位置和速度
+for i in time:
+#计算把手位置
+handle_x,handle_y,handle_theta,handle_flag =handle_post（i)
+handle_posts=[]
+for j in range（224）:
+handle_posts.append(handle_x[j]);
+handle_posts.append(handle_y[j])
+post_result[i]=handle_posts
+#计算把手速度
+handle_speed=speed(handle_x,handle_y,handle_theta,
+handle_flag)
+speed_result[i]=handle_speed
+post_result.round（6）.to_excel（'问题四_位置.xlsx'）
+speed_result.round（6）.to_excel（'问题四_速度.xlsx)
+37
+
+===== PAGE 38 =====
+问题四绘制调整路径示意图
+#绘制问题四调整路径图
+inport numpy as np
+inport matplotlib.pyplot as plt
+from numpy import pi,sin,cos,arcsin,arctan, sqrt，log
+from scipy.optimize import root
+plt.rcParans['font.family']=['SimHei']
+#显示中文
+plt.rcParans['axes.unicode_minus']=False
+#显示负号
+plt.axis('equal')
+#等比例
+#参数
+d=1.7
+#螺距（m）
+1
+#龙头行进速度（m/s）
+#调整区域半径（m）
+alpha=d/（2*pi）
+#求入圆弧的位置和时间
+in_theta =R/alpha
+C1=in_theta*sqrt（in_theta**2+1）+log（in_theta+
+sqrt（in_theta**2+1）)
+in_time=（in_theta *sqrt（in_theta**2+1）+log（in_theta+
+sqrt（in_theta**2+1)）-C1）*alpha/2/v
+#求圆弧半径和圆心角
+k=2
+x0，yθ=alpha*in_theta*cos（in_theta）,alpha*in_theta*
+sin(in_theta)
+rn =np.array（[cos（in_theta)-in_theta*sin(in_theta）,sin(in_theta)
++in_theta*cos(in_theta)])
+rt=np.array([-rn[1],rn[e]])
+1=root（lambdax:x0**2-（k+1）*x*xθ*rn[1]+yθ**2+
+（k+1)*x*rn[0]*y0,-10）.x[θ]
+g1=k*np.linalg.norm（rt）*1
+g2=np.linalg.norm（rt)*1
+w1=v/g1
+w2=v/g2
+38
+
+===== PAGE 39 =====
+beta=2*arcsin(sqrt（xθ**2+yθ**2)/（k+1）/g2）
+t1=arctan（-rn[e]/rn[1]）+pi
+t2=t1-beta+pi
+#求出圆弧的位置和时间
+out_theta =in_theta
+out_time=beta*（1/w1+1/w2）
+C2=out_theta *sqrt(out_theta**2+1)+log(out_theta+
+sqrt（out_theta**2+1））-2*v*out_time/alpha
+给出螺旋线方程
+def helix(theta):
+return d/（2*pi）*theta*cos（theta），d/（2*pi）*theta*
+sin(theta)
+plt.figure(figsize=(9,9）)
+plt.legend(fontsize='large′)
+#绘制盘入轨迹
+t1=np.1inspace（in_theta,24*pi,num=5e0)
+x,y=helix（t1）
+plt.plot（x，y，color='#F8Ac8C'，label=盘入轨迹'，linewidth=2.5）
+#绘制圆弧
+t1=arctan（-rn[e]/rn[1]）+pi
+t2=t1-beta +pi
+t=np.linspace(0，g1*beta）
+x,y=xθ-k*1*rn[1]+g1*cos（t1-t/g1）,yθ+k*1*rn[0]+g1
+sin（t1-t/g1)
+plt.plot（x，y，color=′#05B9E2'，label=*前一段圆弧’，1inewidth=2.5）
+t=np.linspace(g1*beta,beta *（g1+g2）)
+x，y=-xθ+1*rn[1]+g2*cos（t2+（t-beta*g1)/g2），-yθ-1*rn[θ]+
+g2*sin（t2+（t-beta*g1）/g2)
+plt.plot（x，y，color=′#F27970，label=后一段圆弧，1inewidth=2.5）
+#绘制盘出轨迹
+t= np.1inspace(in_theta,24*pi,num=500)
+（Td+2）uTs.（d）/p（Td+2）so）（d）/p=x
+plt.plot（x,y，color='#32B897'，1abel=盘出路径’，linewidth=2.5，
+linestyle='--')
+39
+
+===== PAGE 40 =====
+plt.title（'词整路径示意图'，fontsize=22）
+plt.xlabel('x',fontsize=16)
+plt.ylabel('y',fontsize=16)
+plt.legend(fontsize='large')
+#坐标轴调整
+plt.tick_params(labelsize=13)
+plt.subplots_adjust（top=0.9,bottom=0.1,1eft=0.1,right=0.9)#调整
+页边距
+plt.savefig（'调整路径示意图.png'，format=′png'，dpi=800）
+plt.show()
+plt.close()
+第五问二分法求最大速度（Problem51.py）
+#二分法求最大速度
+inport numpy as np
+from numpy import pi，sin,cos,sqrt,arcsin,arctan,log
+from scipy.optimize import root
+#参数
+d=1.7
+#螺距（m）
+R=4.5
+#调整区域半径（m）
+alpha=d/（2*pi）
+11,rr=1.24,1.25
+delta=0.0001
+whilerr-1l>delta:
+mid=（rr+11）/2
+v=mid
+max_v=0
+#求入圆弧的位置和时间
+in_theta =R/alpha
+C1=in_theta*sqrt（in_theta**2+1）+log（in_theta+
+sqrt（in_theta**2+1))
+in_time=（in_theta *sqrt（in_theta**2+1）+log（in_theta+
+sqrt（in_theta**2+1））-C1）*alpha/2/v
+#求圆弧半径和圆心角
+k=2
+x0,yθ=alpha*in_theta*cos（in_theta）,alpha*in_theta
+sin(in_theta)
+40
+
+===== PAGE 41 =====
+rn =np.array（[cos（in_theta)-in_theta*sin（in_theta),
+sin(in_theta)+in_theta*cos（in_theta)])
+rt=np.array（[-rn[1],rn[θ]])
+1=root（1ambdax:x0**2-（k+1）*x*x0*rn[1]+yθ**2+
+（k+1）*x*rn[0]*y0,-10）.x[θ]
+g1=k*np.linalg.norm（rt）*1
+g2=np.linalg.norm（rt）*1
+w1=v/g1
+w2=v/g2
+beta=2*arcsin（sqrt（xθ**2+yo**2）/（k+1）/g2）
+t1=arctan（-rn[θ]/rn[1]）+pi
+t2=t1-beta +pi
+#求出圆弧的位置和时间
+out_theta=in_theta
+out_time=beta*（1/w1+1/w2）
+C2=out_theta*sqrt（out_theta**2+1)+log（out_theta+
+sqrt（out_theta**2+1））-2*v*out_time/alpha
+#给定时间t，计算时间t时的角度
+def head(t):
+theta=root（lambda x:x*sqrt（x**2+1）+1og（x+sqrt（x**2
+[0]x·（eye/+-（（+
+return theta
+def tail(t):
+theta=root（lambda x:x*sqrt（x**2+1)+1og（x+sqrt（x**2
+1)）-C2-2*v*t/alpha,10）.x[0]
+return theta
+def post（t):
+ift<=θ:
+theta =head(t)
+return alpha *theta*cos（theta）,alpha*theta*
+sin(theta),theta,θ
+elift<=beta/w1:
+x，y=xθ-2*1*rn[1]+g1*cos（t1-t*w1）,yθ+
+（TM.2-）uTs+[0]u
+returnx,y,sqrt（x**2+y**2)/alpha,1
+41
+
+===== PAGE 42 =====
+elift<=beta*（1/w1+1/w2）:
+x,y=-xθ+1*rn[1]+g2*cos（t2+（t-beta/w1）*w2）,
+-yθ-1*rn[θ]+g2*sin（t2+（t-beta/w1）*w2）
+return x,y，sqrt（x**2+y**2）/alpha，2
+elift>beta*（1/w1+1/w2）:
+theta =tail(t)
+return alpha *theta*cos（theta +pi）,alpha *theta *
+sin（theta +pi），theta，3
+#给定时间，计算把手位置
+def handle_post(t):
+x1，y1,theta1，flag1=post（t）
+x_lst,y_lst，theta_lst,flag_lst=[x1],[y1],[theta1],
+[flag1]
+#计算第一节龙身前把手
+def func(t):
+1=2.86
+x,y,theta,flag=post（t)
+return（x1-x）**2+（y1-y）**2-1**
+t=root（func,t-1）.x[θ]
+x1，y1,theta1，flag1=post（t)
+x_1st.append(x1);y_lst.append(y1);theta_1st.append(theta1);
+flag_lst.append(flag1)
+#计算后续的把手
+for_in range(222）:
+def func(t):
+1=1.65
+x,y，theta,flag=post（t）
+return（x1-x）**2+（y1-y）**
+t=root（func,t-1）.x[θ]
+x1,y1,theta1,flag1 =post（t)
+x_lst.append(x1);y_lst.append(y1);
+theta_lst.append(theta1);flag_lst.append(flag1)
+return x_lst,y_lst,theta_lst,flag_lst
+#给定时间，求单位切线方向：
+def direction(x,y,theta,flag）:
+if flag ==0:
+rt=np.array([cos(theta)-theta*sin(theta）,sin（theta)+
+theta*cos(theta)])
+return -rt /np.linalg.norm（rt)
+42
+
+===== PAGE 43 =====
+elif flag==1:
+rt=np.array（[y-yθ-2*1*rn[θ],xθ-2*1*rn[1]-x]）
+return rt/np.linalg.norn(rt)
+elif flag==2:
+rt=np.array([-yθ-1*rn[θ]-y,x+xθ-1*rn[1]])
+return rt/np.linalg.norn（rt)
+else:
+rt=np.array([cos（theta+pi）-theta*sin（theta +pi）,
+sin(theta +pi)+ theta*cos(theta +pi)])
+return rt/np.linalg.norn(rt)
+给定龙头的速度和各把手的位置，计算各把手的速度
+def speed（x,y,theta,flag）:
+v1=v
+speed =[v]
+fori in range(223）:
+d1=direction（x[i],y[i],theta[i],
+flag[i])
+#上一把手速度方向
+d=direction（x[i+1],y[i+1],theta[i+1],
+flag[i+1])
+#这一把手速度方向
+vector=np.array([x[i+1]-x[i],y[i+1]-y[i]]）
+#板
+凳方向
+v1=root（lanbda v:v1*（np.dot（d1,vector））-v*（np.dot（d，
+vector)),v1).x[θ]
+speed.append(v1)
+return speed
+s_time=（g1+g2）*beta/v
+time=np.arange(s_time-0.5,s_time+2.5,0.00θ1）
+#计算各时刻把手的位置和速度
+fori in time:
+#计算把手位置
+handle_x,handle_y,handle_theta,handle_flag =handle_post(i)
+#计算把手速度
+handle_speed=speed(handle_x,handle_y,handle_theta,
+handle_flag)
+max_v=max（max_v,max（handle_speed))
+ifmax_v<=2:
+print（f'{v），{max_v}，速度过小，{rr-11}'）
+43
+
+===== PAGE 44 =====
+11=mid
+else:
+print（f"{v}，{max_v)，速度过大，{rr-11}"）
+rr=mid
+print（f'二分搜索完毕，最大速度为{（11+rr）/2}'）
+第五问绘制最大速度随速度变化分布图（Plot52.py）
+#绘制最大速度随速度的变化情况
+import numpy as np
+import matplotlib.pyplot as plt
+from numpy import pi，sin, cos,sqrt，arcsin,arctan,log
+from scipy.optimize import root
+from scipy.integrate import solve_ivp
+plt.rcParans['font.family']=['SimHei']
+#显示中文
+plt.rcParans['axes.unicode_minus']=False
+#显示负号
+plt.axis('equal')
+#等比例
+#参数
+d=1.7
+#螺距（m）
+R=4.5
+#调整区域半径（m）
+alpha =d/(2*pi)
+result=[]
+plt.figure(figsize=(9,6）)
+forvinnp.linspace（1,2,2）:
+#求入圆弧的位置和时间
+in_theta=R/alpha
+C1=in_theta*sqrt（in_theta**2+1）+log（in_theta+
+sqrt（in_theta**2+1))
+in_time=（in_theta *sqrt（in_theta**2+1）+log（in_theta +
+sqrt（in_theta**2+1）)-C1）*alpha/2/v
+#求圆弧半径和圆心角
+k=2
+x0，yθ=alpha*in_theta*cos（in_theta）,alpha*in_theta*
+sin(in_theta)
+rn =np.array([cos（in_theta)-in_theta*sin（in_theta),
+sin（in_theta)+in_theta*cos（in_theta)])
+rt=np.array([-rn[1],rn[o]])
+44
+
+===== PAGE 45 =====
+1=root（1ambda x:x0**2-（k+1）*x*x0*rn[1]+yθ**2+
+（k+1）*x*rn[0]*y0，-10）.x[0]
+g1=k*np.linalg.norm（rt）*1
+g2=np.1inalg.norn（rt）*1
+w1=v/g1
+w2=v/g2
+beta=2*arcsin（sqrt（xθ**2+yo**2）/（k+1）/g2）
+t1=arctan（-rn[θ]/rn[1]）+pi
+t2=t1-beta+pi
+#求出圆弧的位置和时间
+out_theta=in_theta
+out_time=beta*（1/w1+1/w2)
+C2=out_theta*sqrt（out_theta**2+1）+log（out_theta +
+sqrt（out_theta**2+1））-2*v*out_time/alpha
+#给定时间t，计算时间t时的角度
+def head(t):
+theta=root（lambda x:x*sqrt（x**2+1）+log（x+sqrt（x**2
++1））-C1+2*v*t/alpha，10）.x[0]
+return theta
+def tail(t):
+theta=root（lambda x:x*sqrt（x**2+1）+log（x+sqrt（x**2
+1)）-C2-2*v*t/alpha，10）.x[0]
+return theta
+def post(t):
+ift<=0:
+theta=head（t)
+return alpha*theta*cos（theta)，alpha*theta*
+sin(theta),theta,θ
+elif t<=beta/w1:
+x，y=xθ-2*1*rn[1]+g1*cos（t1-t*w1）,yθ+
+2*1*rn[θ]+g1*sin（t1-t*w1）,
+return x,y,sqrt（x**2+y**2)/alpha,1
+elift<=beta*（1/w1+1/w2）:
+x，y=-xθ+1*rn[1]+g2*cos（t2+（t-beta/w1）*w2），
+-yθ-1*rn[θ]+g2*sin（t2+（t-beta/w1）*w2）
+45
+
+===== PAGE 46 =====
+returnx,y,sqrt（x**2+y**2)/alpha,2
+elift>beta*（1/w1+1/w2）:
+theta = tail（t)
+return alpha *theta*cos（theta+pi），alpha*theta*
+sin（theta +pi)，theta,3
+#给定时间，计算把手位置
+def handle_post(t):
+x1,y1, theta1,flag1=post(t)
+x_lst,y_lst,theta_lst,flag_lst=[x1],[y1],[theta1],
+[flag1]
+#计算第一节龙身前把手
+def func(t):
+1=2.86
+x,y，theta,flag =post（t)
+return（x1-x）**2+（y1-y）**2-1**2
+t=root（func,t-1）.x[θ]
+x1,y1,thetal，flag1=post（t)
+x_lst.append(x1);y_lst.append(y1);theta_lst.append(theta1);
+flag_1st.append(flag1)
+#计算后续的把手
+for_in range（222）:
+def func(t):
+1=1.65
+x,y，theta,flag=post(t)
+return（x1-x）**2+（y1-y）**2-1**2
+t=root（func,t-1）.x[θ]
+x1，y1,theta1,flag1=post（t)
+x_1st.append(x1);y_1st.append(y1);
+return x_lst,y_lst,theta_lst,flag_1st
+#给定时间，求单位切线方向：
+def direction(x,y, theta,flag）:
+if flag ==0:
+rt=np.array([cos(theta)-theta*sin（theta）,sin（theta)+
+theta*cos(theta)])
+return -rt/np.linalg.norm（rt)
+elif flag == 1:
+rt=np.array（[y-yθ-2*1*rn[θ],x0-2*1*rn[1]-x]）
+return rt/np.linalg.norn(rt）
+
+===== PAGE 47 =====
+elif flag==2:
+rt=np.array（[-yθ-1*rn[θ]-y,x+xθ-1*rn[1]])
+return rt/np.linalg.norn(rt)
+else:
+rt=np.array([cos(theta +pi)-theta*sin（theta +pi）,
+sin(theta +pi）+ theta*cos(theta +pi）])
+return rt/np.linalg.norn（rt)
+#给定龙头的速度和各把手的位置，计算各把手的速度
+def speed(x,y,theta，flag）:
+v1=v
+speed-[v]
+for i in range（223）:
+d1=direction(x[i],y[i],theta[i],
+flag[i])
+#上一把手速度方向
+d=
+direction(x[i+1],y[i+1],theta[i+1],
+flag[i+1])
+#这一把手速度方向
+vector=np.array([x[i+1]-x[i],y[i+1]-y[i]])
+#板
+凳方向
+v1=root（lanbda v:v1*（np.dot（d1,vector））-v*（np.dot（d，
+vector)),v1).x[0]
+speed.append(v1)
+return speed
+s_time=（g1+g2）*beta/v
+#计算龙头的位置
+t=np.arange（s_time-10,s_time+10,0.1)
+max_list=[]
+#计算各时刻把手的位置和速度
+fori in t:
+#计算把手位置
+handle_x,handle_y,handle_theta,handle_flag =handle_post(i)
+#计算把手速度
+handle_speed=speed(handle_x,handle_y,handle_theta,
+handle_flag)
+max_list.append(max(handle_speed))
+result.append(max_list)
+47
+
+===== PAGE 48 =====
+plt.plot（max_1ist,label=f'{v:.2f}m/s')
+plt.legend(fontsize='large')
+plt.title（'行进速度对最大速度位置的影响'，fontsize=22）
+plt.xlabel('t',fontsize=16)
+plt.ylabel(r'sV_{max}$',fontsize=16)
+坐标轴调整
+plt.tick_params(labelsize=13)
+plt.grid(1inestyle='-'，linewidth=0.7,color='black',alpha=0.3)
+plt.subplots_adjust（top=0.9,bottom=0.1，1eft=0.1,right=0.9)#调整
+页边距
+#plt.savefig（'行进速度对最大速度位置的影响.png'，format='png'，dpi=800）
+plt.show()
+plt.close()
+
+===== PAGE 49 =====
+415
+2026年全国大学生
+国家安全知识答题
