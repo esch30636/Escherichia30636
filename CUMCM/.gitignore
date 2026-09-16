@@ -1,0 +1,26 @@
+# ===== 中间过程文件（2026-09-15 清理后新增，防止再次入库）=====
+# 说明：这些文件都可由源码重算再生，不属于交付物。
+# 最终成果（result*.xlsx / 解题包 / 论文 / 佐证图）不受影响。
+
+# Python 字节码与 Numba/Mathematica JIT 缓存
+__pycache__/
+*.pyc
+*.nbc
+*.nbi
+mpl_cache/
+
+# 数值求解中间数组（每次算例的完整轨迹，可重跑再生）
+*.npz
+*.npy
+# 例外：与 Excel 一致的完整精度主结果，保留
+!full_precision.npz
+
+# Excel 逐格回读检查转储
+*.inspect.ndjson
+*.ndjson
+
+# 运行 stdout 日志
+*.log
+
+# 带时间戳的修订前归档快照
+archive/20*/
