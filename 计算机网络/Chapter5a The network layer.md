@@ -1,2343 +1,1210 @@
-# 计算机网络 — Chapter 5: Network Layer（网络层）
+# 计算机网络 —— 网络层（Chapter 5: Network Layer）
 
-> 来源：`D:\Escherichia30636\计算机网络\Chapter5a The network layer.pdf`
-> 课件：Ch5a（Don Towsley / Kurose–Ross 风格），共 81 页
-> 整理日期：2026-07-13
-> 整理方式：81 页按 20 页一组分 4 片并行整理后合并；逻辑顺序保持 page 1→81
+> **原始 PDF**：`D:\Escherichia30636\计算机网络\Chapter5a The network layer.pdf`
+> **PDF 总页数**：81 页
+> **整理日期**：2026-10-15
+> 本笔记按原课件的章—节—小节顺序连续组织：5.1 引言、5.2 虚电路与数据报网络、5.3 路由器内部结构、5.4 路由算法、5.5 Internet 中的路由，最后是章末习题。原课件页脚编号为 5a-NN，正文中以「原 PDF 第 N 页」标注图示与数据的来源页。课件目录页列出的 5.6 IP 内容（IPv4 数据报格式、IPv4 编址、IP 分片、ICMP、IPv6）不在本课件的页码范围内。
+>
+> 课件本身的章目标是两类：一类是理解网络层服务背后的原理（understand principles behind network layer services），包含网络层服务模型、转发与路由的对比、路由器的工作原理、路由即路径选择、以及规模的应对；另一类是在 Internet 中的实例化与实现（instantiation and implementation in the Internet）。全章目录为 5.1 Introduction；5.2 Virtual circuit and datagram networks；5.3 What's inside a router?；5.4 Routing algorithms（下分 Dijkstra's algorithm、Broadcast routing、Link state、Distance vector、Hierarchical routing）；5.5 Routing in the Internet；5.6 IP: Internet protocol（下分 IPv4 Datagram format、IPv4 addressing、IP fragment、NAT、ARP、ICMP、IPv6）。第 2 页目录的 5.6 子项含 NAT 与 ARP，而第 9、18、28、63 页的目录页子项未列这两项，属课件自身目录页的版本差异，此处按第 2 页的完整列表记录。
 
 ---
 
-## 结构体系
+## 5.1 引言（Introduction）
 
-### 全章总览（page 1–81，目录重复页已去重）
+### 5.1.1 网络层的职责与所处层次
 
-```text
-Chapter 5: Network Layer（网络层，page 1–81）
-├── 章节目标（page 1）
-│   └── 网络层服务原理：服务模型、转发 vs 路由、路由器工作原理、路由（路径选择）、规模化问题；在 Internet 中的实例化与实现
-├── 章节目录（page 2、9、18、28、63 重复出现，内容一致，去重；page 2 列出 NAT/ARP）
-│   ├── 5.1 Introduction（引言）— page 3–8
-│   ├── 5.2 Virtual circuit and datagram networks（虚电路与数据报网络）— page 9–17
-│   ├── 5.3 What's inside a router?（路由器内部结构）— page 18–27
-│   │   ├── 体系结构：数据平面 / 控制平面；输入端口（page 19–20）
-│   │   └── 交换结构、输出端口、排队与 HOL（page 21–27）
-│   ├── 5.4 Routing algorithms（路由算法）— page 29–60
-│   │   ├── 图抽象与算法分类（page 29–33）
-│   │   ├── Dijkstra's algorithm（page 34–39）
-│   │   ├── Broadcast routing（page 40–42）
-│   │   ├── Link state（page 42、58）
-│   │   ├── Distance vector（page 43–57）
-│   │   ├── LS vs DV 比较（page 58）
-│   │   └── Hierarchical routing（page 59–60）
-│   ├── 5.5 Routing in the Internet（Internet 中的路由）— page 61–80
-│   │   ├── AS 内/外路由与网关（page 61–62）
-│   │   ├── Intra-AS / IGP：RIP、OSPF、IGRP（page 64–74）
-│   │   ├── Inter-AS / BGP 与策略（page 75–79）
-│   │   └── 区分 AS 内/间三维度：Policy / Scale / Performance（page 80）
-│   └── 5.6 IP: Internet protocol（目录预告；本课件 5a 主体未展开 IP 细节）
-└── 习题 Exercise-1：RIP/OSPF/BGP 直接封装（page 81）
+网络层的核心任务是把分组从发送主机传输到接收主机（transport packet from sending to receiving hosts）。网络层协议存在于每一台主机和每一台路由器中（network layer protocols in every host, router），这一点与只存在于端系统中的应用层、传输层协议不同。路由器会检查所有经过它的 IP 数据报的首部字段（router examines header fields in all IP datagram passing through it），因此网络层必须在网络核心的设备上实现，而不只是端系统的功能。
+
+这一分工在课件给出的分层结构图（原 PDF 第 3 页图）中可以读出：端系统具有五层——application、transport、network、data link、physical；中间的路由器只具有三层——network、data link、physical，其中 network 层被标为路由器实现的最高层。端系统与路由器之间、路由器与路由器之间通过 data link 层与 physical 层相连，网络层的协议实体在链路上逐跳传递数据报。需要区分两种「连接」的所在位置：传输层的连接只涉及两个端系统，而网络层的协议实体同时存在于端系统与路由器中，因此网络层可以在网络核心中维持逐跳的处理逻辑。
+
+### 5.1.2 网络层的两个关键功能：路由与转发
+
+网络层有两个关键功能（two key network-layer functions）。
+
+**路由（routing）**：确定分组从源到目的地所走的路径（determine route taken by packets from source to dest.）。完成这一功能依靠路由算法（routing algorithms）。
+
+**转发（forwarding）**：把分组从路由器的输入移动到适当的输出（move packets from router's input to appropriate router output）。转发是路由器内部对单个分组所作的局部动作。
+
+除这两个功能外，课件还列出**连接建立（connection setup）**：某些网络体系结构要求在数据流动之前，沿着路径完成路由器上的连接建立（some network architectures require router connection setup along path before data flows）。连接建立不是所有网络体系结构都必需的，只有虚电路类体系结构才需要，这直接引出了 5.2 节虚电路与数据报网络的分野。
+
+课件在本页（原 PDF 第 4 页）用一段类比说明路由与转发的关系，即把路由对应为从源到目的地规划行程、把转发对应为通过单个交叉路口；此处仅记录该表述的存在与所指，其准确含义以本节与 5.1.3 中按转发表查用和路由计算时间尺度的说明为准。
+
+### 5.1.3 路由与转发的相互作用（Interplay between routing and forwarding）
+
+课件以一张对照图（原 PDF 第 5 页图）说明路由与转发如何配合。图的上部是一个路由器内部的结构：路由算法（routing algorithm）的输出送往本地转发表（local forwarding table）。本地转发表是一个两列的映射表，左列为首部值（header value），右列为输出链路（output link），四条表项为：
+
+| 首部值（header value） | 输出链路（output link） |
+|---|---|
+| 0100 | 3 |
+| 0101 | 2 |
+| 0111 | 2 |
+| 1001 | 1 |
+
+图的下部是一个由路由器节点组成的网络，其中一个路由器被放大显示其内部的转发表。一个到达分组的首部中的值（value in arriving packet's header）标为二进制串 `0111`，从该路由器的输入链路进入。查表得首部值 `0111` 对应输出链路 2，因此该分组从输出链路 2 转发出去。
+
+这张图表达的关系是：路由算法负责生成和更新转发表的内容，转发负责在每一个到达的分组上使用该表。表的内容由路由算法在后台计算，表的查用发生在每一个分组的处理过程中，两者的时间尺度不同——路由计算是较慢的过程，转发是逐个分组的快速动作。这一区分在 5.3 节路由器结构中再次出现，表现为控制平面（软件，毫秒级）与数据平面（硬件，纳秒级）的划分。
+
+### 5.1.4 网络服务模型（Network service model）
+
+课件提出的问题是：对于从发送方到接收方传输分组的这条「通道」，应当采用什么服务模型（what service model for "channel" transporting packets from sender to receiver?）。课件把这一层问题称为网络层提供的最重要的抽象（the most important abstraction provided by network layer）。
+
+课件列出网络层服务抽象（service abstraction）中可供选择的五项能力：
+
+- 保证带宽（guaranteed bandwidth）？
+- 保持分组间定时，即无抖动（preservation of inter-packet timing, no jitter）？
+- 无丢失交付（loss-free delivery）？
+- 按序交付（in-order delivery）？
+- 向发送方反馈拥塞信息（congestion feedback to sender）？
+
+这五项构成评价一个网络层服务模型的维度。课件进一步指出，网络层最重要的抽象归结为一个选择：虚电路还是数据报（virtual circuit or datagram?）。这一问题在 5.2 节展开。
+
+### 5.1.5 网络层服务模型对照表
+
+课件给出网络体系结构与其服务模型的对照表（原 PDF 第 7 页表），表中 ATM 为异步传输模式（Asynchronous Transfer Mode）。「保证（Guarantees?）」一栏下分带宽（Bandwidth）、丢失（Loss）、顺序（Order）、定时（Timing）四项，拥塞反馈（Congestion feedback）单列一栏。完整表格如下：
+
+| Network Architecture | Service Model | Bandwidth | Loss | Order | Timing | Congestion feedback |
+|---|---|---|---|---|---|---|
+| Internet | best effort（尽力而为） | none | no | no | no | no（inferred via loss，通过丢失推断） |
+| ATM | CBR | constant rate（恒定速率） | yes | yes | yes | no congestion |
+| ATM | VBR | guaranteed rate（保证速率） | yes | yes | yes | no congestion |
+| ATM | ABR | guaranteed minimum（保证最小值） | no | yes | no | yes |
+| ATM | UBR | none | no | yes | no | no |
+
+逐行说明其含义。Internet 的 best effort 模型在任何一维上都不作保证：带宽不保证，丢失不保证避免，顺序不保证，定时不保证；拥塞反馈一栏为 no（inferred via loss），即网络层本身不提供显式的拥塞反馈，发送方只能从分组丢失这一现象间接推断拥塞的发生。ATM 的 CBR（Constant Bit Rate，恒定比特率）保证恒定速率，同时保证不丢失、保证顺序、保证定时，但不提供拥塞反馈。ATM 的 VBR（Variable Bit Rate，可变比特率）保证速率，同样保证不丢失、顺序与定时，也不提供拥塞反馈。ATM 的 ABR（Available Bit Rate，可用比特率）保证最小带宽值，不保证不丢失，保证顺序，不保证定时，并且提供拥塞反馈。ATM 的 UBR（Unspecified Bit Rate，未指定比特率）不保证带宽，不保证不丢失，保证顺序，不保证定时，也不提供拥塞反馈。表中 Loss 一栏填 yes 表示该服务模型保证不丢失，填 no 表示不保证；ABR 行的 Loss 为 no，即 ABR 不保证无丢失。
+
+### 5.1.6 网络层的连接服务与无连接服务
+
+课件把网络层服务划分为两类（原 PDF 第 8 页）：
+
+- 数据报网络提供网络层无连接服务（datagram network provides network-layer connectionless service）。
+- 虚电路网络提供网络层连接服务（VC network provides network-layer connection service）。
+
+课件指出，这两类服务与传输层服务可以对照（analogous to the transport-layer services），但有三点关键区别：
+
+- **服务范围（service）**：网络层提供的是主机到主机（host-to-host）的服务；传输层的连接服务（如 TCP）是进程到进程的，网络层的服务粒度是主机到主机。
+- **没有选择（no choice）**：网络层只提供上述两类服务中的一种，由网络自身决定（network provides one），端系统无法像在传输层那样在面向连接与无连接之间自由选择；传输层中应用可以在 TCP 与 UDP 之间选择，网络层则不存在这种选择。
+- **实现位置（implementation）**：网络层服务的实现位于网络核心（in network core），即由路由器实现；传输层服务的实现位于端系统。
+
+---
+
+## 5.2 虚电路与数据报网络（Virtual circuit and datagram networks）
+
+### 5.2.1 虚电路的基本性质
+
+课件对虚电路（virtual circuits）的第一个说明框引用了一句话（原 PDF 第 10 页）：source-to-dest path behaves much like telephone circuit，其含义有两点限定——从性能角度（performance-wise），以及在源到目的路径上网络所执行的动作（network actions along source-to-dest path）。这是课件原文的表述。
+
+虚电路的性质由以下几条构成。其一是三个阶段：呼叫建立 → 数据流动 → 呼叫拆除（call setup → data flow → call teardown），三者有确定的先后顺序，数据流动只在呼叫建立完成之后开始，拆除发生在数据流动结束之后。其二是每个分组携带 VC 标识符（VC identifier），而不是目的主机 ID（each packet carries VC identifier, not destination host ID），因此路径上转发分组时不需要读取目的地址。其三是源到目的路径上的每一台路由器为每条经过的连接维持「状态」（every router on source-dest path maintains "state" for each passing connection）；与此对照，传输层的连接只涉及两个端系统（transport-layer connection only involved two end systems），中间的路由器并不感知该传输层连接，虚电路的状态则是每一台中间路由器都要维持的。其四是链路与路由器的资源（带宽、缓冲区）可以被分配给该虚电路（link, router resources, bandwidth, buffers, may be allocated to VC），课件注明这一分配的目的是获得类似电路的性能（to get circuit-like perf.）。
+
+### 5.2.2 虚电路的构成与实现（VC Implementation）
+
+课件给出一个 VC 由三部分构成（原 PDF 第 11 页）：
+
+1. 从源到目的地的路径（path from source to destination）。
+2. VC 号，路径上每条链路各有一个号（VC numbers, one number for each link along path）。
+3. 路径上各路由器转发表中的表项（entries in forwarding tables in routers along path）。
+
+对应的两条转发规则是：属于某个 VC 的分组携带的是 VC 号，而不是目的地址（packet belonging to VC carries VC number, rather than dest. address）；VC 号在每条链路上可以改变（VC number can be changed on each link），新的 VC 号来自转发表（new VC number comes from forwarding table）。
+
+「每条链路各有一个 VC 号」这一设计与「分组携带 VC 号」配合，使得同一个 VC 在不同的链路上可以用不同的编号，编号只需要在单条链路上唯一，不必全网唯一，这正是虚电路可以本地化编号、从而缩小号空间的原因。
+
+### 5.2.3 虚电路转发表示例
+
+课件给出一台路由器的转发表与对应的虚电路示意图（原 PDF 第 12 页图）。图中画出一条从左侧主机出发、经过若干路由器到达右侧主机的链路，链路上标出的 VC 号为 12、22、32，路由器上标出接口号 1、2、3。
+
+「西北路由器（northwest router）中的转发表」完整内容如下：
+
+| Incoming interface（入接口） | Incoming VC #（入 VC 号） | Outgoing interface（出接口） | Outgoing VC #（出 VC 号） |
+|---|---|---|---|
+| 1 | 12 | 3 | 22 |
+| 2 | 63 | 1 | 18 |
+| 3 | 7 | 2 | 17 |
+| 1 | 97 | 3 | 87 |
+| … | … | … | … |
+
+表中前四行是完整表项，最后一行的省略号表示该表还有更多表项。查阅该表的方法：一个分组若从入接口 1 进入且首部中的 VC 号为 12，则从出接口 3 转出，并在转出时把 VC 号改写为 22；从入接口 2 进入且 VC 号为 63 的分组，从出接口 1 转出并把 VC 号改写为 18；从入接口 3 进入且 VC 号为 7 的分组，从出接口 2 转出并把 VC 号改写为 17；从入接口 1 进入且 VC 号为 97 的分组，从出接口 3 转出并把 VC 号改写为 87。
+
+图中标注的 VC 号 12 与 22 与表中第一行的入 VC 号 12、出 VC 号 22 一致，说明图中从源出发后的第一跳使用 VC 号 12，经该路由器后改为 22；图中还出现 VC 号 32，位于更靠后的链路上。课件在该页底部用方框强调：路由器维持连接状态信息（routers maintain connection state information!）。这里的状态信息就是上表的全部内容——入接口、入 VC 号、出接口、出 VC 号四元组，每一条经过的虚电路都要在各路由器中占用一条表项。
+
+### 5.2.4 虚电路的呼叫建立过程与信令协议（signaling protocols）
+
+信令协议用于建立、维护和拆除虚电路（used to setup, maintain, teardown VC）。课件指出信令协议的使用范围：用于 ATM、frame-relay（帧中继）、X.25（used in ATM, frame-relay, X.25），而不用于今天的 Internet（not used in today's Internet）。
+
+课件给出呼叫建立过程的时序图（原 PDF 第 13 页图）。图中左右两侧各是一个端系统，各具有 application、transport、network、data link、physical 五层，其中 network 层被高亮。六个步骤按编号顺序为：
+
+1. Initiate call（发起呼叫）。
+2. incoming call（有呼入）。
+3. Accept call（接受呼叫）。
+4. Call connected（呼叫已连接）。
+5. Data flow begins（数据流开始）。
+6. Receive data（接收数据）。
+
+图中两组方向相反的控制消息线表示两个方向的消息传递：步骤 1 至 4 是呼叫建立阶段，控制消息在两侧端系统之间传递；步骤 5 的数据流开始与步骤 6 的接收数据是数据流动阶段，此时数据沿已建立的虚电路从左侧端系统流向右侧端系统。数据流动只在步骤 4「呼叫已连接」之后开始，与 5.2.1 中「呼叫建立 → 数据流动 → 呼叫拆除」的三阶段顺序一致。
+
+### 5.2.5 数据报网络：Internet 模型（Datagram networks: the Internet model）
+
+数据报网络的性质与虚电路相反（原 PDF 第 14 页）：
+
+- 网络层没有呼叫建立（no call setup at network layer）。
+- 路由器不保存端到端连接的状态（routers: no state about end-to-end connections）。课件进一步说明：网络层不存在「连接」这一概念（no network-level concept of "connection"）。
+- 分组通常使用目的主机 ID 来路由（packets typically routed using destination host ID）。由此得到一个直接后果：同一对源与目的地之间的分组可能走不同的路径（packets between same source-dest pair may take different paths）。
+
+课件给出的数据报网络时序图中同样有左右两个五层端系统，network 层高亮，但只包含两个步骤：
+
+1. Send data（发送数据）。
+2. Receive data（接收数据）。
+
+图中中间的路由器网络里，各个分组以小方块表示并沿着不同的通路前进，不同分组经过的中间路由器不完全相同，这与「同一对源与目的地之间的分组可能走不同的路径」这一性质对应。与第 13 页的虚电路图相比，数据报图没有呼叫建立与拆除的控制消息交换，只有数据的发送与接收。
+
+### 5.2.6 数据报网络的转发表与最长前缀匹配
+
+数据报网络中路由器使用的转发表以目的地址范围为索引。课件先用一页给出转发表的结构（原 PDF 第 15 页）。该页注明有 4 billion possible entries（40 亿条可能表项），即按完整 IP 地址枚举所能得到的表项数量，说明不可能为每一个地址单独建立一条表项，必须按地址范围聚合。该页给出的转发表完整内容如下：
+
+| Destination Address Range（目的地址范围） | Link Interface（链路接口） |
+|---|---|
+| `11001000 00010111 00010000 00000000` 到 `11001000 00010111 00010111 11111111` | 0 |
+| `11001000 00010111 00011000 00000000` 到 `11001000 00010111 00011000 11111111` | 1 |
+| `11001000 00010111 00011001 00000000` 到 `11001000 00010111 00011111 11111111` | 2 |
+| otherwise（其他） | 3 |
+
+把上述地址写成点分十进制形式并核对范围边界：第一行范围为 200.23.16.0 到 200.23.23.255，第三字节从 `00010000`（十进制 16）到 `00010111`（十进制 23）；第二行范围为 200.23.24.0 到 200.23.24.255，第三字节固定为 `00011000`（十进制 24）；第三行范围为 200.23.25.0 到 200.23.31.255，第三字节从 `00011001`（十进制 25）到 `00011111`（十进制 31）；其余目的地址落在接口 3。
+
+课件随后把上表改写为带通配符的前缀形式，并给出最长前缀匹配规则（原 PDF 第 16 页）。**最长前缀匹配（longest prefix matching）**的规则是：为给定的目的地址查找转发表项时，使用与该目的地址匹配的最长的地址前缀（when looking for forwarding table entry for given destination address, use longest address prefix that matches destination address）。改写后的表为：
+
+| Destination Address Range | Link interface |
+|---|---|
+| `11001000 00010111 00010*** *********` | 0 |
+| `11001000 00010111 00011000 ********` | 1 |
+| `11001000 00010111 00011*** *********` | 2 |
+| otherwise | 3 |
+
+表中 `*` 表示该比特位不作要求。将三行前缀写成前缀长度：第 1 行固定了前 21 位（前两个字节 16 位，加第三字节的前 5 位 `00010`），即前缀 200.23.16.0/21，覆盖第三字节 `00010000` 至 `00010111`，即 200.23.16.0 至 200.23.23.255；第 2 行固定了前 24 位（`00011000`），即前缀 200.23.24.0/24，仅覆盖 200.23.24.0 至 200.23.24.255；第 3 行固定了前 21 位（`00011`），即前缀 200.23.24.0/21，覆盖第三字节 `00011000` 至 `00011111`，即 200.23.24.0 至 200.23.31.255。
+
+这里出现一处必须指明的重叠：前缀 200.23.24.0/24 完全被前缀 200.23.24.0/21 所包含。目的地址第三字节为 `00011000` 的分组同时匹配第 2 行与第 3 行，此时按最长前缀匹配规则取前缀更长的第 2 行；而第 15 页表把它单独列为接口 1、并把 200.23.25.0 至 200.23.31.255 列为接口 2，正是这一重叠关系在无通配符写法下的表现，第 2 行的单独列出把 200.23.24.0/24 从第 3 行的范围中挖了出来。
+
+课件给出的两个例子如下，逐位计算。
+
+#### 例 1：DA = `11001000 00010111 00010110 10100001`（问用哪个接口）
+
+与第 1 行前缀 `00010` 比较：第三字节 `00010110` 的前 5 位为 `00010`，与 `00010` 相同，符合；末 3 位 `110` 与 `***` 不约束，故匹配第 1 行（/21）。与第 2 行前缀 `00011000` 比较：第三字节 `00010110` 与 `00011000` 不相等（第 5 位 `1` 对 `1` 相同，第 6 位 `0` 对 `1` 不同），不匹配第 2 行。与第 3 行前缀 `00011` 比较：第三字节 `00010110` 的前 5 位为 `00010`，与 `00011` 不同，不匹配第 3 行。只有一个匹配项，因此查表结果为**接口 0**。
+
+用点分十进制复核：DA = 200.23.22.161，落在 200.23.16.0 至 200.23.23.255 之内，接口 0，与第 15 页表第一行一致。
+
+#### 例 2：DA = `11001000 00010111 00011000 10101010`（问用哪个接口）
+
+与第 1 行前缀 `00010` 比较：第三字节 `00011000` 的前 5 位为 `00011`，与 `00010` 不同，不匹配第 1 行。与第 2 行前缀 `00011000` 比较：第三字节 `00011000` 与 `00011000` 完全相同，匹配第 2 行（/24）。与第 3 行前缀 `00011` 比较：第三字节 `00011000` 的前 5 位为 `00011`，与 `00011` 相同，匹配第 3 行（/21）。同时匹配第 2 行与第 3 行，比较前缀长度：第 2 行为 24 位，第 3 行为 21 位，取较长的第 2 行，因此查表结果为**接口 1**。
+
+用点分十进制复核：DA = 200.23.24.170，落在 200.23.24.0 至 200.23.24.255 之内，按第 15 页表为接口 1，与按第 16 页表的最长前缀匹配结果一致。
+
+这一对例子说明：仅列出地址范围而不加最长前缀规则会产生二义性（例 2 同时落在两条表项中），最长前缀匹配规则用于消除该二义性，代价是查表不能只做一次全等或区间比较，而要在所有匹配的前缀中选出最长的一个。
+
+### 5.2.7 数据报与虚电路的选择原因
+
+课件用一张左右对照页说明 Internet 选择数据报、ATM 选择虚电路的原因（原 PDF 第 17 页）。
+
+Internet 一侧的情形是：应用场景为在计算机之间交换数据（data exchange among computers），这类业务是弹性服务，没有严格的定时要求（"elastic" service, no strict timing req.）；链路类型多（many link types），各种链路特性不同（different characteristics），因此难以在各链路上提供统一的服务（uniform service difficult）；端系统是智能的（"smart" end systems，即计算机），能够适应网络状况，能够执行控制与差错恢复（can adapt, perform control, error recovery）。由此得到的设计结论是：网络内部简单，复杂性放在边缘（simple inside network, complexity at "edge"）。
+
+ATM 一侧的情形是：ATM 从电话业务演化而来（evolved from telephony）；承载的是人类对话（human conversation），具有严格的定时与可靠性要求（strict timing, reliability requirements），需要保证服务（need for guaranteed service）；端系统是简单的（"dumb" end systems），即电话机。由此得到的设计结论是：复杂性放在网络内部（complexity inside network）。
+
+两侧的差别可以作为一条对照：把复杂功能放在网络边缘还是网络核心，决定了网络层采用数据报还是虚电路。Internet 把差错恢复与控制交给端系统的智能设备，网络核心只做尽力而为的转发，因此不需要为每条连接在路由器中维持状态，也就不需要虚电路；ATM 面向的是定时与可靠性要求严格、端系统能力弱的人声业务，因此需要网络内部为保证服务承担更多工作，即需要虚电路。
+
+---
+
+## 5.3 路由器内部结构（What's inside a router?）
+
+### 5.3.1 路由器体系结构总览
+
+课件给出通用路由器体系结构的高层视图（原 PDF 第 19 页图）。图中四个组成部分为：
+
+- 路由处理器（routing processor）；
+- 高速交换结构（high-speed switching fabric）；
+- 路由器输入端口（router input ports）；
+- 路由器输出端口（router output ports）。
+
+连接关系为：输入端口接到交换结构，交换结构接到输出端口，路由处理器与交换结构之间有双向箭头相连；另有一条从路由处理器指向输入端口的控制线，表示路由处理器向输入端口下发转发表内容。
+
+课件用一条水平虚线把图中各部件的运作时间尺度分为两层：
+
+- 虚线上方是**路由与管理控制平面（routing, management control plane）**，以软件实现，运行在毫秒级时间尺度（operates in millisecond time frame），该平面包含路由处理器。
+- 虚线下方是**转发数据平面（forwarding data plane）**，以硬件实现，运行在纳秒级时间尺度（operates in nanosecond timeframe），该平面包含输入端口、交换结构与输出端口。
+
+课件用红框标出路由处理器与交换结构，用于强调：控制平面决定交换结构如何被配置与路由表如何生成，数据平面负责实际搬运分组。两个平面的时间尺度相差约六个数量级（毫秒与纳秒），这解释了为什么转发表要下推到输入端口由硬件查用，而不是每个分组都送到路由处理器处理。
+
+### 5.3.2 输入端口的功能
+
+课件给出输入端口的内部功能图（原 PDF 第 20 页图）。分组自左向右经过四个模块：
+
+1. **line termination（线路端接）**，对应物理层：比特级接收（physical layer: bit-level reception）。
+2. **data link processing (protocol, decapsulation)（数据链路处理：协议、解封装）**，对应数据链路层，例如以太网（data link layer: e.g., Ethernet）。
+3. **lookup, forwarding, queueing（查找、转发、排队）**，该模块内画有一列竖直的短条，表示队列。
+4. 之后到达 **switch fabric（交换结构）**。
+
+课件把交换机部分称为**分散式交换（decentralized switching）**，并给出三条说明。第一，给定数据报的目的地址，使用存放在输入端口存储器中的路由表查出输出端口（given datagram dest., lookup output port using routing table in input port memory）；关键之处是路由表存放在输入端口自身的存储器中，输入端口的硬件可以独立完成查找，不必经由路由处理器，这就是「分散式」的含义。第二，目标是让输入端口处理在线速下完成（goal: complete input port processing at 'line speed'）；线速指该端口所在链路的传输速率，输入端口必须以不低于到达速率的处理速度完成每分组处理，否则分组会积压。第三，排队：如果数据报到达的速度快于向交换结构转发的速度，则在输入端口队列中排队（queuing: if datagrams arrive faster than forwarding rate into switch fabric），排队由第 3 个模块内的队列承担。
+
+### 5.3.3 交换结构（Switching fabrics）
+
+交换结构位于路由器的输入端口与输出端口之间，其任务是把已经确定输出端口的数据报从输入端口一侧送到输出端口一侧。课件按实现方式把路由器分为三类：经存储器交换（switching via memory）、经总线交换（switching via bus）、经互连网络交换（switching via interconnection network）。三者的差别在于数据报经过的物理通路不同，因而速度上限的成因不同。
+
+#### 经存储器交换（Switching via memory）
+
+第一代路由器（first generation routers）的性质如下：它们是传统计算机，交换动作处于 CPU 的直接控制之下；数据报被复制到系统的存储器（system memory）中；速度受存储器带宽限制，每个数据报需要 2 次总线穿越（2 bus crossings per datagram）。「2 次总线穿越」的构成是：数据报先从输入端口经系统总线写入存储器，记为第 1 次；随后从存储器经系统总线读出送往输出端口，记为第 2 次。因此即使输入端口和输出端口本身速率很高，单个数据报也要两次占用同一条系统总线，可交换的吞吐量被存储器带宽与系统总线带宽共同限制。课件给出的器件实例为：后来的路由器例如 Cisco Catalyst 8500，图中标注为 Retired（已退役）。该页图的结构为：左侧是输入端口（图中注明 e.g., Ethernet），中间是存储器，右侧是输出端口（同样注明 e.g., Ethernet），三者都连接在下方一条标注为 system bus 的系统总线上。
+
+#### 经总线交换（Switching via bus）
+
+数据报从输入端口经一条共享总线（shared bus）到达输出端口。存在总线争用（bus contention）：交换速度受总线带宽限制，原因是一条总线在同一时刻只能承载一个数据报的传输，多个输入端口同时有数据报要送往不同输出端口时，只能依次占用总线。课件给出的数据是：32 Gbps 总线、Cisco 5600，该配置对访问路由器（access routers）与企业路由器（enterprise routers）是足够的速度，但不适用于区域路由器或骨干路由器（not regional or backbone）。该页图的结构为：三个输入端口分别标 A、B、C，三个输出端口分别标 X、Y、Z，中间是一条纵向的共享总线，标注为 bus，图中画出一个数据报从输入端口经该总线流向输出端口。
+
+#### 经互连网络交换（Switching via interconnection network）
+
+这一设计目的是克服总线带宽的限制。使用的结构包括 Banyan 网络、交叉开关（crossbar）以及其他互连网络；这些结构最初是为了在多处理机（multiprocessor）中连接处理器而提出的。先进设计（advanced design）的做法是：把数据报分片（fragmenting）为固定长度的信元（fixed length cells），再让信元通过交换结构，这样交换结构内部以定长信元为单位作并行调度，不再是整条数据报独占一条通路。课件给出的器件实例：Cisco 12000 通过互连网络交换 60 Gbps。该页图画出交叉开关（crossbar）的结构：三条输入通路由横向导线构成，三条输出通路由纵向导线构成，横竖导线交叉处为可连通的交叉点，图中画出一个数据报占据其中一条横向通路、跨过若干交叉点后向下进入某一条输出通路，输出端串接缓冲单元后再送往输出。
+
+三类交换结构的对照如下：
+
+| 交换结构 | 数据报经过的通路 | 速度限制来源 | 课件给出的器件实例 |
+| --- | --- | --- | --- |
+| 经存储器交换 | 输入端口 → 系统总线 → 存储器 → 系统总线 → 输出端口 | 存储器带宽，每个数据报 2 次总线穿越 | 第一代路由器；Cisco Catalyst 8500（已退役） |
+| 经总线交换 | 输入端口 → 共享总线 → 输出端口 | 总线带宽，存在总线争用 | 32 Gbps 总线，Cisco 5600 |
+| 经互连网络交换 | 输入端口 → 互连网络（Banyan、crossbar 等）→ 输出端口 | 不再由单条总线带宽决定，可用分片为定长信元的方式提高并行度 | Cisco 12000，60 Gbps |
+
+### 5.3.4 输出端口（Output ports）
+
+输出端口的构成顺序为：交换结构（switch fabric）→ 数据报缓冲（datagram buffer，图中该处标注 queueing）→ 链路层协议（link layer protocol，图中标注 (send)）→ 线路终端（line termination）→ 输出线路。围绕这一结构，课件（原 PDF 第 25 页）给出两个与排队有关的事实：
+
+- 缓冲（buffering）的必要条件：当数据报从交换结构到达的速率快于输出线路的传输速率时，必须缓冲。
+- 调度规则（scheduling discipline）的作用：在已排队的数据报中决定哪一个被发送。
+
+课件用方框强调的后果是：数据报（包）可能因拥塞、缺少缓冲而被丢失（datagram (packets) can be lost due to congestion, lack of buffers）。课件用方框强调的第二个话题是优先级调度（priority scheduling）——谁获得最好性能，以及网络中立性（network neutrality）：调度规则不仅决定时延分配，也决定不同数据流之间的性能差异。
+
+### 5.3.5 输入端口排队与队头阻塞（Input port queuing）
+
+当交换结构的速度低于各输入端口合起来的速度（课件原文为 Fabric slower that input ports combined，此处 that 是课件文本的笔误，应为 than），输入队列上就可能出现排队。其后果是排队时延，以及因输入缓冲溢出造成的丢失。
+
+**队头阻塞（Head-of-the-Line blocking，HOL blocking）**的定义是：位于队列前端的数据报阻止了队列中其他数据报向前移动。课件（原 PDF 第 26 页）用两幅图说明其产生过程，两幅图都画有三个输入端口队列与三个输出端口，中间是交换结构。
+
+- 左图（$t$ 时刻）：两个数据报分别位于两个不同输入队列的前端，且都要送往同一个输出端口；同一时刻只能传输其中一个，另一个被阻塞。图中注明 output port contention: only one red datagram can be transferred. lower red packet is blocked。
+- 右图（一个数据报时间之后，one packet time later）：后一个数据报所在的输入队列中，另一个数据报排在被阻塞者之后；被阻塞的数据报不能向前移动，其后的数据报也就无法被交换，图中注明 green packet experiences HOL blocking。
+
+因此 HOL 阻塞的本质是：输入队列是先进先出的单一队列，即使队首数据报所要的输出端口暂时不可用，队列中其他数据报即使其输出端口空闲也不能被取出，输入端口因此产生本可避免的时延。
+
+### 5.3.6 输出端口排队（Output port queueing）
+
+当经交换结构到达的速率超过输出线路速率（课件原文为 exceeeds、ouput，为课件文本笔误，应为 exceeds、output）时，需要缓冲；其后果是排队（时延），以及因输出端口缓冲溢出造成的丢失。课件（原 PDF 第 27 页）用两幅图说明输出端口缓冲的积累过程。
+
+- 左图（at $t$，$t$ 时刻）：从输入到输出的数据报多于该时刻输出端口能发送的量，输出端口处已有一个数据报在缓冲中等待发送。
+- 右图（one packet time later，一个数据报时间之后）：输出端口缓冲中出现两个数据报堆积，表示到达速率持续高于输出线路速率时缓冲占用增加。
+
+---
+
+## 5.4 路由算法（Routing algorithms）
+
+### 5.4.1 路由与转发的交互
+
+课件在进入路由算法之前再次给出路由算法与转发动作的关系图（原 PDF 第 29 页，与 5.1.3 的图相同）。路由算法处于上方，它计算出本地的转发表；转发表为两列，左列是首部值（header value），右列是输出链路（output link），表中四行与 5.1.3 给出的完全相同，即 `0100`→3、`0101`→2、`0111`→2、`1001`→1。图中下半部分是一个由路由器节点组成的网络，其中画出若干路由器各带一份同样的转发表小框，并标出 value in arriving packet's header 指向一个首部字段二进制值为 `0111` 的数据报，它沿标有 1 的链路进入某个路由器。沿首部值 `0111` 查表得到输出链路为 2，因此该数据报从该路由器的输出链路 2 转发出去。这一页再次说明：路由算法负责生成并更新转发表的内容（全局的、较慢的过程），转发则是逐包按首部值查表并送往指定输出链路的动作（本地的、逐包发生的过程）。
+
+### 5.4.2 路由问题的图抽象（Graph abstraction）
+
+#### 5.4.2.1 路由协议的目标与图抽象的基本设定
+
+课件把路由协议（routing protocol）的目标写在方框中：确定从源到目的、穿过网络的好路径，即路由器序列（sequence of routers）。对好路径的解释是：好路径通常指最小代价路径（minimum cost path），其他定义也是可能的（other def's possible）。
+
+图抽象（graph abstraction）用于路由算法的设定为：图的节点（nodes）是路由器；图的边（edges）是物理链路；链路代价（link cost）可以是时延、费用（$ cost）或拥塞程度。
+
+课件在本页右侧给出的网络图有 6 个路由器节点 A、B、C、D、E、F。可读出的链路与代价为：$c(A,B)=2$、$c(A,D)=1$、$c(A,C)=5$、$c(B,C)=3$、$c(B,D)=2$、$c(C,E)=1$、$c(C,F)=5$、$c(D,E)=1$、$c(E,F)=2$；图中中部另有一处标号 $3$，其归属的链路在原图中不易分辨，属该图的局部不确定之处。该图在此后不用于计算，仅用于说明好路径的含义。
+
+#### 5.4.2.2 网络图抽象的形式化
+
+课件（原 PDF 第 31 页）给出同一抽象的标准记法：
+
+$$\text{graph}: G = (N, E)$$
+
+- $N =$ 路由器集合 $= \{u, v, w, x, y, z\}$；
+- $E =$ 链路集合 $= \{(u,v),\ (u,x),\ (v,x),\ (v,w),\ (x,w),\ (x,y),\ (w,y),\ (w,z),\ (y,z)\}$。
+
+图旁附注（aside）：图抽象在其他网络场景中也有用，例如 P2P，此时 $N$ 是对等方（peers）的集合，$E$ 是 TCP 连接的集合。
+
+此处需要说明源材料的一处不一致：本页列出的 $E$ 只含 9 条边，未列出 $(u,w)$；但同页图中在 $u$ 与 $w$ 之间画有一条标号为 5 的连线，且下面 5.4.2.3 与例题中要用到的第 37 页 Dijkstra 表第 0 步给出 $D(w)=5,u$，这只有在 $u$ 与 $w$ 直接相邻且 $c(u,w)=5$ 时才成立。本笔记按图中连线与后续计算结果，把 $(u,w)$、$c(u,w)=5$ 计入该图，并在此处如实标出课件边集未列该边的现象，未对源数据作静默修改。
+
+#### 5.4.2.3 链路代价与路径代价
+
+课件（原 PDF 第 32 页）给出记号 $c(x, x')$，表示链路 $(x, x')$ 的代价，例如 $c(w, z) = 5$。代价可以恒为 1，也可以与带宽成反比，或者与拥塞程度相关。路径 $(x_1, x_2, x_3, \ldots, x_p)$ 的代价等于各段链路代价之和：
+
+$$\text{cost of path }(x_1, x_2, x_3, \ldots, x_p) = c(x_1,x_2) + c(x_2,x_3) + \cdots + c(x_{p-1},x_p)$$
+
+由此给出的关键问题（key question）是：$u$ 与 $z$ 之间的最小代价路径（least-cost path）是哪一条？找出该最小代价路径的算法即路由算法。该页所用的图与上页相同（节点 $u,v,w,x,y,z$，含 $u$ 与 $w$ 之间代价为 5 的连线），其上 $u$ 到 $z$ 的最小代价路径在后面的例题中被完整算出，结果为 $u \to x \to y \to z$，代价 $4$。
+
+### 5.4.3 路由算法分类（Routing algorithm classification）
+
+课件（原 PDF 第 33 页）按两个维度对路由算法分类。
+
+**按信息范围：全局（global）还是分散（decentralized）**。全局算法中所有路由器拥有完整的拓扑与链路代价信息，这类算法称为链路状态（link state）算法。分散算法中路由器只知道与其物理相连的邻居以及到邻居的链路代价，计算是迭代过程，并通过与邻居交换信息进行，这类算法称为距离向量（distance vector）算法。
+
+**按变化快慢：静态（static）还是动态（dynamic）**。静态算法的路由随时间变化缓慢；动态算法的路由变化较快，触发原因是周期性更新，或对链路代价变化作出响应。
+
+两个维度相互独立：全局/分散说的是算法掌握多少信息，静态/动态说的是路由结果随时间变化的快慢。
+
+### 5.4.4 链路状态算法与 Dijkstra 算法
+
+#### 5.4.4.1 算法前提、结论形式与记号
+
+Dijkstra 算法的前提与性质（原 PDF 第 34 页）：网络拓扑与链路代价为所有节点所知；计算从一个节点（源）到所有其他节点的最小代价路径；算法是迭代的，经过 $k$ 次迭代后，已知到 $k$ 个目的节点的最小代价路径。
+
+记号：$c(x,y)$ 为节点 $x$ 到节点 $y$ 的链路代价，$x$ 与 $y$ 不是直接邻居时取 $\infty$；$D(v)$ 为从源到目的节点 $v$ 的路径代价的当前值；$p(v)$ 为从源到 $v$ 的路径上 $v$ 的前驱节点（predecessor node）；$N'$ 为最小代价路径已被明确确定的节点集合。
+
+#### 5.4.4.2 算法伪码
+
+课件（原 PDF 第 35 页）给出的伪码逐行为：
+
+```
+ 1  Initialization:
+ 2     N' = {u}
+ 3     for all nodes v
+ 4        if v adjacent to u
+ 5           then D(v) = c(u,v)
+ 6           else D(v) = ∞
+ 7
+ 8  Loop
+ 9     find w not in N' such that D(w) is a minimum
+10     add w to N'
+11     update D(v) for all v adjacent to w and not in N' :
+12        D(v) = min( D(v), D(w) + c(w,v) )
+13     /* new cost to v is either old cost to v or known
+14        shortest path cost to w plus cost from w to v */
+15  until all nodes in N'
 ```
 
-### 分片结构明细（按页序，保持原跨页连续标记）
+对第 12 行松弛（relaxation）步骤的说明：$D(v)$ 的更新值在「原来的 $D(v)$」与「已确定的最短路到 $w$ 的代价 $D(w)$ 加上 $w$ 到 $v$ 的链路代价 $c(w,v)$」两者中取较小者。这样，每当一个新节点 $w$ 被加入 $N'$，只检查 $w$ 的邻居，不重复检查已在 $N'$ 中的节点。第 9 行是算法每轮的选择动作：在尚未确定的节点中选出 $D$ 值最小者加入 $N'$。循环终止条件是所有节点都进入 $N'$。
 
-#### 第 1 片（page 1–20）
+#### 例题 1：Dijkstra 算法（原 PDF 第 36 页）
 
-```
-Chapter 5: Network Layer（网络层）
-├── 章节目标（page 1）
-│   ├── 网络层服务原理：服务模型、转发 vs 路由、路由器工作原理、路由（路径选择）、规模化问题
-│   └── 在 Internet 中的实例化与实现
-├── 章节目录（page 2、9、18，三次出现，跨页连续）
-│   ├── 5.1 Introduction（引言）
-│   ├── 5.2 Virtual circuit and datagram networks（虚电路与数据报网络）
-│   ├── 5.3 What's inside a router?（路由器内部结构）
-│   ├── 5.4 Routing algorithms（路由算法）：Dijkstra、Broadcast、Link state、Distance vector、Hierarchical
-│   ├── 5.5 Routing in the Internet（Internet 中的路由）
-│   └── 5.6 IP: Internet protocol（IP 协议）：IPv4 格式/编址/分片、ARP、ICMP、IPv6
-│
-├── 5.1 引言（page 3–8）【跨页连续：p3–p5；p6–p8】
-│   ├── 网络层职责（page 3）
-│   ├── 网络层两大关键功能（page 4–5）
-│   │   ├── 路由（Routing）
-│   │   ├── 转发（Forwarding）
-│   │   └── 连接建立（Connection setup）
-│   └── 网络服务模型（page 6–8）
-│       ├── 服务保证维度（带宽、时序/抖动、无丢失、保序、拥塞反馈）
-│       ├── 各架构服务模型对比（Internet / ATM CBR / VBR / ABR / UBR）
-│       └── 连接型与无连接网络层服务
-│
-├── 5.2 虚电路与数据报网络（page 9–17）【跨页连续：p10–p13；p14–p17】
-│   ├── 虚电路网络（page 10–13）
-│   │   ├── 虚电路基本特征（call setup → data flow → call teardown）
-│   │   ├── VC 实现三要素（page 11）
-│   │   └── 信令协议（signaling protocols）（page 13）
-│   ├── 数据报网络（page 14）
-│   ├── 最长前缀匹配（page 16）
-│   └── Internet 选数据报、ATM 选虚电路的原因（page 17）
-│
-└── 5.3 路由器内部结构（page 18–20）【跨页连续】
-    ├── 通用路由器体系结构（page 19）
-    │   ├── 数据平面（转发，硬件，纳秒级）
-    │   └── 控制平面（路由与管理，软件，毫秒级）
-    └── 输入端口功能（page 20）
-        ├── 去中心化交换（查表 → 输出端口）
-        ├── 线速处理目标
-        ├── 排队（queuing）
-        └── 物理层 / 数据链路层功能
-```
+**题干**：给定下面的网络，链路代价为 $c(u,x)=5$、$c(u,w)=3$、$c(u,v)=7$、$c(w,v)=3$、$c(w,y)=8$、$c(x,y)=7$、$c(x,z)=9$、$c(v,y)=4$、$c(y,z)=2$（其中 $c(w,y)=8$ 由第 1 步之后的更新值 $D(y)=11,w$ 反推得到：$D(w)+c(w,y)=3+8=11$）。以 $u$ 为源，用 Dijkstra 算法求 $u$ 到所有其他节点的最小代价路径，并给出每一步的 $D$ 值与前驱 $p$。图中给出由前驱回溯得到的最短路径树，并注明 ties can exist (can be broken arbitrarily)（可能存在并列，可任意打破）。
 
-标记说明：5.1 内容跨 p3–p8；5.2 跨 p9–p17；5.3 起于 p18、跨 p18–p20；章节目录在 p2、p9、p18 重复出现，属同一目录的跨页强调，不拆为三个独立知识点。
+**解**：
 
----
+初始化（Step 0）：$N' = \{u\}$。$u$ 的邻居为 $v, w, x$。
 
-#### 第 2 片（page 21–40）
+- $D(v) = c(u,v) = 7$，$p(v) = u$；
+- $D(w) = c(u,w) = 3$，$p(w) = u$；
+- $D(x) = c(u,x) = 5$，$p(x) = u$；
+- $D(y) = \infty$（$y$ 不与 $u$ 直接相邻）；
+- $D(z) = \infty$（$z$ 不与 $u$ 直接相邻）。
 
-```
-Chapter 5: Network Layer（本分片主体：5.3 路由器内部 + 5.4 路由算法导论与 Dijkstra、广播路由）
-│
-├── 5.3 What's inside a router?（路由器内部，page 21–27，跨页连续）
-│   ├── 三种交换结构（Three types of switching fabrics）［page 21］
-│   ├── 经内存交换（Switching Via Memory）［page 22］
-│   ├── 经总线交换（Switching Via Bus）［page 23］
-│   ├── 经互连网络交换（Switching Via Interconnection Network）［page 24］
-│   ├── 输出端口（Output Ports）［page 25］
-│   ├── 输入端口排队（Input Port Queuing）与队头阻塞（HOL blocking）［page 26］
-│   └── 输出端口排队（Output port queueing）［page 27］
-│
-├── 第 5 章总目录回顾［page 28］
-│   ├── 5.1 Introduction
-│   ├── 5.2 Virtual circuit and datagram networks
-│   ├── 5.3 What's inside a router?
-│   ├── 5.4 Routing algorithms
-│   │   ├── Dijkstra's algorithm
-│   │   ├── Broadcast routing
-│   │   ├── Link state
-│   │   ├── Distance vector
-│   │   └── Hierarchical routing
-│   ├── 5.5 Routing in the Internet
-│   └── 5.6 IP: Internet protocol（IPv4 格式/地址/分片、ICMP、IPv6）
-│
-├── 5.4 Routing algorithms（路由算法，page 29–40，跨页连续）
-│   ├── 路由与转发的关系（Interplay between routing and forwarding）［page 29］
-│   ├── 路由问题的图抽象（Graph abstraction for routing）［page 30–31，连续］
-│   │   ├── 图的构成：节点=路由器、边=物理链路
-│   │   ├── 良好路径（good path）目标
-│   │   └── 形式化：G = (N, E)
-│   ├── 链路代价与路径代价（Graph abstraction: costs）［page 32］
-│   ├── 路由算法分类（Routing Algorithm classification）［page 33］
-│   │   ├── 全局（Global）vs 分布式（Decentralized）
-│   │   └── 静态（Static）vs 动态（Dynamic）
-│   ├── Dijkstra 最短路径算法［page 34–39，跨页连续］
-│   │   ├── 算法设定与记号（Notation）［page 34］
-│   │   ├── 算法本体（图示，page 35 无可提取正文）
-│   │   ├── 例 1：算法执行表（page 36）
-│   │   ├── 例 2：算法执行表（page 37，对应 page 31 同一图）
-│   │   ├── 例 2 结果：最短路径树与节点 u 的转发表（page 38）
-│   │   └── 复杂度与振荡讨论（page 39）
-│   └── 广播路由（Broadcast routing）［page 40］
-│       ├── 泛洪（Flooding）与广播风暴（Broadcast storm）
-│       └── 受控泛洪：序号控制泛洪、反向路径转发（RPF）
-```
+第 1 步：在 $N'$ 之外的节点中取 $D$ 最小者，$\min\{D(v)=7,\ D(w)=3,\ D(x)=5,\ D(y)=\infty,\ D(z)=\infty\} = 3$，对应 $w$。加入 $w$，$N' = \{u, w\}$。
 
----
+松弛 $w$ 的邻居（不在 $N'$ 中的）：
 
-#### 第 3 片（page 41–60）
+- $v$：$D(v) = \min(7,\ D(w)+c(w,v)) = \min(7,\ 3+3) = \min(7, 6) = 6$，$p(v) = w$；
+- $y$：$D(y) = \min(\infty,\ 3+8) = 11$，$p(y) = w$。
 
-```text
-5.4 Routing algorithms（路由算法）— 续
-├── 1. 广播路由（续）（page 41）
-│   └── 1.1 生成树广播（Spanning-tree broadcast）
-├── 2. 链路状态算法（Link state algorithm）（page 42）
-│   ├── 泛洪 LS 包 → 全网一致完整视图
-│   ├── Dijkstra 求单源最小代价
-│   └── 代价变化：再泛洪 + 再计算
-├── 3. 距离向量算法（Distance vector algorithm）【page 43–57，跨页连续】
-│   ├── 3.1 Bellman-Ford 方程与算例（page 43）
-│   ├── 3.2 DV 记号与表结构（page 44）
-│   ├── 3.3 BF 例题页（page 45，文本无正文）
-│   ├── 3.4 DV 基本思想与收敛（page 46）
-│   ├── 3.5 迭代/异步/分布式性质（page 47）
-│   ├── 3.6 三节点 x-y-z 演算（page 48–49，跨页相同推导）
-│   ├── 3.7 链路代价变化：好消息快、坏消息慢（page 50）
-│   ├── 3.8 动画页（page 51–52、54–55、57，无正文）
-│   ├── 3.9 计数到无穷问题（Count to infinity）（page 53）
-│   └── 3.10 毒化反转（Poisoned reverse）（page 56）
-├── 4. LS 与 DV 算法比较（page 58）
-│   ├── 消息复杂度
-│   ├── 收敛速度
-│   └── 健壮性
-└── 5. 层次化路由（Hierarchical Routing）【page 59–60，跨页连续】
-    ├── 5.1 动机：规模 + 管理自治（page 59）
-    └── 5.2 AS 划分与网关职责（page 60）
-```
+此时表为：$D(v)=6,p(v)=w$；$D(x)=5,p(x)=u$；$D(y)=11,p(y)=w$；$D(z)=\infty$。
 
----
+第 2 步：$\min\{D(v)=6,\ D(x)=5,\ D(y)=11,\ D(z)=\infty\} = 5$，对应 $x$。加入 $x$，$N' = \{u, w, x\}$。
 
-#### 第 4 片（page 61–81）
+松弛 $x$ 的邻居（不在 $N'$ 中的）：
 
-本分片（page 61–81）围绕**自治系统（Autonomous System, AS）内的路由与自治系统间的路由**展开，并给出第五章目录与一道习题。层级与跨页关系如下：
+- $v$：$D(v) = \min(6,\ 5 + c(x,v)) = \min(6,\ 5+4) = \min(6, 9) = 6$（保持 $6$，$p(v)$ 仍为 $w$）；
+- $y$：$D(y) = \min(11,\ 5+7) = \min(11, 12) = 11$（保持 $11$，$p(y)$ 仍为 $w$）；
+- $z$：$D(z) = \min(\infty,\ 5+9) = 14$，$p(z) = x$。
 
-```text
-网络层（Network Layer）— 路由部分
-├── 1. AS 内路由与 AS 间路由概述 【跨页连续：page 61 → 62】
-│   ├── 1.1 网关（Gateway）的双重路由角色（page 61）
-│   ├── 1.2 端到端路径的三段划分：AS 内 → AS 间 → AS 内（page 62）
-│   └── 1.3 预告：后文将给出具体的 inter-AS / intra-AS 路由协议（page 62）
-├── 2. 第五章（Chapter 5: Network Layer）目录结构（page 63）
-│   ├── 5.1 Introduction
-│   ├── 5.2 Virtual circuit and datagram networks
-│   ├── 5.3 What’s inside a router?
-│   ├── 5.4 Routing algorithms（Dijkstra / Broadcast / Link state / Distance vector / Hierarchical）
-│   ├── 5.5 Routing in the Internet
-│   └── 5.6 IP: Internet protocol（IPv4 格式 / 寻址 / 分片 / ICMP / IPv6）
-├── 3. AS 内路由（Intra-AS Routing）= 内部网关协议（IGP）【跨页连续：page 64 → 74】
-│   ├── 3.1 IGP 定义与常见协议列表（page 64）
-│   ├── 3.2 RIP（Routing Information Protocol）【跨页连续：page 65 → 69】
-│   │   ├── 3.2.1 RIP 基本机制与度量（page 65）
-│   │   ├── 3.2.2 RIP 路由表结构示例（page 66）
-│   │   ├── 3.2.3 链路故障与恢复（page 67）
-│   │   ├── 3.2.4 表项处理的实现方式（page 68）
-│   │   └── 3.2.5 真实路由表示例 giroflee.eurocom.fr（page 69）
-│   ├── 3.3 OSPF（Open Shortest Path First）【跨页连续：page 70 → 73】
-│   │   ├── 3.3.1 OSPF 基本机制（page 70）
-│   │   ├── 3.3.2 OSPF 高级特性（page 71）
-│   │   └── 3.3.3 层次化 OSPF（Hierarchical OSPF）【跨页连续：page 72 → 73】
-│   │       ├── 3.3.3.1 两级层次结构与路由器角色（page 72–73）
-│   │       └── 3.3.3.2 区域边界 / 骨干 / 边界路由器职责（page 73）
-│   └── 3.4 IGRP（Interior Gateway Routing Protocol）（page 74）
-├── 4. AS 间路由（Inter-AS Routing）：BGP 【跨页连续：page 75 → 79】
-│   ├── 4.1 节标题页（page 75）
-│   ├── 4.2 BGP 定位与三大功能（page 76）
-│   ├── 4.3 路径向量协议（Path Vector protocol）（page 77）
-│   └── 4.4 BGP 路由策略（Routing Policy）【跨页连续：page 78 → 79】
-│       ├── 4.4.1 双宿主（dual-homed）网络不中转策略（page 78）
-│       └── 4.4.2 提供商只服务客户的收益策略（page 79）
-├── 5. 为何区分 AS 内与 AS 间路由（page 80）
-│   ├── 5.a 策略（Policy）维度
-│   ├── 5.b 规模（Scale）维度
-│   └── 5.c 性能（Performance）维度
-└── 6. 习题 Exercise-1：RIP / OSPF / BGP 的直接封装协议（page 81）
-```
+此时表为：$D(v)=6,p(v)=w$；$D(y)=11,p(y)=w$；$D(z)=14,p(z)=x$。
 
----
+第 3 步：$\min\{D(v)=6,\ D(y)=11,\ D(z)=14\} = 6$，对应 $v$。加入 $v$，$N' = \{u, w, x, v\}$。
 
----
+松弛 $v$ 的邻居（不在 $N'$ 中的）：
 
-## 知识点详解
+- $y$：$D(y) = \min(11,\ D(v)+c(v,y)) = \min(11,\ 6+4) = \min(11, 10) = 10$，$p(y) = v$；
+- $z$：$v$ 与 $z$ 不相邻，$c(v,z)=\infty$，不产生更新，$D(z)$ 保持 $14$，$p(z)=x$。
 
-### 第 1 片 · page 1–20
+此时表为：$D(y)=10,p(y)=v$；$D(z)=14,p(z)=x$。
 
-#### 网络层（Network Layer）
+第 4 步：$\min\{D(y)=10,\ D(z)=14\} = 10$，对应 $y$。加入 $y$，$N' = \{u, w, x, v, y\}$。
 
-**定义**：网络层负责将分组（packet）从发送主机传输到接收主机；网络层协议存在于每一台主机和每一个路由器（router）中；路由器检查经过它的所有 IP 数据报（IP datagram）的首部字段。主机与主机在网络层的协议栈位置为：application → transport → **network** → data link → physical，中间仅经过网络/数据链路/物理三层的转发节点。
+松弛 $y$ 的邻居（不在 $N'$ 中的）：
 
-**理解**：网络层的职责范围是「端到端把分组从源送到目的地」。它由三类实体共同实现：源主机、目的主机、路径上的每个路由器。分组在每一段链路上由数据链路层承载，但决定「下一跳往哪走」的逻辑在网络层。路由器对每个 IP 数据报读取首部，首部中至少包含目的地址等用于选路与转发的字段。
+- $z$：$D(z) = \min(14,\ D(y)+c(y,z)) = \min(14,\ 10+2) = \min(14, 12) = 12$，$p(z) = y$。
 
-**作用**：**基础概念，独立知识点**。是本章全部内容（服务模型、路由/转发、路由器结构、IP 协议）的上位对象。
+此时表为：$D(z)=12,p(z)=y$。
 
----
+第 5 步：$\min\{D(z)=12\} = 12$，加入 $z$，$N' = \{u, w, x, v, y, z\}$。所有节点已进入 $N'$，算法结束。
 
-#### 路由（Routing）
-
-**定义**：路由是网络层两大关键功能之一，其任务是确定分组从源到目的地所走的路径（determine route taken by packets from source to dest.），由路由算法（routing algorithms）完成。
-
-**理解**：路由回答的问题是「路径是什么」。输入是网络拓扑与度量等信息，输出是一条从源到目的地的路径决策。课件原文给出对照说明：路由对应「从源到目的地规划行程」的过程（原课件类比句，此处仅作原文事实记录）。路由结果最终要写入或影响转发表，才能被转发使用。
-
-**作用**：与转发（Forwarding）并列为网络层两大关键功能；前置依赖是网络状态/拓扑信息，后置结果供转发查表使用。掌握后能解释：分组为什么走这条路径而不是那条路径。
-
----
-
-#### 转发（Forwarding）
-
-**定义**：转发是网络层两大关键功能之一，其任务是将分组从路由器的输入端移动到恰当的输出端（move packets from router's input to appropriate router output）。
-
-**理解**：转发回答的问题是「在本台路由器上，分组从哪个口进、往哪个口出」。它只使用本地转发表（forwarding table），对单个分组做一次本地决策，不重新全局选路。课件原文给出对照说明：转发对应「通过单个交叉口」的过程（原课件类比句，此处仅作原文事实记录）。
-
-**作用**：与路由（Routing）并列；由路由器数据平面以硬件实现（见「路由器体系结构」）。掌握后能区分：控制面决策路径 vs 数据面搬移分组。
-
----
-
-#### 路由与转发的相互作用（Interplay between routing and forwarding）
-
-**定义**：page 5 专门用一张图展示路由与转发之间的相互作用（Interplay between routing and forwarding）；图中核心信息为：路由协议/路由处理器计算得到的路由结果，写入各路由器的转发表（forwarding table）；转发时按转发表把分组送往相应输出端口。
-
-**理解**：二者是「决策—执行」关系：路由在时间尺度上较慢地产生并更新转发表；转发在每个分组到达时快速查这张表。转发表是路由与转发之间的接口数据结构。路由出错会导致转发表过时，转发就会把分组送往错误端口。
-
-**作用**：属于 5.1 引言中「两大关键功能」的衔接点；后置关联 5.3 路由器中控制平面与数据平面的划分。
-
----
-
-#### 连接建立（Connection setup）
-
-**定义**：部分网络体系结构要求在数据流动之前，先沿路径完成路由器之间的连接建立（some network architectures require router connection setup along path before data flows）。
-
-**理解**：并非所有网络层都有此阶段。有连接建立的体系结构（如虚电路网络）在传数据前先协商好路径与资源；没有此阶段的体系结构（如 Internet 数据报）直接发数据。连接建立属于网络层为提供服务而增加的可选阶段。
-
-**作用**：是区分虚电路网络与数据报网络的判据之一（前置概念）；后接 5.2 虚电路的 call setup → data flow → call teardown。
-
----
-
-#### 网络服务模型（Network Service Model）
-
-**定义**：网络服务模型是网络层为「把分组从发送方运送到接收方的信道（channel）」所提供的服务保证；它是网络层提供的最重要的抽象（the most important abstraction provided by network layer）。
-
-**理解**：服务模型规定发送方与接收方能从网络层得到哪些保证。评价一个服务模型要回答一组问题（见下一知识点）。同一个网络可以用不同服务模型（Internet 的 best effort，ATM 的 CBR/VBR/ABR/UBR）。问题「用 virtual circuit 还是 datagram？」也属于服务模型选择的一部分。
-
-**作用**：**基础概念，独立知识点**（在本分片中）。它统摄 page 6–7 的保证维度与服务模型对比表，以及 page 8 的连接型/无连接分类。
-
----
-
-#### 服务模型的保证维度
-
-**定义**：评价网络服务模型时需回答的保证维度包括：
-1. **保证带宽（guaranteed bandwidth）**：是否承诺最小或恒定带宽；
-2. **包间时序保持 / 无抖动（preservation of inter-packet timing, no jitter）**：分组之间到达间隔是否与发送间隔一致；
-3. **无丢失交付（loss-free delivery）**：分组是否保证不丢；
-4. **保序交付（in-order delivery）**：分组是否按发送顺序到达；
-5. **向发送方提供拥塞反馈（congestion feedback to sender）**：网络拥塞时是否主动通知发送方。
-
-**理解**：这五项是逐条可检验的交付性质。每一条只约束一种性质：带宽约束速率，时序约束间隔，丢失约束完整性，保序约束顺序，拥塞反馈约束控制信息回传。一个服务模型对每一项可以是「承诺」或「不承诺」。
-
-**作用**：是阅读 page 7 对比表的表头依据；与传输层 QoS 概念并列出现在问题清单中，但此处特指网络层提供的保证。
-
----
-
-#### 数据报网络（Datagram Network）与无连接网络层服务
-
-**定义**：数据报网络提供网络层无连接服务（connectionless service）。Internet 模型下：网络层无呼叫建立（no call setup at network layer）；路由器不保存任何关于端到端连接的状态（no state about end-to-end connections），网络层没有「连接」这一概念；分组通常按目的主机标识（destination host ID）进行路由；同一源—目的对之间的分组可以走不同路径（packets between same source-dest pairs may take different paths）。通信过程只有「1. Send data → 2. Receive data」两步（page 14 图）。
-
-**理解**：无连接的直接含义是：每个分组独立决策，不依赖先前分组建立的任何状态。因为路由器无连接状态，所以能水平扩展；也因为无连接状态，同一会话的分组可能乱序、走不同路径，可靠性与顺序要靠端系统处理。
-
-**作用**：与虚电路网络构成 5.2 的并列二分；是 Internet 网络层的实际选择；后接 page 16 最长前缀匹配（数据报网络查表方式）与 page 17 设计原因对比。
-
----
-
-#### 虚电路网络（Virtual Circuit Network）与网络层连接服务
-
-**定义**：虚电路（virtual circuit, VC）网络提供网络层连接型服务（connection-oriented service）。其过程为：呼叫建立 → 数据流动 → 呼叫拆除（call setup → data flow → call teardown）。每个分组携带 VC 标识符（VC identifier）而非目的主机 ID；源—目的路径上的每个路由器都为每一个经过的连接维护「状态」（state）；链路与路由器资源（带宽、缓冲区）可以分配给该 VC，以获得类电路性能（to get circuit-like performance）。课件表述：源到目的路径的表现很像电话电路（source-to-dest path behaves much like telephone circuit），体现在性能与沿路网络动作两方面。与传输层连接的差别：传输层连接只涉及两个端系统，而 VC 状态存在于路径上每个路由器。
-
-**理解**：VC 把「一次通信」在网络层建模为一个有标识的通道。构成要素有三：固定路径、每链路一个 VC 号、沿途路由器转发表中的表项。分组不需要写目的地址，只需写 VC 号；路由器按 VC 号查表换号转发。资源预留是可选能力，用来逼近电路交换的性能指标。
-
-**作用**：与数据报网络并列，是 5.2 的另一半；后接 VC 实现三要素、信令协议；与 page 17 ATM 选择 VC 的理由对照。
-
----
-
-#### VC 实现三要素
-
-**定义**：一个 VC 由三部分构成（page 11）：
-1. 从源到目的的路径（path）；
-2. VC 号（VC numbers）：路径上每条链路一个号；
-3. 沿途各路由器转发表中的表项（entries in forwarding tables）。
-属于该 VC 的分组携带 VC 号（而非目的地址）；VC 号可以在每条链路上改变，新的 VC 号来自转发表。
-
-**理解**：路径解决「走哪」，VC 号解决「分组如何被识别为同一条 VC」，转发表表项解决「在本路由器如何把入端 VC 号映射到出端及新 VC 号」。逐链路换号的原因是：不同链路的编号空间可以独立，避免全网统一编号的规模问题。因此转发表项本质上是（入接口, 入 VC 号）→（出接口, 出 VC 号）的映射。
-
-**作用**：是虚电路网络的实现核心；后置支撑信令协议建立这些表项；与数据报网络「按目的地址查表」形成对照。
-
----
-
-#### 信令协议（Signaling Protocols）
-
-**定义**：信令协议用于建立、维护与拆除虚电路（used to setup, maintain, teardown VC）；应用于 ATM、frame-relay、X.25；当今 Internet 不使用（not used in today's Internet）。page 13 图给出建立与数据传输的六步交互：
-1. Initiate call（发起呼叫）
-2. incoming call（来话）
-3. Accept call（接受呼叫）
-4. Call connected（呼叫连接）
-5. Data flow begins（开始数据流动）
-6. Receive data（接收数据）
-
-**理解**：信令协议是控制面协议，与传用户数据的数据面不同。六步中 1–4 完成呼叫建立并沿途写好转发表项，5–6 才进入数据阶段。Internet 网络层没有对应协议，因为数据报不需要建 VC。
-
-**作用**：是 VC 从「概念」到「可实现」的协议机制；与 page 14 数据报「无呼叫建立」直接对照；属 5.2 虚电路子分支的收尾知识点。
-
----
-
-#### 最长前缀匹配（Longest Prefix Matching）
-
-**定义**：在为给定目的地址查找转发表项时，使用与该目的地址匹配的最长地址前缀（use longest address prefix that matches destination address）。
-
-**理解**：转发表中的表项以地址前缀（前若干比特）描述目的地址范围。一个目的地址可能同时匹配多条表项；前缀越长，描述的地址范围越小、越具体。规则要求在所有匹配项中选前缀最长者，从而得到唯一且最精确的输出端口。课件 page 16 表中 `*` 表示通配比特，不参与比较；前缀长度 = 前面固定的比特数。
-
-**作用**：是数据报网络转发表查询的核心算法；支撑 page 16 的两个查表例题；后接 5.4 路由算法如何生成这些前缀表项。掌握后能对任意 32 位目的地址手工选出输出接口。
-
----
-
-#### Internet 与 ATM 为何分别选择数据报与虚电路（page 17）
-
-**定义**（对照结构，两列均为原文要点）：
-
-| 维度 | Internet（数据报） | ATM（虚电路） |
-|---|---|---|
-| 起源 | 计算机之间的数据交换 | 由电信（telephony）演进而来 |
-| 业务特性 | 「弹性」服务，无严格时序要求（elastic service, no strict timing req.） | 人际会话：严格时序与可靠性需求，需要有保证的服务 |
-| 链路种类 | 链路类型多、特性各异，难以提供统一服务 | 面向较统一的电信传输环境 |
-| 端系统 | 「聪明」端系统（计算机）：能自适应、做控制、做差错恢复 | 「笨」端系统（电话） |
-| 复杂度位置 | 网络内部简单，复杂度在「边缘」（edge） | 复杂度在网络内部 |
-
-**理解**：选择逻辑是因果链：业务无严格时序 + 端系统有计算能力 → 把可靠性和拥塞控制放到边缘，网络内只做简单转发；业务有严格时序 + 端系统无智能 → 网络内部必须复杂，提供保证。链路异构使网络内统一保证难以实现，进一步强化了 Internet 的边缘复杂策略。
-
-**作用**：回答 5.2 的「why」问题，收束虚电路 vs 数据报的选型；与 page 6–8 服务模型呼应。
-
----
-
-#### 路由器体系结构：数据平面与控制平面（page 19）
-
-**定义**：通用路由器的高层结构包括：路由器输入端口（input ports）、高速交换结构（high-speed switching fabric）、路由器输出端口（output ports）、路由处理器（routing processor）。
-- **数据平面（data plane）**：执行转发（forwarding），以硬件实现，在纳秒（nanosecond）时间尺度上运行；
-- **控制平面（control plane）**：执行路由与管理（routing, management），以软件实现，在毫秒（millisecond）时间尺度上运行。
-
-**理解**：划分依据是时间尺度与实现载体：每个分组的查表转发必须极快，故用硬件；全网路由计算与网管变更频率低、逻辑复杂，故用软件。交换结构是输入端口与输出端口之间的通路；路由处理器运行控制平面软件并影响各端口的转发表。
-
-**作用**：是 5.3 的总框架；后接输入端口、交换结构、输出端口的细节（本分片只展开到输入端口）。与 page 4「路由 vs 转发」一一对应：控制平面对应路由，数据平面对应转发。
-
----
-
-#### 输入端口功能（Input Port Functions）
-
-**定义**（page 20）：
-1. **去中心化交换（decentralized switching）**：给定数据报目的地址，使用输入端口存储器中的路由/转发表（routing table in input port memory）查找输出端口；
-2. **目标：以「线速」（line speed）完成全部输入端口处理**；
-3. **排队（queuing）**：当数据报到达速率快于其经交换结构的转发速率时发生；
-4. **物理层功能**：比特级接收（bit-level reception）；
-5. **数据链路层功能**：例如以太网（Ethernet）帧的处理。
-
-**理解**：输入端口要完成「从线路上收比特 → 拆帧 → 按目的地址查表得输出端口 → 送入交换结构」这一串处理。去中心化指查表发生在各输入端口本地，而非集中在唯一处理器。线速意味着处理延迟不能超过比特到达间隔，否则必然排队。排队的直接原因是到达率大于服务率（进入交换结构的速率）。
-
-**作用**：是 5.3 路由器内部结构的第一个子模块；前置依赖数据平面/控制平面划分与最长前缀匹配；后置关联交换结构与输出端口（后续分片）。掌握后能解释路由器端口拥塞的成因。
-
----
-
----
-
-### 第 2 片 · page 21–40
-
-#### 三种交换结构（Three types of switching fabrics）
-
-**定义**：路由器内部将数据报（datagram）从输入端口（input port）移送至输出端口（output port）的三类硬件转发机制总称，课件列出：经内存交换（memory）、经总线交换（bus）、经互连网络交换（interconnection network）。
-
-**理解**：路由器收到数据报后必须完成「从哪个口进、从哪个口出」的物理搬运。根据搬运通道的组织方式，分为三种实现：全部经系统内存中转、全部经一条共享总线中转、经可并行的互连网络中转。这三种方式对应不同代际与不同性能档位的路由器。
-
-**作用**：**基础概念，独立知识点**。它是 5.3 节「路由器内部」的总纲；后续三个具体交换方式均为其分解项。
-
----
-
-#### 经内存交换（Switching Via Memory）
-
-**定义**：第一代路由器的交换方式——路由器即传统计算机，交换在 CPU 直接控制下进行；数据报被复制到系统内存（system's memory），再由 CPU 送往输出端口。后期示例：Cisco Catalyst 8500（已退役）。速度受内存带宽（memory bandwidth）限制，每个数据报需 2 次总线穿越（2 bus crossings per datagram）。
-
-**理解**：输入端口把数据报写进内存，CPU 决定出口后再从内存读出送到输出端口。一次转发至少「进内存一次、出内存一次」，数据要两次穿过系统总线，因此吞吐上限由内存与总线带宽决定。CPU 参与每个数据报的搬运，转发速率无法很高。
-
-**作用**：在「三种交换结构」中对应最早期实现。掌握后可理解：路由器性能瓶颈可以来自内存与 CPU，而不只来自链路本身；与经总线交换、经互连网络交换构成演进关系（前置：三种交换结构；后置：总线/互连网络交换）。
-
----
-
-#### 经总线交换（Switching Via Bus）
-
-**定义**：数据报从输入端口经一条共享总线（shared bus）直接送往输出端口的交换方式。存在总线竞争（bus contention）：交换速度受总线带宽（bus bandwidth）限制。示例：32 Gbps 总线的 Cisco 5600，速度足以支撑接入层与企业（enterprise）路由器，不足以支撑区域（regional）或骨干（backbone）路由器。
-
-**理解**：输入与输出端口挂在同一条总线上；同一时刻总线一次只能传一个数据报，多个端口同时发送会竞争总线。总线带宽是硬上限，32 Gbps 意味着全网口聚合吞吐不能持续超过该量级，所以只够低档路由器。
-
-**作用**：三种交换结构的第二种。与经内存交换相比省去了 CPU/内存中转；与互连网络相比存在单总线竞争瓶颈。角色是性能演进的中间环节（前置：经内存交换；后置：经互连网络交换）。
-
----
-
-#### 经互连网络交换（Switching Via Interconnection Network）
-
-**定义**：用互连网络（interconnection network，如 Banyan networks、crossbar）替代单条共享总线以克服总线带宽限制的交换方式。此类互连网络最初为多处理器（multiprocessor）中连接处理器而开发。进阶设计：把数据报分段为固定长度信元（fixed length cells），在交换结构中按信元交换。示例：Cisco 12000 经互连网络可交换 60 Gbps。
-
-**理解**：多条并行通路替代一条总线，同一时刻可有多对输入—输出同时传送，聚合吞吐显著提高。把变长数据报切成定长信元，便于交换结构内部按统一长度调度与流水处理。crossbar（横杠/交叉开关）是一种典型互连结构：每个输入可连到任一输出。
-
-**作用**：三种交换结构的高性能形态。解决总线竞争问题，是骨干/核心路由器的硬件基础（前置：经总线交换；并列：前两种交换结构）。
-
----
-
-#### 输出端口（Output Ports）
-
-**定义**：路由器中完成链路层帧发送（link layer protocol send）与线路终结（line termination）的功能单元。当数据报从交换结构（switch fabric）到达的速率快于输出线路发送速率时需要缓冲（buffering）；调度规程（scheduling discipline）从排队数据报中选择下一个发送。
-
-**理解**：输出端口含三层要素：（1）缓冲队列——交换结构送来的速率可能瞬时高于出线速率，先排队；（2）调度规程——决定队列中谁先发；（3）链路层发送与线路终结——把数据报变成信号发出。数据报可因拥塞或缓冲不足而丢失（lack of buffers）。优先级调度（priority scheduling）引出「谁获得最好性能」与网络中立性（network neutrality）问题。
-
-**作用**：属于 5.3 路由器数据平面（data plane）通路的出口环节。掌握后可分析端口级丢包与排队时延从何而来（前置：交换结构；并列：输入端口；后置：输出端口排队）。
-
----
-
-#### 输入端口排队（Input Port Queuing）与队头阻塞（HOL blocking）
-
-**定义**：当交换结构慢于所有输入端口的合计到达速率时，输入队列（input queue）中发生排队；因输入缓冲溢出（input buffer overflow）引起排队时延与丢包。队头阻塞（Head-of-the-Line, HOL blocking）：队列头部等待的数据报阻止其后数据报前进。
-
-**理解**：输出方向冲突时，红色数据报要走的出口同一时刻只能传一个红色包，后面红色包被挡住；挡住期间，即便后面绿色包的目标出口空闲也无法前进——这就是 HOL。结果是输入队列变长、时延增大，缓冲满则丢包。
-
-**作用**：解释输入侧性能损失的机制，是理解路由器为何需要合理缓冲与调度的基础（与输出端口排队并列，同属交换结构带来的排队问题）。
-
-**图中关键信息（page 26）**：交换结构示意显示「output port contention: only one red datagram can be transferred」；一个分组时间后「green packet experiences HOL blocking」——红色包占住输出冲突导致其后绿色包被队头阻塞。
-
----
-
-#### 输出端口排队（Output port queueing）
-
-**定义**：当经交换结构到达输出端口的速率超过输出线路速率（output line speed）时在输出端缓冲排队的现象；因输出端缓冲溢出（output port buffer overflow）导致排队时延与丢包。
-
-**理解**：交换结构可能在一个分组时间内把多个数据报同时送到同一输出口，而该口一次只能发一个，于是堆在输出缓冲里。时间 $t$ 有多个包从输入走向同一输出；一个分组时间后，未发出的包仍在队列中。溢出即丢包。
-
-**作用**：与输入端口排队并列，共同构成路由器内部两类典型拥塞点（前置：输出端口/交换结构；并列：输入端口排队）。
-
----
-
-#### 章节总目录中预告的核心概念（page 28）
-
-**定义**：第 5 章结构为：5.1 引言；5.2 虚电路网络与数据报网络（Virtual circuit and datagram networks）；5.3 路由器内部；5.4 路由算法（Dijkstra、广播路由、链路状态 Link state、距离向量 Distance vector、分层路由 Hierarchical routing）；5.5 互联网中的路由；5.6 IP 协议（IPv4 数据报格式、IPv4 寻址、IP 分片 fragment、ICMP、IPv6）。
-
-**理解**：该页是全章地图：先分交换/转发模型（5.2），再拆硬件（5.3），再讲怎么算路（5.4），再落到 Internet 实际（5.5–5.6）。本分片覆盖 5.3 后半与 5.4 的 Dijkstra/广播路由部分。
-
-**作用**：定位本分片在全章中的位置：处于「路由器硬件 → 路由算法」的衔接段（前置：5.1–5.3 前半；后置：5.4 其余算法与 5.5–5.6）。
-
----
-
-#### 路由与转发的关系（Interplay between routing and forwarding）
-
-**定义**：网络层两个平面功能的协同——转发（forwarding）是将数据报从输入端口依转发表（forwarding table）移至正确输出端口的本地动作；路由（routing）是确定数据报从源到目的地所经路径（一系列路由器）的过程，其结果装入各节点转发表。
-
-**理解**：转发是「单台路由器怎么走一步」，路由是「全网算出整条路」。路由算法算出的路径信息下发为转发表项；转发只查表不重算。二者互相依赖：没有路由，转发表无内容；没有转发，路由结果无法落地。
-
-**作用**：**基础概念，独立知识点**。是 5.3 与 5.4 的分界与衔接：本分片此前讲转发硬件，此后讲路由算法（后置：图抽象与路由算法）。
-
----
-
-#### 路由问题的图抽象（Graph abstraction for routing）
-
-**定义**：把计算机网络形式化为图 $G=(N,E)$ 用于路由计算：图节点（graph nodes）是路由器（routers），图边（graph edges）是物理链路（physical links），链路代价（link cost）可为时延、货币费用或拥塞程度。目标：确定从源到目的的「良好路径」（good path），即经过网络的路由器序列。良好路径通常指最小代价路径（minimum cost path），也可有其他定义。
-
-**理解**：路由算法不关心网线怎么铺，只关心「哪些路由器由带代价的边相连」。抽象成图后，选路变成图上求路径的数学问题。代价统一用一个数表示链路「好坏」，路径代价可加，于是可比较不同路径。
-
-**作用**：**基础概念，独立知识点**。是一切链路状态/距离向量/Dijkstra 算法的共同模型（前置：路由与转发；后置：代价定义、算法分类、Dijkstra）。
-
-**图中关键信息（page 30）**：示意图为「Routing protocol」下的加权图，节点标 A/E/D/C/B/F 等（OCR 残迹，规范节点名见 page 31），边权含 1,2,3,5 等。
-
----
-
-#### 网络的图抽象形式化（Graph abstraction of the network）
-
-**定义**（page 31 原文）：
-
-$$
-G = (N, E)
-$$
-
-- $N$ = 路由器集合 = $\{u, v, w, x, y, z\}$
-- $E$ = 链路集合 = $\{(u,v), (u,x), (v,x), (v,w), (x,w), (x,y), (w,y), (w,z), (y,z)\}$
-
-课件并注明：图抽象在其他网络场景同样有用，例如 P2P 中 $N$ 为对等节点集合、$E$ 为 TCP 连接集合。
-
-**理解**：用点集和边集完整枚举网络连接关系。有了 $N$、$E$ 和边权，路由问题的输入就确定了。P2P 例子说明：只要实体之间存在带代价的连接关系，都可以套用同一套图算法。
-
-**作用**：图抽象的具体实例，为 page 32 的代价公式与 page 37 的 Dijkstra 例题提供图数据（前置：图抽象；后置：代价与最短路）。
-
-**图中关键信息（page 31）**：节点布局为 $u$ 在上，$x,y$ 与 $w,v$ 在中，$z$ 在下；边权标注含 1,2,3,5。
-
----
-
-#### 链路代价与路径代价（Graph abstraction: costs）
-
-**定义**（page 32）：
-
-链路 $(x,x')$ 的代价：
-
-$$
-c(x,x') = \text{cost of link } (x,x')
-$$
-
-例：$c(w,z) = 5$。
-
-代价取值可以恒为 1，可以与带宽成反比（inversely related to bandwidth），也可以与拥塞（congestion）相关。
-
-路径 $(x_1, x_2, x_3, \ldots, x_p)$ 的代价：
-
-$$
-c(x_1,x_2) + c(x_2,x_3) + \cdots + c(x_{p-1},x_p)
-$$
-
-关键问题：$u$ 与 $z$ 之间的最小代价路径（least-cost path）是什么？
-
-**路由算法（routing algorithm）**：找出该最小代价路径的算法。
-
-**理解**：路径代价定义为路径上各边代价之和，因此可加、可比较大小。定义边权为 1 时最短路=最少跳数；按带宽取反则宽带链路代价低；按拥塞取值则动态反映负载。核心问题被压缩为：在加权图上求两点间边权和最小的路径。
-
-**作用**：把图抽象推进到可计算形式，是 Dijkstra 的直接前置（前置：图 $G=(N,E)$；后置：算法分类与 Dijkstra）。
-
----
-
-#### 路由算法分类（Routing Algorithm classification）
-
-**定义**（page 33，两个分类维度）：
-
-1. **全局信息 vs 分布式信息**
-   - 全局（Global）：所有路由器拥有完整的拓扑与链路代价信息 → **链路状态（link state）算法**。
-   - 分布式（Decentralized）：路由器只知物理直连邻居及到邻居的链路代价；通过与邻居交换信息的迭代计算过程求解 → **距离向量（distance vector）算法**。
-2. **静态 vs 动态**
-   - 静态（Static）：路由随时间缓慢变化。
-   - 动态（Dynamic）：路由变化更快——周期性更新（periodic update），或响应链路代价变化。
-
-**理解**：第一个维度问「计算时信息有多少」：全局=每台路由器都有全图，可本地集中算；分布式=只知道邻居，必须靠消息迭代逼近。第二个维度问「路由变多快」：静态靠人工或慢速调整，动态靠协议周期或触发更新。链路状态与距离向量是两大经典范式，Dijkstra 属于链路状态算法的核心计算步骤。
-
-**作用**：给出 5.4 全部算法的坐标系；Dijkstra 是「全局+链路状态」一格的具体算法（前置：路由问题定义；后置：Dijkstra、广播路由、后续 Link state/Distance vector/Hierarchical）。
-
----
-
-#### Dijkstra 算法：设定与记号（Dijkstra's algorithm notation）
-
-**定义**（page 34）：
-
-- 前提：网络拓扑与链路代价为所有节点已知。
-- 功能：计算从**一个源节点**到**所有其他节点**的最小代价路径。
-- 迭代性：第 $k$ 次迭代后，已知到 $k$ 个目的节点的最小代价路径。
-
-记号：
-
-| 记号 | 含义 |
-|------|------|
-| $c(x,y)$ | 节点 $x$ 到 $y$ 的链路代价；若非直连邻居则 $=\infty$ |
-| $D(v)$ | 从源到目的 $v$ 的路径代价的**当前**值 |
-| $p(v)$ | 从源到 $v$ 路径上的**前驱节点**（predecessor） |
-| $N'$ | 已**确定**最小代价路径的节点集合 |
-
-**理解**：$D(v)$ 在算法过程中会被不断压低，只有当 $v$ 进入 $N'$ 后 $D(v)$ 才成为最终最短距离；$p(v)$ 记录「最短路上 $v$ 的上一跳是谁」，所有 $p$ 连起来就得到最短路径树。非邻居代价取 $\infty$，使更新公式对「不直连」自动不生效。
-
-**作用**：Dijkstra 执行表（page 36/37）的列定义；也是转发表生成的中间数据（前置：图与代价；后置：算法执行例、转发表、复杂度）。
-
-**页说明（page 35）**：该页仅有标题「Dijkstra's algorithm」，无可提取正文（算法过程图示/伪代码在图中，OCR 未收录文字）。算法步骤由 page 34 的迭代说明与 page 36/37 执行表完整体现，见「解题方法汇总」。
-
----
-
-#### Dijkstra 执行表：例 1 概要（page 36）
-
-**定义**：在含 $u,v,w,x,y,z$ 的加权图上，以 $u$ 为源执行 Dijkstra 的过程表。表列：Step、$N'$、$D(v),p(v)$、$D(w),p(w)$、$D(x),p(x)$、$D(y),p(y)$、$D(z),p(z)$。
-
-**幻灯片附注（notes）**：
-- 通过回溯前驱节点构造最短路径树（construct shortest path tree by tracing predecessor nodes）；
-- 可能出现并列（ties can exist），可任意打破（can be broken arbitrarily）。
-
-**$N'$ 演进（课件可辨识）**：
-
-$$
-u \rightarrow uw \rightarrow uwx \rightarrow uwxv \rightarrow uwxvy \rightarrow uwxvyz
-$$
-
-**理解**：每一步把「当前 $D$ 最小且不在 $N'$」的节点加入 $N'$，并用该节点松弛其邻居。表中空位表示节点已入 $N'$ 或尚未出现有限值。由于该页表格在纯文本导出中行列错位，完整可逐步复算的执行表见例题（page 37）；本页以 $N'$ 序列与 notes 为准。
-
-**作用**：Dijkstra 的第一次演示；强调前驱回溯成树与并列处理（前置：记号；后置：例 2、转发表）。
-
----
-
-#### Dijkstra 执行表：例 2（page 37，与 page 31 同图）
-
-**定义**：对 page 31 的 $G=(N,E)$（$N=\{u,v,w,x,y,z\}$）以 $u$ 为源的完整 6 步（Step 0–5）执行表；课件指向在线交互练习：`http://gaia.cs.umass.edu/kurose_ross/interactive/`。
-
-**表中数据（课件原文结构重建）**：
+完整迭代表（原表在节点被加入 $N'$ 后其列留空，此处写出该列已确定的值并在括号中注明其状态）：
 
 | Step | $N'$ | $D(v),p(v)$ | $D(w),p(w)$ | $D(x),p(x)$ | $D(y),p(y)$ | $D(z),p(z)$ |
-|:----:|------|-------------|-------------|-------------|-------------|-------------|
-| 0 | u | 2,u | 5,u | 1,u | ∞ | ∞ |
-| 1 | ux | 2,u | 4,x | — | 2,x | ∞ |
-| 2 | uxy | 2,u | 3,y | — | — | 4,y |
-| 3 | uxyv | 3,y（不变则仍为 3,y） | 3,y | — | — | 4,y |
-| 4 | uxyvw | — | 3,y | — | — | 4,y |
-| 5 | uxyvwz | — | — | — | — | — |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 | $u$ | $7,u$ | $3,u$ | $5,u$ | $\infty$ | $\infty$ |
+| 1 | $uw$ | $6,w$ | $3,u$（已确定） | $5,u$ | $11,w$ | $\infty$ |
+| 2 | $uwx$ | $6,w$ | $3,u$（已确定） | $5,u$（已确定） | $11,w$ | $14,x$ |
+| 3 | $uwxv$ | $6,w$（已确定） | $3,u$（已确定） | $5,u$（已确定） | $10,v$ | $14,x$ |
+| 4 | $uwxvy$ | $6,w$（已确定） | $3,u$（已确定） | $5,u$（已确定） | $10,v$（已确定） | $12,y$ |
+| 5 | $uwxvyz$ | $6,w$（已确定） | $3,u$（已确定） | $5,u$（已确定） | $10,v$（已确定） | $12,y$（已确定） |
 
-（「—」表示该节点已进入 $N'$，其 $D$ 已定死，不再作为候选。页上 $D(v)$ 列印 3 行 `2,u`，对应 Step 0–2；$D(w)$ 列 4 行 `5,u / 4,x / 3,y / 3,y` 对应 Step 0–3；$D(x)$ 仅 Step 0 为 `1,u`；$D(y)$ 为 `∞ / 2,x`；$D(z)$ 为 `∞ / ∞ / 4,y / 4,y / 4,y`。）
+按前驱回溯得到从 $u$ 出发的最短路径树：$u \to x$（代价 $5$）；$u \to w$（代价 $3$）；$u \to w \to v$（$p(v)=w$，$p(w)=u$，代价 $3+3=6$）；$u \to w \to v \to y$（$p(y)=v$，代价 $6+4=10$）；$u \to w \to v \to y \to z$（$p(z)=y$，代价 $10+2=12$）。
 
-**理解**：初始化只给 $u$ 的直连边有限 $D$；每轮选最小 $D$ 入 $N'$，再对不在 $N'$ 的 $v$ 做 $D(v)=\min(D(v),\,D(w)+c(w,v))$。最终 $D$ 即源到各点最短距离，$p$ 指出树边。
+**答案**：从 $u$ 到各节点的最小代价与路径为
 
-**作用**：Dijkstra 的标准完整算例，直接导出 page 38 的最短路径树与转发表（前置：记号；后置：转发表、复杂度）。
+| 目的 | 最小代价 | 路径 |
+| --- | --- | --- |
+| $v$ | 6 | $u \to w \to v$（$w$ 处前驱为 $u$） |
+| $w$ | 3 | $u \to w$ |
+| $x$ | 5 | $u \to x$ |
+| $y$ | 10 | $u \to w \to v \to y$ |
+| $z$ | 12 | $u \to w \to v \to y \to z$ |
+
+**用原数据校验**：
+
+- $v$：$u \to w \to v = 3 + 3 = 6$；另一条 $u \to x \to v = 5+4 = 9 > 6$，$u \to v = 7 > 6$，故 $6$ 正确。
+- $w$：$u \to w = 3$；图中 $x$ 与 $w$ 之间无直接连线，$u \to w$ 即最小，$3$ 正确。
+- $x$：$u \to x = 5$；经 $w$ 或 $v$ 绕行均不含更短组合，$5$ 正确。
+- $y$：$u \to w \to v \to y = 3+3+4 = 10$；$u \to w \to y = 3+8 = 11 > 10$；$u \to x \to y = 5+7 = 12 > 10$，故 $10$ 正确。
+- $z$：$u \to w \to v \to y \to z = 3+3+4+2 = 12$；$u \to x \to z = 5+9 = 14 > 12$，故 $12$ 正确。
+
+#### 例题 2：Dijkstra 算法（原 PDF 第 37 页）
+
+**题干**：另一例题使用的网络为节点 $u, v, w, x, y, z$ 组成的图，链路代价为 $c(u,v)=2$、$c(u,x)=1$、$c(u,w)=5$、$c(v,x)=2$、$c(v,w)=3$、$c(x,w)=3$、$c(x,y)=1$、$c(w,y)=1$、$c(w,z)=5$、$c(y,z)=2$。以 $u$ 为源求到所有其他节点的最小代价路径。源表给出的选入顺序为 $u$（第 0 步，初始已在 $N'$）后依次 $x$、$y$、$v$、$w$、$z$；$x$、$y$、$v$ 之间存在并列，课件按固定次序选入。该页附注给出 Kurose/Ross 教材在线交互练习的网址。
+
+**解**：
+
+初始化（Step 0）：$N' = \{u\}$。$u$ 的邻居为 $v, x, w$。
+
+- $D(v) = c(u,v) = 2$，$p(v) = u$；
+- $D(w) = c(u,w) = 5$，$p(w) = u$；
+- $D(x) = c(u,x) = 1$，$p(x) = u$；
+- $D(y) = \infty$；$D(z) = \infty$。
+
+第 1 步：$\min\{D(v)=2,\ D(w)=5,\ D(x)=1,\ D(y)=\infty,\ D(z)=\infty\} = 1$，对应 $x$。加入 $x$，$N' = \{u, x\}$。
+
+松弛 $x$ 的邻居（不在 $N'$ 中的）：
+
+- $v$：$D(v) = \min(2,\ D(x)+c(x,v)) = \min(2,\ 1+2) = \min(2,3) = 2$，保持 $p(v)=u$；
+- $w$：$D(w) = \min(5,\ 1+c(x,w)) = \min(5,\ 1+3) = \min(5,4) = 4$，$p(w) = x$；
+- $y$：$D(y) = \min(\infty,\ 1+c(x,y)) = \min(\infty,\ 1+1) = 2$，$p(y) = x$。
+
+此时表为：$D(v)=2,p(v)=u$；$D(w)=4,p(w)=x$；$D(y)=2,p(y)=x$；$D(z)=\infty$。
+
+第 2 步：$\min\{D(v)=2,\ D(w)=4,\ D(y)=2,\ D(z)=\infty\} = 2$，$v$ 与 $y$ 并列。课件按固定次序把 $y$ 选入，加入 $y$，$N' = \{u, x, y\}$。
+
+松弛 $y$ 的邻居（不在 $N'$ 中的）：
+
+- $w$：$D(w) = \min(4,\ D(y)+c(y,w)) = \min(4,\ 2+1) = \min(4,3) = 3$，$p(w) = y$；
+- $z$：$D(z) = \min(\infty,\ 2+c(y,z)) = \min(\infty,\ 2+2) = 4$，$p(z) = y$。
+
+此时表为：$D(v)=2,p(v)=u$；$D(w)=3,p(w)=y$；$D(z)=4,p(z)=y$。
+
+第 3 步：$\min\{D(v)=2,\ D(w)=3,\ D(z)=4\} = 2$，对应 $v$。加入 $v$，$N' = \{u, x, y, v\}$。
+
+松弛 $v$ 的邻居（不在 $N'$ 中的）：
+
+- $w$：$D(w) = \min(3,\ D(v)+c(v,w)) = \min(3,\ 2+3) = \min(3,5) = 3$，保持 $p(w)=y$；
+- $x$ 已在 $N'$ 中，不处理；$v$ 与 $z$ 不相邻。
+
+此时表为：$D(w)=3,p(w)=y$；$D(z)=4,p(z)=y$。
+
+第 4 步：$\min\{D(w)=3,\ D(z)=4\} = 3$，对应 $w$。加入 $w$，$N' = \{u, x, y, v, w\}$。
+
+松弛 $w$ 的邻居（不在 $N'$ 中的）：
+
+- $z$：$D(z) = \min(4,\ D(w)+c(w,z)) = \min(4,\ 3+5) = \min(4,8) = 4$，保持 $p(z)=y$。
+
+此时表为：$D(z)=4,p(z)=y$。
+
+第 5 步：$\min\{D(z)=4\} = 4$，加入 $z$，$N' = \{u, x, y, v, w, z\}$。算法结束。
+
+完整迭代表（原表被选入 $N'$ 的节点对应的列在其后各行留空，此处写出已确定值并注明状态）：
+
+| Step | $N'$ | $D(v),p(v)$ | $D(w),p(w)$ | $D(x),p(x)$ | $D(y),p(y)$ | $D(z),p(z)$ |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 | $u$ | $2,u$ | $5,u$ | $1,u$ | $\infty$ | $\infty$ |
+| 1 | $ux$ | $2,u$ | $4,x$ | $1,u$（已确定） | $2,x$ | $\infty$ |
+| 2 | $uxy$ | $2,u$ | $3,y$ | $1,u$（已确定） | $2,x$（已确定） | $4,y$ |
+| 3 | $uxyv$ | $2,u$（已确定） | $3,y$ | $1,u$（已确定） | $2,x$（已确定） | $4,y$ |
+| 4 | $uxyvw$ | $2,u$（已确定） | $3,y$（已确定） | $1,u$（已确定） | $2,x$（已确定） | $4,y$ |
+| 5 | $uxyvwz$ | $2,u$（已确定） | $3,y$（已确定） | $1,u$（已确定） | $2,x$（已确定） | $4,y$（已确定） |
+
+**答案**：从 $u$ 出发的最短路径树为 $u \to x$（$1$）、$x \to y$（$D(y)=2$，$p(y)=x$）、$u \to v$（$D(v)=2$，$p(v)=u$）、$y \to w$（$D(w)=3$，$p(w)=y$）、$y \to z$（$D(z)=4$，$p(z)=y$）。
+
+| 目的 | 最小代价 | 路径 |
+| --- | --- | --- |
+| $v$ | 2 | $u \to v$ |
+| $w$ | 3 | $u \to x \to y \to w$（$1+1+1=3$） |
+| $x$ | 1 | $u \to x$ |
+| $y$ | 2 | $u \to x \to y$（$1+1=2$） |
+| $z$ | 4 | $u \to x \to y \to z$（$1+1+2=4$） |
+
+**用原数据校验**：
+
+- $v$：$u \to v = 2$；$u \to x \to v = 1+2 = 3 > 2$；$u \to w \to v = 5+3 = 8 > 2$；$u \to x \to w \to v = 1+3+3=7>2$。故 $2$ 正确。
+- $w$：$u \to x \to y \to w = 1+1+1 = 3$；$u \to w = 5 > 3$；$u \to x \to w = 1+3 = 4 > 3$；$u \to v \to w = 2+3 = 5 > 3$。故 $3$ 正确。
+- $x$：$u \to x = 1$，为所有从 $u$ 出发路径中的最小者，$1$ 正确。
+- $y$：$u \to x \to y = 1+1 = 2$；$u \to w \to y = 5+1 = 6 > 2$；$u \to x \to w \to y = 1+3+1 = 5>2$。故 $2$ 正确。
+- $z$：$u \to x \to y \to z = 1+1+2 = 4$；$u \to x \to y \to w \to z = 1+1+1+5 = 8>4$；$u \to w \to z = 5+5 = 10>4$。故 $4$ 正确。
+
+#### 例题 3：由最短路树得到转发表（原 PDF 第 38 页）
+
+该页继续使用例题 2 的网络图，给出从 $u$ 出发的结果最短路径树（resulting shortest-path tree from $u$）与 $u$ 中的结果转发表（resulting forwarding table in $u$）。图中画出的最短路径树连线为 $u$—$v$、$u$—$x$、$x$—$y$、$y$—$w$、$y$—$z$，与例题 2 算出的前驱关系一致。$u$ 中的转发表为：
+
+| destination（目的） | link（链路） |
+| --- | --- |
+| $v$ | $(u,v)$ |
+| $x$ | $(u,x)$ |
+| $y$ | $(u,x)$ |
+| $w$ | $(u,x)$ |
+| $z$ | $(u,x)$ |
+
+转发表的构造方法是：对每个目的取出最短路径树上从 $u$ 到该目的路径的第一条链路。逐项核对：到 $v$ 的路径是 $u \to v$，第一条链路 $(u,v)$；到 $x$ 的路径是 $u \to x$，第一条链路 $(u,x)$；到 $y$ 的路径是 $u \to x \to y$，第一条链路 $(u,x)$；到 $w$ 的路径是 $u \to x \to y \to w$，第一条链路 $(u,x)$；到 $z$ 的路径是 $u \to x \to y \to z$，第一条链路 $(u,x)$。注意 $v$ 的下一跳是 $(u,v)$ 而不是 $(u,x)$，虽然 $D(v)=2$ 与 $D(y)=2$ 数值相同；区别在于 $v$ 的前驱是 $u$，而 $y$ 的前驱是 $x$。
+
+#### 5.4.4.3 复杂度与振荡（原 PDF 第 39 页）
+
+**算法复杂度（algorithm complexity）**：设节点数为 $n$。每次迭代需要检查所有不在 $N'$ 中的节点 $w$；课件给出共需 $n(n+1)/2$ 次比较，即 $O(n^2)$。课件还指出更高效的实现可达 $O(n\log n)$。（**补充说明，非课件原文**：$n(n+1)/2$ 是课件采用的计数约定，按各次迭代尚未确定节点数求和得到的量级为 $n(n-1)/2$；$O(n\log n)$ 是课件给出的简写，采用堆/优先队列的稀疏图实现在严谨意义下为 $O((V+E)\log V)$，课件未作此细分。）
+
+**振荡（oscillations possible）**：课件给出的情形是链路代价等于该链路承载的流量（link cost = amount of carried traffic）。课件用四个快照描述该现象，四个快照使用同一组 4 个路由器 A、B、C、D；根据原图，每条**有向**链路的代价等于该方向承载的流量，A 为目的节点，B 与 D 各注入流量 1，C 注入流量 $\varepsilon>0$（$\varepsilon$ 为小正量）。按链路方向（D→A、B→A、D→C、C→D、B→C、C→B）整理的四幅快照如下：
+
+| 快照 | D→A | B→A | D→C | C→D | B→C | C→B | 该轮算出的路径 |
+|---|---|---|---|---|---|---|---|
+| 初始 | 1 | $1+\varepsilon$ | 0 | 0 | 0 | $\varepsilon$ | D→A；B→A；C→B→A |
+| 第 2 幅 | $2+\varepsilon$ | 0 | 0 | $1+\varepsilon$ | 1 | 0 | D→A；B→C→D→A；C→D→A |
+| 第 3 幅 | 0 | $2+\varepsilon$ | 1 | 0 | 0 | $1+\varepsilon$ | D→C→B→A；B→A；C→B→A |
+| 第 4 幅 | $2+\varepsilon$ | 0 | 0 | $1+\varepsilon$ | 1 | 0 | 与第 2 幅相同 |
+
+每幅图下方标注的说明是 given these costs, find new routing…. resulting in new costs（给定这些代价，重新求路由……得到新的代价）。现象本身为：由于链路代价取决于该链路实时承载的流量，一次基于当前代价计算出的最小代价路由会把流量集中到代价较低的链路上；该链路承载流量上升后其代价随之上升，下一轮计算又会把流量移回原来的链路，第 4 幅与第 2 幅的代价完全相同，路由在两个状态之间反复改变，算法不能收敛到稳定的路由。这是采用「代价＝流量」这一度量时使用 Dijkstra 类算法会出现的问题。
+
+### 5.4.5 广播路由（Broadcast routing）
+
+广播路由要解决的问题是：把来自某个源的数据报送达所有其他节点（原 PDF 第 40、41 页）。
+
+**洪泛（flooding）**：把数据报从源送到所有其他节点。课件标出的后果是广播风暴（broadcast storm）：一个节点收到数据报后向除入链路之外的所有链路转发，各节点反复互相转发同一数据报，网络中的副本数量迅速增长，形成风暴。
+
+**受控洪泛（controlled flooding）**：为避免广播风暴，课件给出三种做法。
+
+- **序号控制洪泛（sequence-number-controlled flooding）**：在广播数据报中加入 ID 与广播序号（ID + broadcast sequence number）；节点收到数据报时记录其 (ID, 序号)，遇到重复到达的同一 (ID, 序号) 就不再转发，从而消除重复副本。
+- **反向路径转发（reverse path forwarding，RPF）**：课件在图注中同时给出缩写与全称（图注把缩写印作 RFP，全称写 Reverse path forwarding；图中标注为 RPF）。其做法是：节点只在收到的广播分组恰好来自「自己通往源的最短路径上的下一跳」时才继续转发，否则丢弃。
+- **生成树广播（spanning-tree broadcast）**：设有一个连通无向图，则其生成树（spanning tree）是该图的一个连通子图，且该子图中不包含回路（cycle）；生成树包含原图的全部节点，只保留原图的一部分边，保留的边数等于节点数减 1。若洪泛时节点把收到的广播分组向除入链路以外的所有链路转发，则同一节点会多次收到同一分组，产生冗余传输；若广播只沿生成树上节点的相邻边转发，则每个节点恰好收到一次该分组，从而避免冗余广播分组的传输（avoid the transmission of redundancy broadcast packets）。这一做法成立的依据是生成树无回路：分组沿树边转发不会回到已经转发过该分组的节点。
+
+课件用对勾标出结论：受控洪泛能够避免广播风暴（be able to avoid the broadcast storm）。第 40 页的图给出一个 7 节点网络 A、B、C、D、E、F、G，链路包括 A—B、A—C、B—C、C—F、C—E、B—D、E—D、E—F、D—G，图中各链路上画有双向箭头，表示洪泛过程中数据报在链路上被反复双向传递、进而产生风暴的情形。
+
+生成树广播在第 41 页给出两张对照图，使用同一棵生成树、不同的广播发起节点，节点为 A、B、C、D、E、F、G：
+
+- 生成树上的边（图中以粗箭头画出）：A–B、A–C、B–D、D–G、C–E、C–F，共 6 条，恰好等于节点数 7 减 1。
+- 不在生成树上的边（图中以细线画出，广播时不用于转发）：B–C、D–E、E–F。
+- 图 (a) 标题为 Broadcast initiated at A（广播由 A 发起）：转发方向为 A→B、A→C；B→D；D→G；C→E；C→F。
+- 图 (b) 标题为 Broadcast initiated at D（广播由 D 发起）：转发方向为 D→B、D→G；B→A；A→C；C→E、C→F。
+
+两图的差别只在发起节点与由此决定的转发方向，生成树本身相同。把两图的转发顺序按层列出：
+
+| 广播发起节点 | 第 1 跳 | 第 2 跳 | 第 3 跳 | 第 4 跳 |
+| --- | --- | --- | --- | --- |
+| A | A→B、A→C | B→D、C→E、C→F | D→G | — |
+| D | D→B、D→G | B→A | A→C | C→E、C→F |
+
+在上述两张图中，被排除的链路 B–C、D–E、E–F 上都不出现转发箭头，正是这些边的省略使每个节点只收到一份广播分组。
+
+### 5.4.6 链路状态路由算法（Link state algorithm）
+
+链路状态（link state, LS）算法由两部分机制组合而成，课件标题即为 Broadcast routing + Dijkstra's algorithm（原 PDF 第 42 页）：
+
+1. **数据分发**：每个节点把链路状态分组（link-state packet）广播给所有其他节点（having each node broadcast link-state packets to all other nodes）。广播的结果是所有节点获得一份完全相同且完整的网络视图（all nodes have an identical and complete view of the network），其中包括全网拓扑与每条链路的代价。这里的「广播给所有其他节点」正是 5.4.5 的广播路由所解决的问题。
+2. **路径计算**：每个节点以这份一致的全网视图为输入，用 Dijkstra 算法计算从本节点到网络中所有其他节点的最小代价路径（using Dijkstra's algorithm compute the least-cost path from one node to all other nodes in the network）。
+
+维护规则：如果某条链路的代价发生变化，则重新广播链路状态分组并重新执行 Dijkstra 计算（re-broadcast and re-compute）。因此 LS 算法是一种全局式（global）算法：每个节点都持有全网拓扑与链路代价信息，各节点独立计算，彼此的计算结果一致。
+
+### 5.4.7 距离向量路由算法（Distance vector algorithm）
+
+#### 5.4.7.1 Bellman-Ford 方程
+
+Bellman-Ford 方程是距离向量算法的计算基础，其形式为动态规划（dynamic programming，原 PDF 第 43 页）。记号定义为：$d_x(y)$ 表示从节点 $x$ 到节点 $y$ 的最小代价路径的代价（cost of least-cost path from $x$ to $y$）；$c(x,v)$ 表示节点 $x$ 到其邻居 $v$ 的直接链路代价；$N$ 为网络中的全部节点集合。Bellman-Ford 方程为：
+
+$$d_x(y) = \min_{v}\{\,c(x,v) + d_v(y)\,\}$$
+
+其中 $\min$ 取遍 $x$ 的所有邻居 $v$。方程的含义是：从 $x$ 到 $y$ 的最小代价路径，必定由 $x$ 到某个邻居 $v$ 的一跳（代价 $c(x,v)$）加上 $v$ 到 $y$ 的最小代价路径（代价 $d_v(y)$）组成；对所有邻居取最小值即得 $d_x(y)$。该方程成立的前提是最小代价路径的子路径也是最小代价路径。
+
+课件给出的示例网络节点为 $u,v,w,x,y,z$，链路代价为：
+
+| 链路 | u–v | u–x | u–w | v–w | v–x | w–x | w–y | w–z | x–y | y–z |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 代价 | 2 | 1 | 5 | 3 | 2 | 3 | 1 | 5 | 1 | 2 |
+
+课件先给出三个已知量 $d_v(z)=5$、$d_w(z)=3$、$d_x(z)=3$。逐项核对：$d_x(z)=3$ 取路径 $x\to y\to z$，代价 $1+2=3$（$x$ 与 $z$ 之间无直接链路），而 $x\to v\to w\to z$ 为 $2+3+5=10$，更大；$d_w(z)=3$ 取路径 $w\to y\to z$，代价 $1+2=3$，直接链路 $w$–$z$ 的代价为 5，大于 3，故不取直接链路；$d_v(z)=5$ 取路径 $v\to x\to y\to z$，代价 $2+1+2=5$，而 $v\to w\to z$ 为 $3+5=8$，更大。
+
+然后用 Bellman-Ford 方程求 $d_u(z)$。$u$ 的邻居是 $v$、$x$、$w$：
+
+$$d_u(z)=\min\{c(u,v)+d_v(z),\ c(u,x)+d_x(z),\ c(u,w)+d_w(z)\}=\min\{2+5,\ 1+3,\ 5+3\}=\min\{7,\ 4,\ 8\}=4$$
+
+逐项：经 $v$ 的方案为 $2+5=7$；经 $x$ 的方案为 $1+3=4$；经 $w$ 的方案为 $5+3=8$。三者中最小值为 4，故 $d_u(z)=4$，对应路径为 $u\to x\to y\to z$（代价 $1+1+2=4$）。用原数据校验：从 $u$ 出发的其它候选路径为 $u\to x\to w\to z$（$1+3+5=9$）、$u\to w\to y\to z$（$5+1+2=8$）、$u\to v\to w\to y\to z$（$2+3+1+2=8$）、$u\to x\to v\to w\to y\to z$（$1+2+3+1+2=9$），均大于 4，故最小值为 4 无误。
+
+#### 5.4.7.2 距离向量的构成与维护
+
+课件（原 PDF 第 44 页）用大写 $D$ 表示算法运行中实际持有的估计值，用小写 $d$ 表示真实的最小代价。$D_x(y)$ 表示节点 $x$ 对「到 $y$ 的最小代价」的估计值（estimate of least cost from $x$ to $y$）。节点 $x$ 知道到每个邻居 $v$ 的直接链路代价 $c(x,v)$；节点 $x$ 维护自己的距离向量（distance vector）$D_x = [D_x(y): y \in N]$，即对该节点集合 $N$ 中每一个目的地 $y$ 的代价估计构成的行向量；节点 $x$ 还维护其邻居的距离向量，即对每个邻居 $v$ 保存 $D_v = [D_v(y): y \in N]$，也就是邻居通告过来的估计值。因此每个节点本地保存的数据是：一条自身距离向量，加上每个邻居各一条距离向量，再加上到各邻居的直接链路代价。
+
+#### 5.4.7.3 距离向量算法的运行规则
+
+基本思想（basic idea，原 PDF 第 46、47 页）：
+
+1. 每个节点周期性地把自己的距离向量估计值发送给它的邻居（each node periodically sends its own distance vector estimate to neighbors）。
+2. 当节点 $x$ 收到邻居发来的新距离向量估计后，用 Bellman-Ford 方程更新自己的距离向量：
+
+$$D_x(y) \leftarrow \min_{v}\{\,c(x,v) + D_v(y)\,\}\qquad \text{对每个节点 } y \in N$$
+
+其中 $c(x,v)$ 是 $x$ 到邻居 $v$ 的直接链路代价，$D_v(y)$ 是邻居 $v$ 最新通告的到 $y$ 的估计值。
+3. 课件指出 under minor, natural conditions, the estimate $D_x(y)$ converge to the actual least cost $d_x(y)$，即在一些较弱的、自然的条件下，估计值 $D_x(y)$ 收敛到真实最小代价 $d_x(y)$。
+
+算法的两个运行特性：其一是**迭代式、异步（iterative, asynchronous）**，算法没有统一的轮次，每一次本地迭代由下列事件之一触发——本地链路代价发生变化，或收到来自邻居的 DV 更新报文；其二是**分布式（distributed）**，每个节点只在自己的距离向量发生变化时才通知邻居（each node notifies neighbors only when its DV changes），收到通知的邻居若自己的 DV 因此改变，再继续通知它自己的邻居，如此传播下去。
+
+节点本地的处理循环（原 PDF 第 47 页流程图）为：
+
+| 步骤 | 动作 |
+| --- | --- |
+| 1 | wait：等待（本地链路代价变化，或收到邻居的报文） |
+| 2 | recompute：重新计算估计值 |
+| 3 | 如果到任一目的地的 DV 发生变化，则 notify：通知邻居 |
+| 4 | 返回步骤 1 |
+
+#### 例题 4：节点 x 存储的距离向量与路由表（原 PDF 第 45 页）
+
+**题干**：网络图与 Bellman-Ford 方程示例相同，节点 $u,v,w,x,y,z$，链路代价为 $c(u,v)=2$、$c(u,x)=1$、$c(u,w)=5$、$c(v,w)=3$、$c(v,x)=2$、$c(w,x)=3$、$c(w,y)=1$、$c(w,z)=5$、$c(x,y)=1$、$c(y,z)=2$。求节点 $x$ 处存储的各距离向量与节点 $x$ 的路由表。
+
+**解**：课件左侧给出 Distance vectors stored at node x（在节点 $x$ 处存储的各距离向量），行标为广播该向量的节点（from），列标为目的节点（cost to），列序为 $x,y,z,u,v,w$。完整表格如下（据原图核对）：
+
+| from＼cost to | x | y | z | u | v | w |
+| --- | --- | --- | --- | --- | --- | --- |
+| x | 0 | 1 | 3 | 1 | 2 | 2 |
+| y | 1 | 0 | 2 | 2 | 3 | 1 |
+| u | 1 | 2 | 4 | 0 | 2 | 5 |
+| v | 2 | 3 | 5 | 3 | 0 | 3 |
+| w | 2 | 1 | 3 | 5 | 3 | 0 |
+
+对第 $x$ 行逐项复核：$D_x(x)=0$；$D_x(y)=1$（直接链路 $x$–$y$ 为 1，经 $v$ 为 $2+3=5$）；$D_x(z)=3$（$x\to y\to z$ 为 $1+2=3$，$x\to v\to w\to z$ 为 $2+3+5=10$）；$D_x(u)=1$（直接链路 $x$–$u$ 为 1）；$D_x(v)=2$（直接链路 $x$–$v$ 为 2）；$D_x(w)=2$（$x\to y\to w$ 为 $1+1=2$，直接链路 $x$–$w$ 为 3，故取 2）。其余各行是邻居通告给 $x$ 的估计值，这些行是邻居当时通告的估计，部分项目与当前最短路径相符，例如 $D_v(x)=2$（直接链路 $v$–$x$）、$D_v(y)=3$（$v\to x\to y$ 为 $2+1=3$）、$D_v(z)=5$（$v\to x\to y\to z$ 为 $2+1+2=5$）、$D_w(y)=1$（直接链路）、$D_w(z)=3$（$w\to y\to z$ 为 $1+2=3$）、$D_w(x)=2$（$w\to y\to x$ 为 $1+1=2$）。
+
+**补充核查（非课件原文，为本次整理的核算）**：表中第 $u$ 行的 $w$ 列与第 $w$ 行的 $u$ 列均为 5，恰好等于直接链路 $u$–$w$ 的代价；但按同一张表内其它数值推算，$u\to x\to y\to w$ 为 $1+1+1=3$，$w\to y\to x\to u$ 为 $1+1+1=3$，均小于 5。因此该两处应理解为算法运行中尚未完全收敛的存储估计，不宜把整张表直接当作全网最终最短路表使用；课件对该表未作此说明。
+
+课件右侧给出 Routing table at node x（节点 $x$ 的路由表），列标为目的节点，顺序为 $y,z,u,v,w$，每格给出下一跳（hop）与代价（cost）：
+
+| destination | y | z | u | v | w |
+| --- | --- | --- | --- | --- | --- |
+| hop, cost | y, 1 | y, 1 | u, 1 | v, 2 | y, 2 |
+
+对照上表第 $x$ 行：到 $y$ 的代价为 1，下一跳为 $y$，即 (y, 1)；到 $u$ 的代价为 1，下一跳为 $u$，即 (u, 1)；到 $v$ 的代价为 2，下一跳为 $v$，即 (v, 2)；到 $w$ 的代价为 2，下一跳为 $y$，即 (y, 2)。**关于「到 z」一格的核对**：原课件该单元格印刷为 (y, 1)。但上表第 $x$ 行给出 $D_x(z)=3$，若下一跳为 $y$（即路径 $x\to y\to z$，$1+2=3$），则该格应为 (y, 3)。此处不按错误值照抄、也不静默改写：**原课件该单元为 y,1，按上表计算应为 y,3**，差异记录于此供核对。
+
+#### 例题 5：三节点网络的完整运行过程（原 PDF 第 48、49 页）
+
+**题干**：三个节点 $x$、$y$、$z$，链路代价为 $c(x,y)=2$、$c(x,z)=7$、$c(y,z)=1$（图中 $x$–$y$ 标注 2，$x$–$z$ 标注 7，$y$–$z$ 标注 1）。求各节点距离向量的更新过程与最终收敛结果。
+
+**解**：初始状态每个节点只知道自己的直接链路代价，尚未收到邻居的距离向量，故表中邻居行为 $\infty$。
+
+| node x 表（from＼cost to） | x | y | z |
+| --- | --- | --- | --- |
+| x | 0 | 2 | 7 |
+| y | ∞ | ∞ | ∞ |
+| z | ∞ | ∞ | ∞ |
+
+| node y 表（from＼cost to） | x | y | z |
+| --- | --- | --- | --- |
+| x | ∞ | ∞ | ∞ |
+| y | 2 | 0 | 1 |
+| z | ∞ | ∞ | ∞ |
+
+| node z 表（from＼cost to） | x | y | z |
+| --- | --- | --- | --- |
+| x | ∞ | ∞ | ∞ |
+| y | ∞ | ∞ | ∞ |
+| z | 7 | 1 | 0 |
+
+第一次交换后，各节点按 Bellman-Ford 方程重算。节点 $x$ 的计算：
+
+$$D_x(y)=\min\{c(x,y)+D_y(y),\ c(x,z)+D_z(y)\}=\min\{2+0,\ 7+1\}=\min\{2,\ 8\}=2$$
+
+$$D_x(z)=\min\{c(x,y)+D_y(z),\ c(x,z)+D_z(z)\}=\min\{2+1,\ 7+0\}=\min\{3,\ 7\}=3$$
+
+式中 $D_y(y)=0$、$D_z(y)=1$、$D_y(z)=1$、$D_z(z)=0$ 取自节点 $y$、$z$ 通告的距离向量。于是 $D_x$ 由 $(0,2,7)$ 更新为 $(0,2,3)$。
+
+节点 $z$ 的计算：
+
+$$D_z(x)=\min\{c(z,x)+D_x(x),\ c(z,y)+D_y(x)\}=\min\{7+0,\ 1+2\}=\min\{7,\ 3\}=3$$
+$$D_z(y)=\min\{c(z,x)+D_x(y),\ c(z,y)+D_y(y)\}=\min\{7+2,\ 1+0\}=\min\{9,\ 1\}=1$$
+
+于是 $D_z$ 由 $(7,1,0)$ 更新为 $(3,1,0)$。
+
+节点 $y$ 的计算：
+
+$$D_y(x)=\min\{c(y,x)+D_x(x),\ c(y,z)+D_z(x)\}=\min\{2+0,\ 1+7\}=\min\{2,\ 8\}=2$$
+$$D_y(z)=\min\{c(y,x)+D_x(z),\ c(y,z)+D_z(z)\}=\min\{2+7,\ 1+0\}=\min\{9,\ 1\}=1$$
+
+于是 $D_y$ 保持 $(2,0,1)$ 不变。
+
+再经过一次交换，三个节点保存的三行向量完全相同，算法收敛。收敛后节点 $x$、$y$、$z$ 的三张表内容一致：
+
+| from＼cost to | x | y | z |
+| --- | --- | --- | --- |
+| x | 0 | 2 | 3 |
+| y | 2 | 0 | 1 |
+| z | 3 | 1 | 0 |
+
+**用原数据校验**：$x$ 到 $y$ 直接链路为 2，经 $z$ 为 $7+1=8$，取 2，与 $D_x(y)=2$ 一致；$x$ 到 $z$ 直接链路为 7，经 $y$ 为 $2+1=3$，取 3，与 $D_x(z)=3$ 一致；$z$ 到 $x$ 直接链路为 7，经 $y$ 为 $1+2=3$，取 3，与 $D_z(x)=3$ 一致；$y$ 到 $z$ 直接链路为 1，经 $x$ 为 $2+7=9$，取 1，与 $D_y(z)=1$ 一致。三条链路代价重新组合后得到的最小路径代价与表中数值全部吻合。
+
+#### 例题 6：链路代价变小时的三步收敛（原 PDF 第 50、51、52 页）
+
+**题干**：网络有四个节点 $w$、$x$、$y$、$z$，链路为 $w$–$x$（代价 1）、$w$–$z$（代价 1）、$x$–$y$（代价 4）、$z$–$y$（代价 7）；$x$ 与 $z$ 之间、$w$ 与 $y$ 之间没有直接链路。事件为链路 $z$–$y$ 的代价由 7 变为 1。求各距离向量的更新过程与收敛结果。课件对该过程给出的规则是：节点检测到本地链路代价变化（detects local link cost change），更新路由信息、重新计算距离向量（updates routing info, recalculates distance vector），如果 DV 发生变化则通知邻居（if DV changes, notify neighbors）。
+
+**解**：变化前已收敛的距离向量（列序 $x, y, z, w$）为
+
+| 节点 | x | y | z | w |
+| --- | --- | --- | --- | --- |
+| $D_x$ | 0 | 4 | 2 | 1 |
+| $D_y$ | 4 | 0 | 6 | 5 |
+| $D_z$ | 2 | 6 | 0 | 1 |
+| $D_w$ | 1 | 5 | 1 | 0 |
+
+复核：$x$ 到 $z$ 经 $w$ 为 $1+1=2$（无直接链路）；$y$ 到 $z$ 直接链路为 7，经 $x$ 到 $z$ 为 $4+2=6$，取 6；$y$ 到 $w$ 经 $x$ 为 $4+1=5$，经 $z$ 为 $6+1=7$，取 5；$w$ 到 $y$ 经 $x$ 为 $1+4=5$，经 $z$ 为 $1+6=7$，取 5。
+
+第 1 步：节点 $y$ 与节点 $z$ 检测到本地链路 $z$–$y$ 的代价变化，各自重算。
+
+节点 $y$：
+$$D_y(x)=\min\{c(y,x)+D_x(x),\ c(y,z)+D_z(x)\}=\min\{4+0,\ 1+2\}=\min\{4,\ 3\}=3$$
+$$D_y(z)=\min\{c(y,x)+D_x(z),\ c(y,z)+D_z(z)\}=\min\{4+2,\ 1+0\}=\min\{6,\ 1\}=1$$
+$$D_y(w)=\min\{c(y,x)+D_x(w),\ c(y,z)+D_z(w)\}=\min\{4+1,\ 1+1\}=\min\{5,\ 2\}=2$$
+更新后 $D_y=(3,0,1,2)$。
+
+节点 $z$：
+$$D_z(x)=\min\{c(z,w)+D_w(x),\ c(z,y)+D_y(x)\}=\min\{1+1,\ 1+2\}=\min\{2,\ 3\}=2$$
+$$D_z(y)=\min\{c(z,w)+D_w(y),\ c(z,y)+D_y(y)\}=\min\{1+5,\ 1+0\}=\min\{6,\ 1\}=1$$
+$$D_z(w)=\min\{c(z,w)+D_w(w),\ c(z,y)+D_y(w)\}=\min\{1+0,\ 1+5\}=\min\{1,\ 6\}=1$$
+更新后 $D_z=(2,1,0,1)$。
+
+第 2 步：节点 $w$ 收到邻居更新后的向量，重算。
+$$D_w(y)=\min\{c(w,x)+D_x(y),\ c(w,z)+D_z(y)\}=\min\{1+4,\ 1+1\}=\min\{5,\ 2\}=2$$
+其余分量 $D_w(x)=1$、$D_w(z)=1$、$D_w(w)=0$ 不变，更新后 $D_w=(1,2,1,0)$。
+
+第 3 步：节点 $x$ 收到 $w$ 更新后的向量，重算。
+$$D_x(y)=\min\{c(x,y)+D_y(y),\ c(x,w)+D_w(y)\}=\min\{4+0,\ 1+2\}=\min\{4,\ 3\}=3$$
+其余分量 $D_x(x)=0$、$D_x(z)=2$、$D_x(w)=1$ 不变，更新后 $D_x=(0,3,2,1)$。
+
+收敛后各节点的距离向量为
+
+| 节点 | x | y | z | w |
+| --- | --- | --- | --- | --- |
+| $D_x$ | 0 | 3 | 2 | 1 |
+| $D_y$ | 3 | 0 | 1 | 2 |
+| $D_z$ | 2 | 1 | 0 | 1 |
+| $D_w$ | 1 | 2 | 1 | 0 |
+
+课件注明 Algorithm converges in 3 steps（算法在 3 步内收敛），源图各表中行 $x$ 由 $0,4,2,1$ 变为 $0,3,2,1$，即各节点保存的 $x$ 的距离向量同步更新。
+
+**用原数据校验**：链路 $z$–$y$ 变为 1 之后，$x$ 到 $y$ 的直接链路仍为 4，而 $x\to w\to z\to y$ 为 $1+1+1=3$，取 3，与 $D_x(y)=3$ 一致；$y$ 到 $x$ 对称地取 $y\to z\to w\to x$ 为 $1+1+1=3$，与 $D_y(x)=3$ 一致；$w$ 到 $y$ 经 $z$ 为 $1+1=2$，与 $D_w(y)=2$ 一致。整组数值与图中四条链路代价重新组合的最小代价完全吻合，过程中未出现数值反复增大的现象。
+
+#### 例题 7：链路代价变大导致的计数到无穷（原 PDF 第 53、54、55 页）
+
+**题干**：三个节点 $x$、$y$、$z$ 构成一个环，链路代价 $c(y,z)=1$、$c(x,z)=50$、$c(x,y)=4$。事件为链路 $x$–$y$ 的代价由 4 变为 60。课件原文说明 good news travels fast, bad news travels slow – "count to infinity" problem!，并注明 for example: 44 iterations before algorithm stabilizes（该例需要 44 次迭代算法才稳定）。求各距离向量的演化与最终稳定值。
+
+**解**：变化前已收敛的距离向量（列序 $x, y, z$）为
+
+| 节点 | x | y | z |
+| --- | --- | --- | --- |
+| $D_x$ | 0 | 4 | 5 |
+| $D_y$ | 4 | 0 | 1 |
+| $D_z$ | 5 | 1 | 0 |
+
+复核：$x$ 到 $z$ 直接链路为 50，经 $y$ 为 $4+1=5$，取 5；$z$ 到 $x$ 经 $y$ 为 $1+4=5$，小于直接链路的 50。
+
+逐步复算（每一步只写被触发的节点）：
+
+迭代 1：节点 $y$ 检测到 $c(y,x)$ 变为 60，重算
+$$D_y(x)=\min\{c(y,x)+D_x(x),\ c(y,z)+D_z(x)\}=\min\{60+0,\ 1+5\}=\min\{60,\ 6\}=6$$
+得 $D_y=(6,0,1)$。
+
+迭代 2：节点 $z$ 收到 $D_y(x)=6$，重算
+$$D_z(x)=\min\{c(z,x)+D_x(x),\ c(z,y)+D_y(x)\}=\min\{50+0,\ 1+6\}=\min\{50,\ 7\}=7$$
+得 $D_z=(7,1,0)$。
+
+迭代 3：节点 $x$ 收到更新后的邻居向量，重算
+$$D_x(y)=\min\{c(x,y)+D_y(y),\ c(x,z)+D_z(y)\}=\min\{60+0,\ 50+1\}=\min\{60,\ 51\}=51$$
+$$D_x(z)=\min\{c(x,y)+D_y(z),\ c(x,z)+D_z(z)\}=\min\{60+1,\ 50+0\}=\min\{61,\ 50\}=50$$
+得 $D_x=(0,51,50)$。
+
+迭代 4：节点 $y$ 重算 $D_y(x)=\min\{60+0,\ 1+7\}=\min\{60,\ 8\}=8$，得 $D_y=(8,0,1)$。
+
+迭代 5：节点 $z$ 重算 $D_z(x)=\min\{50+0,\ 1+8\}=\min\{50,\ 9\}=9$，得 $D_z=(9,1,0)$。
+
+此后每完成一次 $y$ 与 $z$ 之间的向量交换，$D_y(x)$ 与 $D_z(x)$ 各增加 2：源图各帧中 $D_y(x)$ 依次为 6、8、…、48、50、51，$D_z(x)$ 依次为 7、9、…、49、50；$D_x$ 在 $y$ 列稳定于 51、在 $z$ 列稳定于 50。在 $D_z(x)$ 尚未达到 50 之前，$z$ 始终取「经 $y$」的估计值，而 $y$ 又反过来取「经 $z$」的估计值，两个节点互相把对方当作通往 $x$ 的下一跳，数值不断增大而不下降。
+
+收敛条件：当 $D_z(x)$ 增大到 50 时，$z$ 取直接链路 $z$–$x$（代价 50）；随后 $y$ 重算 $D_y(x)=\min\{60+0,\ 1+50\}=\min\{60,\ 51\}=51$，算法稳定。最终：
+
+| 节点 | x | y | z |
+| --- | --- | --- | --- |
+| $D_x$ | 0 | 51 | 50 |
+| $D_y$ | 51 | 0 | 1 |
+| $D_z$ | 50 | 1 | 0 |
+
+**用原数据校验**：$x$ 到 $y$ 直接链路为 60，经 $z$ 为 $50+1=51$，取 51，与 $D_x(y)=51$ 一致；$y$ 到 $x$ 经 $z$ 为 $1+50=51$，与 $D_y(x)=51$ 一致；$z$ 到 $x$ 取直接链路 50，与 $D_z(x)=50$ 一致。最终结果正确，但在达到该结果之前经历了大量无意义的数值递增。课件给出的迭代次数为 44 次；本笔记按 Bellman-Ford 方程逐步复算得到的数值序列与课件各帧一致，课件未说明 44 次的具体计数口径。
+
+#### 5.4.7.4 毒性逆转（Poisoned reverse）
+
+针对计数到无穷问题，课件（原 PDF 第 56、57 页）给出毒性逆转（poisoned reverse）的处理方法：如果 $Z$ 是经由 $Y$ 才能到达 $X$ 的（if Z routes through Y to get to X），那么 $Z$ 告诉 $Y$：$Z$ 到 $X$ 的距离是无穷大（Z tells Y its (Z's) distance to X is infinite），从而使 $Y$ 不会选择经由 $Z$ 到达 $X$ 的路径。课件在同一页提问 Will this completely solve count to infinity problem?，课件该页未给出答案。
+
+课件对上述三角形网络给出的三张节点表（变化前的状态，列序 $x, y, z$）为：
+
+| node x 表（from＼cost to） | x | y | z |
+| --- | --- | --- | --- |
+| x | 0 | 4 | 5 |
+| y | 4 | 0 | 1 |
+| z | 5 | 1 | 0 |
+
+| node y 表（from＼cost to） | x | y | z |
+| --- | --- | --- | --- |
+| x | 0 | 4 | ∞ |
+| y | 4 | 0 | 1 |
+| z | ∞ | 1 | 0 |
+
+| node z 表（from＼cost to） | x | y | z |
+| --- | --- | --- | --- |
+| x | 0 | 4 | 5 |
+| y | 4 | 0 | 1 |
+| z | 5 | 1 | 0 |
+
+对比可见，节点 $y$ 的表内有两处被置为 $\infty$：其行 $x$（$x$ 通告的距离向量）中到 $z$ 的分量为 $\infty$，因为 $x$ 到 $z$ 的路径是 $x\to y\to z$（经由 $y$），故 $x$ 向 $y$ 毒化该分量；其行 $z$（$z$ 通告的距离向量）中到 $x$ 的分量为 $\infty$，因为 $z$ 到 $x$ 的路径是 $z\to y\to x$（经由 $y$），故 $z$ 向 $y$ 毒化该分量。
+
+在此状态下把链路 $x$–$y$ 的代价由 4 改为 60，逐步复算如下：
+
+第 0 步（变化前）：$D_x=(0,4,5)$，$D_y=(4,0,1)$，$D_z=(5,1,0)$；$x$ 向 $y$ 通告 $D_x(z)=\infty$，$z$ 向 $y$ 通告 $D_z(x)=\infty$。
+
+第 1 步：节点 $y$ 检测到 $c(y,x)=60$，重算
+$$D_y(x)=\min\{c(y,x)+D_x(x),\ c(y,z)+D_z(x)\}=\min\{60+0,\ 1+\infty\}=\min\{60,\ \infty\}=60$$
+得 $D_y=(60,0,1)$。此处 $z$ 毒化后的 $\infty$ 使 $y$ 不再把「经 $z$ 到 $x$」当作候选路径，计数过程在第 1 步即被切断。
+
+第 2 步：节点 $z$ 重算
+$$D_z(x)=\min\{c(z,x)+D_x(x),\ c(z,y)+D_y(x)\}=\min\{50+0,\ 1+60\}=\min\{50,\ 61\}=50$$
+得 $D_z=(50,1,0)$。此时 $z$ 到 $x$ 改走直接链路 $z$–$x$，不再经由 $y$，$z$ 不再向 $y$ 毒化 $D_z(x)$。同一轮中节点 $x$ 重算
+$$D_x(y)=\min\{c(x,y)+D_y(y),\ c(x,z)+D_z(y)\}=\min\{60+0,\ 50+1\}=\min\{60,\ 51\}=51$$
+得 $D_x=(0,51,50)$。
+
+第 3 步：节点 $y$ 重算
+$$D_y(x)=\min\{60+0,\ 1+50\}=\min\{60,\ 51\}=51$$
+得 $D_y=(51,0,1)$。算法稳定，课件注明 Algorithm converges in 3 steps。
+
+末帧（已稳定）的各表为：
+
+| 表 | 行 | x | y | z |
+| --- | --- | --- | --- | --- |
+| node x 表 | x | 0 | 51 | 50 |
+| node x 表 | y | 51 | 0 | 1 |
+| node x 表 | z | 50 | 1 | 0 |
+| node y 表 | x | 0 | 51 | 50 |
+| node y 表 | y | 51 | 0 | 1 |
+| node y 表 | z | 50 | 1 | 0 |
+| node z 表 | x | 0 | ∞ | 50 |
+| node z 表 | y | ∞ | 0 | 1 |
+| node z 表 | z | 50 | 1 | 0 |
+
+在节点 $z$ 的表内可以看到毒化标记的迁移：$x$ 到 $y$ 的路径此时为 $x\to z\to y$（经由 $z$），故 $x$ 通告给 $z$ 的向量中到 $y$ 的分量为 $\infty$（行 $x$ 的 $y$ 列为 $\infty$）；$y$ 到 $x$ 的路径此时为 $y\to z\to x$（经由 $z$），故 $y$ 通告给 $z$ 的向量中到 $x$ 的分量为 $\infty$（行 $y$ 的 $x$ 列为 $\infty$）。节点 $z$ 到 $x$ 已改为直接链路，$z$ 不再毒化任何分量。
+
+**用原数据校验**：$y$ 到 $x$ 取 $y\to z\to x$ 为 $1+50=51$，小于直接链路 $x$–$y$ 的 60，与 $D_y(x)=51$ 一致；$z$ 到 $x$ 取直接链路 50，与 $D_z(x)=50$ 一致；$x$ 到 $y$ 取 $x\to z\to y$ 为 $50+1=51$，与 $D_x(y)=51$ 一致。最终结果与不使用毒性逆转时相同，但不再经历数值持续递增的过程。
+
+**补充说明（非课件原文，为本次整理时的补充）**：课件提出的问题「毒性逆转能否完全解决计数到无穷问题」，在后续课程语境下的答案是：毒性逆转只能切断两个节点之间相互引用对方形成的环路；当环路包含三个或更多节点时，仍然可能出现计数到无穷。课件本页与后续页未就此展开。
+
+### 5.4.8 LS 与 DV 算法的比较
+
+课件（原 PDF 第 58 页）从三个方面比较链路状态算法与距离向量算法：
+
+| 比较维度 | LS（链路状态） | DV（距离向量） |
+| --- | --- | --- |
+| 报文复杂度（message complexity） | 设有 $n$ 个节点、$E$ 条链路，共发送 $O(nE)$ 条报文 | 只在邻居之间交换报文 |
+| 收敛速度（speed of convergence） | 算法复杂度 $O(n^2)$；可能出现振荡（oscillations） | 收敛时间不定（varies）；可能出现路由环路（routing loops）、计数到无穷问题 |
+| 健壮性（robustness）：路由器发生故障时会怎样 | 节点可能通告错误的链路代价；但每个节点只计算自己的路由表，错误影响限于本节点 | 节点可能通告错误的路径代价；并且每个节点的路由表会被其他节点使用，错误会在网络中传播（error propagate thru network） |
+
+报文复杂度一栏中，$O(nE)$ 指共有 $n$ 个节点、$E$ 条链路时全网需要发送的链路状态报文总量级；$O(n^2)$ 指单次 Dijkstra 计算在朴素实现下的比较次数量级。收敛速度一栏中，LS 的振荡指链路代价与流量相关时，各节点按同一份代价信息同时改选路径，可能导致下一轮代价再次变化而往返摆动；DV 的收敛时间取决于拓扑与事件发生的时点，无法给出固定量级。
+
+### 5.4.9 层次路由（Hierarchical routing）
+
+#### 5.4.9.1 平面路由设想的局限
+
+课件（原 PDF 第 59 页）指出，此前讨论的所有路由算法都建立在一种理想化（idealization）之上：all routers identical（所有路由器相同）、network "flat"（网络是平坦的，即所有路由器彼此对等、不分层次、没有管理边界）。课件明确说明这在实际中并不成立（… not true in practice），原因有两条。
+
+第一条是规模（scale）。当网络中的目的地数量达到数十亿（billions of destinations）时：路由表无法存放所有目的地的条目（can't store all dest's in routing tables）；路由表的交换报文会把链路占满（routing table exchange would swamp links），即周期性的全网路由信息交换所占用带宽超过链路容量。
+
+第二条是管理自治（administrative autonomy）：互联网是「网络的网络」（internet = network of networks），由多个独立管理的网络互联而成；每个网络的管理者（network admin）可能希望控制自己网络内部的路由方式。
+
+#### 5.4.9.2 自治系统与网关路由器
+
+层次路由的处理办法是把路由器聚合成分区，称为自治系统（autonomous system, AS，原 PDF 第 60 页）：同一个 AS 内的路由器运行同一种路由协议，称为 intra-AS 路由协议（域内路由协议）；不同 AS 内的路由器可以运行不同的 intra-AS 路由协议（routers in different AS can run different intra-AS routing protocol）。
+
+网关路由器（gateway router）是 AS 中的特殊路由器，其职责有两项：一是与 AS 内所有其他路由器一起运行 intra-AS 路由协议（run intra-AS routing protocol with all other routers in AS）；二是同时负责通往本 AS 之外目的地的路由（also responsible for routing to destinations outside AS），为此与其他 AS 的网关路由器运行 inter-AS 路由协议（域间路由协议）。
+
+因此，一个 AS 内部的路由计算与 AS 之间的路由计算由两类不同的协议分别完成：前者在整个 AS 内保持一致，后者只在各 AS 的网关路由器之间运行。
 
 ---
 
-#### 最短路径树与节点 $u$ 的转发表（page 38）
+## 5.5 Internet 中的路由（Routing in the Internet）
 
-**定义**：由例 2 的前驱关系回溯得到源 $u$ 的最短路径树（shortest-path tree）；并生成 $u$ 的转发表（forwarding table），格式为「目的节点 → 下一跳链路（destination, link）」。
+### 5.5.1 AS 内路由与 AS 间路由的分工（Intra-AS and Inter-AS routing）
 
-**课件给出的转发表**：
+#### 5.5.1.1 网关（Gateway）的双重角色
 
-| destination | link |
-|-------------|------|
-| v | (u,v) |
-| x | (u,x) |
-| y | (u,x) |
-| w | (u,x) |
-| z | (u,x) |
+网关（gateway）是位于自治系统边缘的路由器，它同时承担两类路由功能：与其他 AS 的网关一起执行 AS 间路由（inter-AS routing）；与本 AS 内的其他路由器一起执行 AS 内路由（intra-AS routing）。因此，一个网关路由器上同时活跃着两套路由协议，它们共同向同一张路由表（routing table）写入转发条目。
 
-**理解**：树上从 $u$ 到某目的的**第一条边**就是转发表项。到 $v$ 走直连 $(u,v)$；到 $y,w,z$ 的最短路都先经 $x$，故下一跳同为 $(u,x)$。转发时只查「目的→下一跳」，不再跑 Dijkstra。
+课件给出的三自治系统拓扑（原 PDF 第 61 页图）中，各 AS 的组成与互联关系为：AS A 内部有若干路由器（图中以 a、b、c、d 标记内部节点与网段），并有两台网关路由器 A.a 与 A.c；AS B 内部有 a、b、c 三个节点，网关路由器为 B.a；AS C 内部有 a、b、c 三个节点，网关路由器为 C.b。图中明确可读出的 AS 间链路是 C.b—A.a 与 C.b—B.a；另有一条连接 AS A 与 AS B 的 AS 间链路，其起点在图中同时存在 A.a 与 A.c 两台网关，本页呈现下无法确定它落在 A.a 还是 A.c（第 62 页的路径图把它画在 A.c 一侧，第 75 页的域间路由图存在同样的判定困难）。A.a 与 A.c 同时存在，说明 AS A 有两台网关路由器分别与其他 AS 相连。
 
-**作用**：连接路由算法与数据平面转发的落地结果（前置：Dijkstra 执行表；后置：实际分组转发）。
+路由器的双重角色在网关 A.c 的协议栈中可以直接看到（原 PDF 第 61 页下半部分 inter-AS, intra-AS routing in gateway A.c）：该协议栈自下而上分为三层——physical layer（PHY，物理层）、link layer（DL，链路层）、network layer（网络层）。在 network layer 内部并排放置两个方框，分别是 Intra-AS routing algorithm（AS 内路由算法）与 Inter-AS routing algorithm（AS 间路由算法），两个方框各自用箭头指向它们共同维护的 ROUTING TABLE（路由表）。协议栈下方画出该网关的三个网络接口，分别标注 to/from A.b、to/from A.d、to/from B.a，表示 A.c 的两条 AS 内链路（指向 A.b、A.d）和一条 AS 间链路（指向 B.a）。
 
----
+这一段结构说明了一个事实：转发决定只有一张路由表，但路由表的条目由两个来源不同的进程共同写入——AS 内的条目来自本 AS 的域内协议，AS 间的条目来自域间协议。
 
-#### Dijkstra 算法：复杂度与振荡（page 39）
+#### 5.5.1.2 端到端路径上两类路由的接续
 
-**定义**：
+课件在同一个拓扑上叠加了一台源主机 Host h1 与一台目的主机 Host h2，并用三种不同线型标出数据报从 h1 到 h2 所经过的三段路径（原 PDF 第 62 页图）：
 
-1. **复杂度**（$n$ 个节点）：每一轮迭代需检查所有不在 $N'$ 的节点 $w$；共约 $n(n+1)/2$ 次比较，为 $O(n^2)$。更高效实现可达 $O(n\log n)$。
-2. **振荡（Oscillations）**：当链路代价等于其承载流量（link cost = amount of carried traffic）时，路由可能周期性来回摆动。
+1. **Intra-AS routing within AS A（AS A 内的域内路由）**：从 Host h1 出发，经 AS A 内的接入网段与内部路由器，最终到达网关 A.c 之前的路径。
+2. **Inter-AS routing between A and B（A 与 B 之间的域间路由）**：从网关 A.c 到网关 B.a 这一段跨越 AS 边界。
+3. **Intra-AS routing within AS B（AS B 内的域内路由）**：从网关 B.a 经 AS B 内部到达 Host h2。
 
-**理解**：比较次数是等差求和 $1+2+\cdots+n$。振荡的原因是因果环：代价随流量变 → 所有源按新代价重算最短路 → 流量整体改道 → 代价又变 → 再重算。图示在 $A,B,C,D$ 四节点间以带 $\varepsilon$ 的代价在两种路由状态间循环（initial → given these costs, find new routing → resulting in new costs → … 回到类似初态）。
+由此得到域内/域间路由的分工结论：数据报在同一个 AS 内部移动时，由该 AS 的域内协议决定路径；数据报跨出 AS 边界的那一跳（准确地说，是网关到对端网关的那一段），由域间协议决定；一个端到端路径由若干段域内路径与若干段域间路径拼接而成，没有任何一个协议掌握从源到目的的完整路径。课件随后说明：接下来将考察 Internet 中具体的 inter-AS 与 intra-AS 路由协议（We'll examine specific inter-AS and intra-AS Internet routing protocols shortly）。
 
-**作用**：Dijkstra/链路状态的工程边界（前置：Dijkstra 例；后置：动态路由与实际协议中的稳定性问题）。
+（原 PDF 第 63 页为第 5 章章节目录页，内容为 5.1 简介、5.2 虚电路与数据报网络、5.3 路由器内部、5.4 路由算法、5.5 Internet 中的路由、5.6 IP：网际协议，其中 5.5 被标出表示当前进度；该页为重复的目录页，不另设正文小节。）
 
-**振荡过程文字化（page 39 图）**：
-- 初始状态给出一组含 $\varepsilon$ 的边代价；
-- 「given these costs, find new routing…」按当前代价选新路由；
-- 「resulting in new costs」新流量分布导致代价变为另一组（如出现 $2+\varepsilon$、$1+\varepsilon$ 等）；
-- 再次「find new routing…」后代价回到与初始同类的状态，形成循环。
+### 5.5.2 域内路由协议（Intra-AS routing / Interior Gateway Protocols）
 
----
+域内路由协议又称内部网关协议（Interior Gateway Protocols, IGP，原 PDF 第 64 页）。课件列出最常用的三种 IGP：
 
-#### 广播路由（Broadcast routing）
+- **RIP**：Routing Information Protocol（路由信息协议）；
+- **OSPF**：Open Shortest Path First（开放最短路径优先）；
+- **IGRP**：Interior Gateway Routing Protocol（内部网关路由协议），Cisco 专有（Cisco propr.）。
 
-**定义**（page 40）：
+三者分别基于 5.4 节学过的距离向量算法（RIP、IGRP）与链路状态算法（OSPF）。
 
-- **泛洪（Flooding）**：把分组从源交付到所有其他节点。
-- **广播风暴（Broadcast storm）**：泛洪中副本无限制增殖导致的网络风暴。
-- **受控泛洪（Controlled flooding）**：
-  1. **序号控制泛洪（Sequence-number-controlled flooding）**：在广播分组中加入 ID 与广播序号（broadcast sequence number）；
-  2. **反向路径转发（reverse path forwarding, RPF）**。
-- 要求：**能够避免广播风暴（Be able to avoid the broadcast storm）**。
+#### 5.5.2.1 RIP：Routing Information Protocol
 
-**理解**：广播=一个源发给全网所有节点。朴素泛洪会因每节点再转发而指数复制，产生广播风暴。序号控制让节点丢弃重复/过期副本；RPF 规定仅当分组从「通往源的最短路径入链路」到达时才转发，从而剪掉大量冗余副本。二者都是在「保证送达所有节点」前提下限制副本数。
+RIP 的基本定位与参数（原 PDF 第 65 页）为：所用算法是距离向量算法（distance vector algorithm）；1982 年被包含进 BSD-UNIX 发行版（included in BSD-UNIX Distribution in 1982）；距离度量（distance metric）是跳数（# of hops），最大值为 15 跳；距离向量每 30 秒交换一次（exchanged every 30 sec）；承载消息的名称是 Response Message，又称 advertisement（通告）；单条通告最多包含到 25 个目的网络的路径（route to up to 25 destination nets）。
 
-**作用**：5.4 中与单播最短路并列的一类路由问题（Dijkstra 解决单播；广播路由解决一对多）（前置：路由算法分类与图抽象；并列：Dijkstra；后置：Link state/Distance vector 等协议机制）。
+课件在距离度量处附了一个问题 Can you guess why?（你能猜出为什么最大只有 15 跳吗？），正文没有给出答案。此处按标准 RIP 设计背景补充说明（**补充解释，非课件原文**）：RIP 把 16 视为无穷大（infinite distance = 16 hops，见 5.5.2.2 的链路失效处理），把可达直径限制为 15 跳，可以限定距离向量算法在链路失效时「计数到无穷」的持续时间上限，代价是 RIP 只能用于直径不超过 15 跳的网络。
 
----
+在课件采用的简化、RIPv1 式说明中，通告重点为目的网络与跳数，下一跳根据发送邻居确定。不能将“通告不携带下一跳地址”推广到所有 RIP 版本：RIPv2 有 Next Hop 字段，并支持鉴别信息。参见 [RFC 2453，4.1 与 4.4](https://www.rfc-editor.org/rfc/rfc2453#section-4.4)。
 
----
+课件给出一个路由表实例（原 PDF 第 66 页图）。源图给出一个由路由器 A、D、B、C 与网段 w、x、y、z 构成的网络：网段 w 接在路由器 A 上，A 与 D 之间由网段 x 相连，D 与 B 之间由一个未标注名称的网段相连，B 与网段 y 相连，网段 y 再经过若干跳（源图用省略的形式表示中间部分）到达网段 z；路由器 C 挂在 D 的下方，与 D 直接相连。源图下方的方框给出路由器 D 中的路由表：
 
-### 第 3 片 · page 41–60
+| Destination Network（目的网络） | Next Router（下一跳路由器） | Num. of hops to dest.（到目的的跳数） |
+|---|---|---|
+| w | A | 2 |
+| y | B | 2 |
+| z | B | 7 |
+| x | -- | 1 |
+| …. | …. | …. |
 
-#### 一、广播路由：生成树广播（page 41）
+对表中每一行的读法（依据源图拓扑）：
 
-##### 1. 生成树广播（Spanning-tree broadcast）
+- **第 1 行，w / A / 2**：D 到网段 w 要经过路由器 A，跳数是 2。D 与 A 之间隔着一个网段 x，数据报从 D 出发经网段 x 到达 A（第 1 跳），再由 A 转发到 w（第 2 跳），故为 2。
+- **第 2 行，y / B / 2**：D 经中间网段到 B 为第 1 跳，B 到 y 为第 2 跳。
+- **第 3 行，z / B / 7**：D 到网段 z 的下一跳仍然是 B，但总跳数为 7，即从 D 出发经 B、y 及后续中间路由器到达 z 共需 7 跳。这一行说明 RIP 的下一跳只记录邻居路由器，与目的网络有多远无关——无论目的网络在 2 跳外还是 7 跳外，只要去往该目的的第一段都指向 B，下一跳字段就都是 B。源图未标出 y 与 z 之间中间路由器的数量，因此 7 跳无法逐跳分解。
+- **第 4 行，x / -- / 1**：网段 x 直接连接在 D 上（D 的直连网络），下一跳字段为空，因为无需再经任何路由器转发；跳数为 1，表示只需一跳即可到达该网段。
+- **第 5 行，…. / …. / ….**：源图中的省略行，表示该表中还有其他目的网络条目，源图没有给出具体内容。
 
-**a. 严格定义**  
-设给定**连通无向图（connected undirected graph）**，则该图的**生成树（spanning tree）**是一个**连通、无环（no cycles）的子图**。广播沿生成树进行，可**避免广播分组的冗余传输（avoid the transmission of redundancy broadcast packets）**。
+这四行数据共同体现了 RIP 路由表的三元组结构——目的网络、下一跳、跳数，以及「直连网络的下一跳为空、跳数为 1」这一约定。
 
-**b. 通俗解释**  
-全网连通图中若存在环，广播包会沿多条支路重复到达同一节点。生成树保留全部节点连通性但去掉环：每对节点间只有一条树上路径，因此每个节点对同一广播只需接收一次，旁路被删掉的边不再承载该广播。定义中“连通”保证人人可达，“无环”保证不重复。直接含义是：广播树 = 可达性保留 + 冗余边删除。
+#### 5.5.2.2 RIP 的链路失效与恢复（Link failure and recovery）
 
-**c. 作用与用处**  
-与 page 40 受控泛洪并列的另一类广播抑制方案。掌握后能说明“序号去重”与“拓扑上直接无环”两种避免风暴的路径。关联：前置 page 40 泛洪/RPF；后置 page 42 LS 用泛洪建全网视图（信息同步 vs 数据广播是两件事）。
+RIP 用定时器检测邻居与链路的存活：如果在 180 秒内没有听到某个邻居的通告（if no advertisement heard after 180 sec），就判定该邻居/链路已死亡（neighbor/link declared dead）。判定死亡之后的处理流程（原 PDF 第 67 页）为：
 
----
+1. 使经由该邻居的路由项失效（routes via neighbor invalidated），即把经过该邻居的所有目的网络的路径作废。
+2. 向邻居发送新的通告（new advertisements sent to neighbors），把路由变化发布出去。
+3. 邻居转而发出它们自己的新通告（neighbors in turn send out new advertisements），但仅当它们自己的路由表发生了变化（if tables changed）时才发送。
+4. 链路失效信息迅速传播到整个网络（link failure info quickly propagates to entire net）。
+5. 使用毒性逆转（poison reverse）防止乒乓环路（poison reverse used to prevent ping-pong loops），其中无穷距离定义为 16 跳（infinite distance = 16 hops）。
 
-#### 二、链路状态算法（page 42）
+RIP 用度量 16 表示不可达。需要区分两种操作：路由失效后把该目的的度量置为 16，是失效路由的毒化；毒性逆转则是对经某邻居学到的路由，向该邻居反向通告度量 16，即使路由当前仍然有效也可这样通告，以避免对方再经自己返回该目的。它可防止两节点相互引用形成的环路，但不能彻底消除更大环路。参见 [RFC 2453，3.4.3—3.4.4](https://www.rfc-editor.org/rfc/rfc2453#section-3.4.3)。
 
-##### 2. 链路状态算法（Link state algorithm）
+#### 5.5.2.3 RIP 表的处理与承载层次（RIP table processing）
 
-**a. 严格定义**  
-链路状态算法 = **广播路由思想 + Dijkstra 算法**：每个节点将**链路状态包（link-state packets）广播到所有其他节点**，使**所有节点得到相同且完整的网络视图**；再用 Dijkstra 计算**从本节点到网络中所有其他节点**的最小代价路径。若**链路代价变化**，则**重新广播并重新计算**。
+课件指出两个事实（原 PDF 第 68 页）：RIP 路由表由一个应用层进程管理，该进程称为 route-d，即 routed 守护进程（daemon）（RIP routing tables managed by application-level process called route-d (daemon)）；RIP 的通告报文封装在 UDP 数据包中发送，并按周期重复（advertisements sent in UDP packets, periodically repeated）。源图与正文中同时出现 route-d 与协议栈图中的 routed 两种写法，指的是同一个 RIP 守护进程。
 
-**b. 通俗解释**  
-过程拆成“同步数据”与“本地计算”两段：先靠泛洪让每台路由器的地图一致；地图一致后各自跑单源最短路，互不依赖对方的计算结果。代价一变，只有一条边的信息过期，故必须把新 LS 包再次泛洪，触发全网重算。这样定义的原因是：正确性依赖“所有人用同一张图”。直接含义是：LS 协议控制面 = 泛洪状态 + 本地 Dijkstra + 事件触发重算。
+课件用两个并排的协议栈说明这一跨层结构：
 
-**c. 作用与用处**  
-对应 page 33 分类中的**全局/链路状态**，也是 OSPF 的原型。掌握后能把“为什么要泛洪”与“为什么用 Dijkstra”分别对应到同步与计算两步。关联：前置 page 34–39 Dijkstra；后置 page 58 与 DV 的比较；page 64+ OSPF。
+| 层次（自上而下） | 左侧路由器 | 右侧路由器 |
+|---|---|---|
+| 应用层 | routed（守护进程，椭圆框） | routed（守护进程，椭圆框） |
+| 传输层 | transport (UDP) | transport (UDP) |
+| 网络层 | network (IP)，其中标出 routing tables（路由表） | network (IP)，其中标出 routing tables（路由表） |
+| 链路层 | data link | data link |
+| 物理层 | physical | physical |
 
----
+图中箭头标出的两条路径为：其一是**实际线路上的传输路径**，左路由器 routed 进程产生的报文自上而下穿过 UDP → IP → data link → physical，经物理介质到达右路由器，再自下而上穿过 physical → data link → IP → UDP 交由右侧 routed 进程处理；其二是**进程对路由表的读写路径**，每个 routed 进程向上连接本机 routing tables，即路由表存放在 network (IP) 层，但由应用层的 routed 进程负责填写与更新。由此得到一个明确结论：RIP 是运行在应用层的路由协议——它利用 UDP 作为传输手段，而它的计算结果（路由表）被 IP 层用于转发；这与 OSPF、BGP 的承载方式不同。
 
-#### 三、距离向量算法（page 43–57）
+#### 5.5.2.4 RIP 路由表的真实实例（RIP table example）
 
-##### 3. Bellman-Ford 方程（page 43）
-
-**a. 严格定义**  
-定义 $d_x(y)$ = 从 $x$ 到 $y$ 的**最小代价路径代价（cost of least-cost path）**。则  
-$$d_x(y)=\min_v\{\,c(x,v)+d_v(y)\,\}$$  
-其中 $\min$ 取遍 $x$ 的**所有邻居 $v$**。该式称 **Bellman-Ford 方程（动态规划形式）**。
-
-**b. 通俗解释**  
-从 $x$ 到 $y$ 的最优路，第一步必先走到某个邻居 $v$，代价是“边 $c(x,v)$”加上“$v$ 到 $y$ 的最优代价 $d_v(y)$”；对所有候选 $v$ 取最小即得全局最优。这满足最优子结构：整条最优路的后半段也是 $v$ 到 $y$ 的最优路。用动态规划是因为子问题 $d_v(y)$ 被多个上层问题复用。直接含义是：全局最短路可拆成“一步边 + 邻居的最短路”的最小值。
-
-**c. 作用与用处**  
-**基础概念，独立知识点**（DV 算法的数学根）。掌握后能理解为何 DV 只需邻居的向量即可更新。关联：后置第 4 条记号、第 6 条更新规则、第 8 条算例；与 Dijkstra 的“选点+松弛”在数学上求解同一问题但信息需求不同。
-
-##### 4. Bellman-Ford 算例（page 43 下半）
-
-**a. 严格定义**  
-已知：$d_v(z)=5$，$d_w(z)=3$，$d_x(z)=3$。则  
-$$
-\begin{aligned}
-d_u(z)&=\min\{c(u,v)+d_v(z),\; c(u,x)+d_x(z),\; c(u,w)+d_w(z)\}\\
-&=\min(2+5,\;1+3,\;5+3)=\min(7,4,8)=4
-\end{aligned}
-$$  
-即 $c(u,v)=2$，$c(u,x)=1$，$c(u,w)=5$。
-
-**b. 通俗解释**  
-把 BF 方程在具体数字上展开：三个邻居各给一条“经我到 $z$”的候选总代价 7、4、8，最小者 4 即 $d_u(z)$。直接含义是：$u$ 不需要知道全图，只需要三个邻居报出的 $d_v(z)$ 等。
-
-**c. 作用与用处**  
-BF 方程的数值样板。掌握后能对任意“已知邻居到目的的代价”做一次 min 计算。关联：前置第 3 条公式；后置第 8 条三节点表演算。
-
-##### 5. 距离向量记号与表（page 44）
-
-**a. 严格定义**  
-- $D_x(y)$ = 从 $x$ 到 $y$ 的最小代价的**估计值（estimate）**  
-- 节点 $x$ 知道到每个邻居 $v$ 的代价 $c(x,v)$  
-- $x$ 维护自己的**距离向量（distance vector）** $D_x=[D_x(y): y\in N]$  
-- $x$ 还维护**每个邻居 $v$ 的距离向量** $D_v=[D_v(y): y\in N]$  
-
-**b. 通俗解释**  
-大写 $D$ 是本地估计，小写 $d$（第 3 条）是真实最短路代价。每个节点像维护一张“自己到全网”的列向量，外加“邻居们各自到全网”的向量副本。之所以必须存邻居向量，是因为 BF 更新式里要用 $D_v(y)$。直接含义是：DV 协议交换和存储的实体就是这些向量分量。
-
-**c. 作用与用处**  
-把公式落到数据结构。掌握后能读懂 RIP 等协议报文中的向量内容。关联：前置第 3、4 条；后置第 6、8 条。
-
-##### 6. DV 基本思想与收敛（page 46）
-
-**a. 严格定义**  
-**基本思想**：每个节点**周期性**地把自己的距离向量估计发给邻居；当节点 $x$ 收到邻居新的 DV 估计时，用 **BF 方程**更新自己的 DV：  
-$$D_x(y)\leftarrow \min_v\{\,c(x,v)+D_v(y)\,\}\quad \forall y\in N$$  
-在**轻微、自然的条件**下，估计 $D_x(y)$ 将**收敛到真实最小代价 $d_x(y)$**。
-
-**b. 通俗解释**  
-更新只做一件事：用新收到的邻居向量重算每一维的 min。周期发送保证即使丢包也能靠下一周期纠正；“轻微自然条件”通常指代价非负、网络连通、无持续剧烈震荡。收敛含义是：反复交换后所有人的 $D$ 与真实 $d$ 一致且不再变化。直接含义是：DV 是“周期交换 + 本地 min 重算”的不动点迭代。
-
-**c. 作用与用处**  
-DV 的算法主循环。掌握后能说明协议报文何时触发算表。关联：前置第 3、5 条；后置第 7 条性质、第 9 条链路变化。
-
-##### 7. 迭代、异步、分布式性质（page 47）
-
-**a. 严格定义**  
-**迭代且异步**：每次本地迭代的诱因是 (1) **本地链路代价变化**，或 (2) **邻居发来的 DV 更新消息**。**分布式**：节点仅在**自己的 DV 变化时**通知邻居；邻居在必要时再通知它们的邻居。
-
-**b. 通俗解释**  
-没有全网统一时钟：谁的事件谁先算，消息可乱序到达，各节点独立推进。通知采用“变化驱动”而非永远广播，减少消息量但依赖变更向邻居扩散。直接含义是：DV 的正确性不依赖同步轮次，依赖事件触发的级联更新。
-
-**c. 作用与用处**  
-与 LS 的“同步泛洪 + 同构计算”对照。掌握后能分析分布式系统中的事件传播。关联：前置第 6 条；后置 page 58 消息复杂度比较。
-
-##### 8. 三节点距离向量演算（page 48–49）
-
-**a. 严格定义**  
-拓扑：节点 $x,y,z$；由计算反推 $c(x,y)=2$，$c(x,z)=7$，$c(y,z)=1$。  
-初始：$x$ 表含 $0,2,7$（到自身 0、到 $y$ 2、到 $z$ 7）及大量 $\infty$；$y$ 表 $2,0,1$；$z$ 表 $7,1,0$ 等随时间填充。  
-节点 $x$ 的表上给出更新式：  
-$$
-\begin{aligned}
-D_x(y)&=\min\{c(x,y)+D_y(y),\; c(x,z)+D_z(y)\}\\
-&=\min\{2+0,\;7+1\}=2\\
-D_x(z)&=\min\{c(x,y)+D_y(z),\; c(x,z)+D_z(z)\}\\
-&=\min\{2+1,\;7+0\}=3
-\end{aligned}
-$$  
-收敛后 $x$ 的一行出现 $0,2,3$（到 $z$ 从直连 7 变为经 $y$ 的 3）。page 49 为同一页内容的重复/延续导出。
-
-**b. 通俗解释**  
-直连 $x\to z$ 代价 7，但路径 $x\to y\to z$ 为 $2+1=3<7$。BF 用邻居 $y$ 报来的 $D_y(z)=1$ 与 $D_z(z)=0$ 算出经 $y$ 更优，于是 $D_x(z)$ 变为 3。这说明 DV 通过邻居向量发现“两跳优于一跳”。直接含义是：表中每个格子都是对某条候选路径的 min 结果。
-
-**c. 作用与用处**  
-最小可运行的 DV 数值例子。掌握后能手算 3–4 节点收敛表。关联：前置第 3、4 条；支撑 page 58 比较中的收敛讨论。
-
-##### 9. 链路代价变化与“好快坏慢”（page 50）
-
-**a. 严格定义**  
-链路代价变化时的处理：  
-1. 节点检测到**本地链路代价变化**；  
-2. **更新路由信息，重算距离向量**；  
-3. **若 DV 变化，则通知邻居**。  
-课件总结：**好消息传播快（good news travels fast），坏消息传播慢（bad news travels slow）**。
-
-**b. 通俗解释**  
-代价变小（好消息）时，发现者立刻算出更小 $D$ 并告诉邻居，邻居再告诉下游，每一跳都只会使代价数字下降，很快全网更新。代价变大或链路断（坏消息）时，邻居可能仍持有旧的、偏小的向量，需要多轮纠正，速度慢。直接含义是：DV 对“改善”收敛快，对“恶化”收敛慢。
-
-**c. 作用与用处**  
-引出 count-to-infinity。掌握后能预判故障恢复时间与故障恶化时间不对称。关联：后置第 10、11 条；page 53 的 44 次迭代实例。
-
-##### 10. 计数到无穷问题（Count to infinity problem）（page 53）
-
-**a. 严格定义**  
-链路代价变化（故障）时：好消息快，**坏消息慢——即“计数到无穷（count to infinity）”问题**。课件例：算法稳定前经历 **44 次迭代（44 iterations before algorithm stabilizes）**。
-
-**b. 通俗解释**  
-直连边失效后，各节点若只靠邻居旧向量互相引用，到目的的代价估计会一轮轮被抬高：$16\to17\to\cdots$ 或等价地反复认为“邻居还能到，所以我也能到”，在有限度量下表现为逼近无穷大标记才停。迭代次数多说明坏消息要绕环多圈才被所有人识破。直接含义是：距离向量在拓扑恶化时可能长时间给出错误且偏大的代价，甚至逻辑上的无穷。
-
-**c. 作用与用处**  
-DV 的核心缺陷，决定 RIP 设置跳数上限与毒化反转。掌握后能回答“为何距离向量需要防环机制”。关联：前置第 9 条；后置第 11 条毒化反转；page 58 的“may have routing loops / count-to-infinity”。
-
-##### 11. 毒化反转（Poisoned reverse）（page 56）
-
-**a. 严格定义**  
-解决计数到无穷的一种方法——**毒化反转（Poisoned reverse）**：若 $Z$ 经 $Y$ 到达 $X$，则 $Z$ 告诉 $Y$：$Z$ 到 $X$ 的距离是**无穷（infinite）**，使 $Y$ 不会再经 $Z$ 去 $X$。课件设问：这能否**完全**解决 count to infinity？
-
-**b. 通俗解释**  
-$Z$ 对“经我到 $X$ 的路由”向 $Y$ 撒谎为不可达，切断 $Y\!\to\!Z\!\to\!Y$ 二元环在该前缀上的依赖。这只处理**直接下一跳环**；三个及以上节点的环或更复杂拓扑下仍可能残留问题——课件设问的指向是“不能完全解决”。直接含义是：毒化反转 = 面向特定邻居的路由毒化，抑制而非根除全部无穷计数。
-
-**c. 作用与用处**  
-与 page 67 RIP 的 poison reverse 同一机制，跨分片呼应。掌握后能解释 RIP 通告 16 跳的动机，并回答“能否根治”的设问。关联：前置第 10 条问题定义；后置 page 58 健壮性比较；page 67 RIP 应用。
-
-##### 12. 动画/图示页（page 45、51、52、54、55、57）
-
-**a. 严格定义**  
-这些页在文本导出中无独立正文（page 45 标题为 Bellman-Ford Example，其余多为标题/图）；内容为 BF/DV/计数到无穷的分步动画或示意图，需对照原 PPT 图形阅读。
-
-**b. 通俗解释**  
-复习时应打开原幻灯片核对每一帧表值变化，文本笔记以 page 43、48–50、53、56 的显式公式与结论为准。
-
-**c. 作用与用处**  
-视觉化第 3–11 条过程。关联：与对应公式页成对阅读。
-
----
-
-#### 四、LS 与 DV 比较（page 58）
-
-##### 13. LS/DV 三维比较（消息、收敛、健壮性）
-
-**a. 严格定义**  
-设节点数 $n$、链路数 $E$。  
-
-| 维度 | 链路状态 LS | 距离向量 DV |
-|------|-------------|-------------|
-| **消息复杂度** | 发送 $O(nE)$ 条消息 | **仅邻居之间**交换 |
-| **收敛速度** | 算法 $O(n^2)$；**可能振荡** | 收敛时间**随情况变化**；**可能有路由环**；count-to-infinity |
-| **健壮性**（路由器故障时） | 节点可能通告**错误链路代价**；**每个节点只算自己的表** | 节点可能通告**错误路径代价**；**每个节点的表会被他人使用**；**错误经网络传播** |
-
-**b. 通俗解释**  
-消息量：LS 要让状态到达全网，泛洪代价随 $n$、$E$ 增长；DV 消息只在邻居间走，规模更小但信息间接。收敛：LS 计算复杂度清晰但动态代价可能振荡（呼应 page 39）；DV 时间不定且有环与无穷计数。健壮性：LS 下错误代价主要污染通告者所在局部计算；DV 下错误估计会被邻居当“事实”继续转发，错误被放大传播。直接含义是：LS 用更多消息换更强的正确性局部化，DV 用更少消息承担更大错误传播风险。
-
-**c. 作用与用处**  
-**基础概念，独立知识点**（5.4 总结表）。掌握后能为选型题给出三角度量。关联：汇总 page 33、39、42–57 全部分支；后置 page 59+ 层次化（第四维：可扩展性）。
-
----
-
-#### 五、层次化路由（page 59–60）
-
-##### 14. 层次化路由动机（page 59）
-
-**a. 严格定义**  
-**规模（scale）**：面对数十亿个目的网络，**无法在路由表中存储所有目的地**；**路由表交换会淹没链路（swamp links）**。**管理自治（administrative autonomy）**：互联网是**网络之网络（network of networks）**，每个网络管理员可能希望**控制自己网络内的路由**。此前学习是理想化：所有路由器相同、网络“平坦（flat）”——实践中不成立。
-
-**b. 通俗解释**  
-平坦全网路由有两个硬约束：表项数随目的数线性涨，更新报文把链路带宽占满；且跨管理域时不允许别人替你决定内部怎么走。把网络切块后，表内只存“块内细目 + 块外摘要”，更新量与表长都下降；块内协议可由该管理员自选。直接含义是：层次化同时解决**可扩展性**与**主权**两个问题。
-
-**c. 作用与用处**  
-5.4 收束并引出 5.5。掌握后能解释 AS 为何存在。关联：前置 page 58 比较；后置第 15 条 AS 定义；page 61+ 内外路由与 BGP。
-
-##### 15. AS 划分、intra/inter-AS 与网关（page 60）
-
-**a. 严格定义**  
-- 将路由器聚合进**区域（region）**，即**自治系统（autonomous systems, AS）**。  
-- **同一 AS 内的路由器运行相同的路由协议**——**“intra-AS”路由协议**。  
-- **不同 AS 的路由器可以运行不同的 intra-AS 路由协议**。  
-- AS 内的**特殊路由器（网关路由器，gateway routers）**：  
-  - 与 AS 内**所有其他路由器**一起运行 **intra-AS 路由协议**；  
-  - 还负责**到 AS 外目的地的路由**——与其他 AS 的网关运行 **inter-AS 路由协议**。  
-
-**b. 通俗解释**  
-AS 是路由协议与管理的边界单元：内部统一协议，对外通过少数网关衔接。网关必须“说两种话”：对内说本 AS 的 IGP，对外说跨 AS 协议。这样内部细节不出 AS，外部策略在网关执行。直接含义是：分层路由的实现载体 = AS + 网关 + 双协议栈。
-
-**c. 作用与用处**  
-本分片终点，直接对接 part4（page 61–81）的网关角色、IGP、BGP。掌握后能画出两级互联网路由架构。关联：前置第 14 条动机；后置 IGP/BGP 具体协议。
-
----
-
----
-
-### 第 4 片 · page 61–81
-
-#### 一、AS 内路由与 AS 间路由概述
-
-##### 1. 自治系统内路由与自治系统间路由（Intra-AS and Inter-AS routing）
-
-**a. 严格定义**  
-互联网路由被划分为两个层次：**自治系统内路由（intra-AS routing）**指在同一自治系统（AS）内部路由器之间计算到达 AS 内目的网络路径的过程；**自治系统间路由（inter-AS routing）**指在不同 AS 之间确定分组应经由哪个 AS、哪条跨 AS 链路转发的过程。二者在网络层同时存在、分工协作。
-
-**b. 通俗解释**  
-一个 AS 是由同一管理机构统一管理的一组路由器和网络。路由问题因此被拆成两层：第一层只关心“包在本管理机构内部怎么走”，第二层只关心“包要出本管理机构时交给哪个外部 AS”。这样拆分的原因是：内部可以追求统一的性能目标，外部必须服从各管理机构各自的商业与管理规则。定义的直接含义是：任一端到端分组的转发路径，都由若干段 AS 内路径和若干段 AS 间路径交替拼接而成。
-
-**c. 作用与用处**  
-这是本分片（page 61–74 讲 AS 内、page 75–79 讲 AS 间）的总纲。掌握后能解释：为什么互联网需要两类不同的路由协议（IGP 与 BGP），以及一条从主机 h1 到 h2a 的路径为何必须分段处理。前置知识是网络层的基本功能；后置知识是 RIP/OSPF/IGRP（AS 内）与 BGP（AS 间）。
-
-##### 2. 网关（Gateway）的双重路由角色
-
-**a. 严格定义**  
-网关（gateway）是同时归属多个 AS 边界、在网络层执行双重路由功能的节点：在网关之间执行自治系统间路由（perform inter-AS routing amongst themselves）；与所在 AS 内的其他路由器一起执行自治系统内路由（perform intra-AS routers with other routers in their AS）。
-
-**b. 通俗解释**  
-网关这台设备的路由表和路由进程要同时处理两种任务：与别的 AS 的网关交换“跨 AS 去哪”的信息；与本 AS 内部路由器交换“AS 内部怎么走”的信息。之所以这样定义，是因为物理上只有位于 AS 边界的节点才能看到外部拓扑；内部路由器看不到也不需要看到其他 AS 的细节。直接含义是：网关是 AS 内路由与 AS 间路由的衔接点。
-
-**c. 作用与用处**  
-位置：处于第 1 条“两类路由”与后文具体协议之间，解释协议部署的物理载体。掌握后能回答“BGP 跑在哪些路由器上、IGP 跑在哪些路由器上”。关联：前置为 AS 概念；后置为 page 76 起的 BGP 与 page 64 起的 IGP。
-
-**图片信息（page 61）文字描述**：图示 AS A、AS B、AS C 组成的互联结构；标注路由器接口名 A.a、A.c、C.b、B.a；链路标号 a、b、c、d；分层标注“network layer / link layer / physical layer”，并注明 gateway A.c 上同时存在 inter-AS 与 intra-AS routing（网络层）。
-
-##### 3. 端到端路径的三段划分（page 62）
-
-**a. 严格定义**  
-从 AS A 内主机 h1 发送到 AS B 内主机 h2a 的分组，其路径被划分为三段：AS A 内部的 intra-AS routing、A 与 B 之间的 inter-AS routing、AS B 内部的 intra-AS routing。
-
-**b. 通俗解释**  
-路径被按“管理域”切段：第一段全程在 A 内，由 A 的内部路由协议决定；第二段跨越 A 到 B，由 AS 间路由决定交给 B；第三段在 B 内由 B 的内部路由协议送到 h2a。这样切段的原因是每一段的决策者不同——段内是单一管理员，跨段是两个管理员协商。直接含义是：端到端最优不等于每段都按同一目标优化。
-
-**c. 作用与用处**  
-用具体主机对把第 1 条的抽象定义实例化；与 page 80“为何要区分两类路由”首尾呼应。掌握后能对任意跨 AS 通信做路径分段分析。
-
-##### 4. 协议预告（page 62 尾句）
-
-**a. 严格定义**  
-课件声明随后将考察具体的自治系统间路由协议与自治系统内路由协议（We’ll examine specific inter-AS and intra-AS Internet routing protocols shortly）。
-
-**b. 通俗解释**  
-本页只建立“两类路由”的概念框架，协议细节安排在后面：AS 内对应 page 64 起的 RIP/OSPF/IGRP，AS 间对应 page 75 起的 BGP。
-
-**c. 作用与用处**  
-结构衔接点，标明本分片后续内容的组织方式。
-
----
-
-#### 二、第五章目录结构（page 63）
-
-##### 5. Chapter 5: Network Layer 章节大纲
-
-**a. 严格定义**  
-第五章包含以下小节：5.1 Introduction；5.2 Virtual circuit and datagram networks（虚电路网络与数据报网络）；5.3 What’s inside a router?（路由器内部结构）；5.4 Routing algorithms（路由算法，含 Dijkstra’s algorithm、Broadcast routing、Link state、Distance vector、Hierarchical routing）；5.5 Routing in the Internet（互联网中的路由）；5.6 IP: Internet protocol（含 IPv4 Datagram format、IPv4 addressing、IP fragment、ICMP、IPv6）。
-
-**b. 通俗解释**  
-这张目录把网络层知识拆成三块：网络层两种服务模型（5.2）、路由器与通用路由算法（5.3–5.4）、互联网的具体协议实例（5.5–5.6）。5.4 中 distance vector 与 link state 是后面 RIP（距离向量）和 OSPF（链路状态）的算法基础；5.5 对应本分片的 IGP/BGP；5.6 是 IP 协议族。定义的直接含义是：先学算法，再学协议，最后学 IP 报文与地址。
-
-**c. 作用与用处**  
-**基础概念，独立知识点**（章节地图）。掌握后能在第五章内定位每个术语属于哪一小节，明确本分片内容主要落在 5.5 及 5.4 的应用层面上。
-
----
-
-#### 三、AS 内路由：内部网关协议（IGP）
-
-##### 6. 内部网关协议（Interior Gateway Protocols, IGP）
-
-**a. 严格定义**  
-自治系统内路由（Intra-AS Routing）又称**内部网关协议（Interior Gateway Protocols, IGP）**。最常用的 IGP 有：**RIP（Routing Information Protocol，路由信息协议）**、**OSPF（Open Shortest Path First，开放最短路径优先）**、**IGRP（Interior Gateway Routing Protocol，内部网关路由协议，Cisco 专有）**。
-
-**b. 通俗解释**  
-IPO/网络管理中“内部网关”指 AS 内部使用的路由协议这一类。把 AS 内路由统一命名为 IGP，是为了与 AS 间协议（如 BGP，属 EGP 类概念）在术语上分开。三个常见实现的差别在于算法类别与厂商背景：RIP 用距离向量，OSPF 用链路状态，IGRP 是 Cisco 私有的距离向量协议。直接含义是：看到“IGP”即表示“跑在单一 AS 内部的路由协议”。
-
-**c. 作用与用处**  
-本分片 AS 内部分（page 64–74）的分类总纲。掌握后能把 RIP、OSPF、IGRP 归入同一类别并与 BGP 对比。关联：前置为第 1 条两类路由；后置为 7、12、18 三条具体协议。
-
----
-
-##### 7. RIP 基本机制（page 65）
-
-**a. 严格定义**  
-**RIP（Routing Information Protocol）**是基于**距离向量算法（distance vector algorithm）**的 IGP；1982 年进入 BSD-UNIX 发行版。距离度量为**跳数（number of hops）**，最大值为 15 跳。路由器每隔 **30 秒**通过 **Response Message（响应消息，也称 advertisement，通告）**交换距离向量。每份通告最多包含到达 **25 个目的网络**的路由。
-
-**b. 通俗解释**  
-RIP 用“到目的要经过几台路由器（几跳）”作为唯一代价，数值越小越好。设上限 15 的原因：必须为“无穷大”留出一个编码值——16 表示不可达（见第 9 条 poison reverse），若跳数无上限，环路会导致计数到无穷（count to infinity），路由表永远无法收敛。30 秒周期通告使邻居持续刷新彼此的向量；单条消息限 25 个目的网络是为了限制 UDP 报文长度。直接含义是：RIP 是简单、周期性、以跳数为度量的分布式距离向量协议。
-
-**c. 作用与用处**  
-AS 内协议的第一个实例，对应 5.4 中 distance vector 算法的工程化。掌握后能回答：RIP 如何度量、如何交换、极限在哪。关联：前置为第 6 条 IGP 分类；并列第 12 条 OSPF、第 18 条 IGRP；后置为第 8–11 条 RIP 的表示、故障处理与实现。
-
-##### 8. RIP 路由表结构（page 66）
-
-**a. 严格定义**  
-RIP 路由表（以路由器 D 为例）每条记录包含三个字段：**目的网络（Destination Network）**、**下一跳路由器（Next Router）**、**到达目的的跳数（Num. of hops to dest.）**。课件示例数据：
-
-| Destination Network | Next Router | Num. of hops to dest. |
-|---------------------|-------------|------------------------|
-| w                   | A           | 2                      |
-| y                   | B           | 2                      |
-| z                   | B           | 7                      |
-| x                   | --          | 1                      |
-| ….                  | ….         | ….                     |
-
-**b. 通俗解释**  
-三个字段分别回答：包发往哪个网络、先交给哪台路由器、全程还要走几跳。下一跳为“--”且跳数为 1，表示该目的网络与本路由器**直连**，不需要再经其他路由器。直接含义是：RIP 的决策规则是在候选路由中选跳数最小者，并记录其下一跳。
-
-**c. 作用与用处**  
-把第 7 条的抽象机制落到可读表格上，是后续“读表/填表”类方法的基础。关联：后置第 11 条真实路由表；与第 17 条 OSPF 的链路状态数据库形成对比（表内容来源不同）。
-
-**图片信息（page 66）文字描述**：拓扑含网络 w、x、y、z 与路由器 A、B、C、D；下方标注“Routing table in D”，即上表为 D 的路由表。
-
-##### 9. RIP 链路故障与恢复（page 67）
-
-**a. 严格定义**  
-若 **180 秒**内未听到某邻居的通告，则该邻居/链路被宣告死亡（declared dead）。随后：经该邻居的路由被置为无效（invalidated）；向邻居发送新的通告；邻居若因表项变化，再转发新的通告；链路故障信息因此快速传播到全网。为防止**乒乓环路（ping-pong loops）**使用**毒化反转（poison reverse）**，其将**无穷距离定义为 16 跳**。
-
-**b. 通俗解释**  
-每个邻居每 30 秒发一次通告；连续 6 次（180 秒）未收到就判定链路故障。故障后本机先改表，再用通告告诉邻居，邻居再告诉它们的邻居，靠这种逐跳扩散让全网在数个周期内更新完毕。毒化反转的做法是：对某邻居的路由，故意经该邻居回通告一个“16 跳（不可达）”，使对方不会把数据再绕回来，从而切断 A→B→A 的两节点循环。16=不可达与第 7 条的上限 15 是同一条设计约束的两面。直接含义是：RIP 用超时检测故障，用“宣告不可达”打断环路。
-
-**c. 作用与用处**  
-回答“距离向量如何处理故障与环路”——这是 distance vector 算法的核心缺陷与对策。掌握后能解释计数到无穷问题的工程缓解手段。关联：前置第 7、8 条；后置第 18 条 IGRP 用 DUAL 做无环路由的对比。
-
-##### 10. RIP 表项处理的实现（page 68）
-
-**a. 严格定义**  
-RIP 路由表由名为 **route-d（daemon，守护进程）**的**应用层进程**管理；通告封装在 **UDP 数据报**中发送，并周期性重复。
-
-**b. 通俗解释**  
-RIP 不是内核线路上的协议状态机，而是用户态守护程序定期算表、经 UDP 外发。选择 UDP 是因为通告本身有 30 秒周期重传，单包丢失可由下一周期弥补，不需要 TCP 的可靠连接开销。直接含义是：RIP 的控制面在应用层，承载在 UDP 上。
-
-**c. 作用与用处**  
-为习题（page 81）“RIP 直接封装协议是 UDP”提供依据。掌握后能区分协议逻辑（距离向量）与其传输封装（UDP）。关联：与第 12 条 OSPF 封装于 IP、第 20 条 BGP 封装于 TCP 对照记忆。
-
-##### 11. RIP 真实路由表示例（page 69）
-
-**a. 严格定义**  
-路由器 **giroflee.eurocom.fr** 直连三个 **C 类网络（class C networks，LAN）**；该路由器只知道到直连 LAN 的路由；使用**默认路由器（default router）**实现“向上”转发（go up）；组播地址 **224.0.0.0** 走向特定接口；设有**环回接口（loopback interface，lo0）**用于调试。路由表如下：
+课件给出路由器 giroflee.eurocom.fr 上的实际路由表（原 PDF 第 69 页）。表中的字段为 Destination（目的地址）、Gateway（网关，即下一跳）、Flags（标志）、Ref（引用计数）、Use（使用计数）、Interface（出接口）。完整表格逐行呈现如下：
 
 | Destination | Gateway | Flags | Ref | Use | Interface |
-|-------------|---------|-------|-----|-----|-----------|
+|---|---|---|---|---|---|
 | 127.0.0.1 | 127.0.0.1 | UH | 0 | 26492 | lo0 |
 | 192.168.2. | 192.168.2.5 | U | 2 | 13 | fa0 |
 | 193.55.114. | 193.55.114.6 | U | 3 | 58503 | le0 |
 | 192.168.3. | 192.168.3.5 | U | 2 | 25 | qaa0 |
 | 224.0.0.0 | 193.55.114.6 | U | 3 | 0 | le0 |
-| default | 193.55.114.129 | UG | 0 | 143454 | （略） |
+| default | 193.55.114.129 | UG | 0 | 143454 | （源图该格为空） |
 
-**b. 通俗解释**  
-表中每一行说明“去某目的网段时下一网关是谁、从哪个接口出”。直连网段（如 192.168.2.、193.55.114.、192.168.3.）的 Gateway 通常取本接口地址；`default` 行是缺省路由：凡表中没有精确匹配的目的地址，一律交给 193.55.114.129，这就是“go up”——把本 AS 未知目的地送往上级网络。127.0.0.1/lo0 是本机环回，仅调试用，不经外部链路。224.0.0.0 是组播目的，从 le0 送出。Flag `U` 表示接口/路由 up，`H` 表示 host 路由，`G` 表示指向网关。直接含义是：主机/路由器查表时按最长或缺省规则命中一行，再决定网关与接口。
+对表中每一行的解释：
 
-**c. 作用与用处**  
-把 RIP/UNIX 路由表从课堂三列表扩展为工程五列（含 Flags、Use、Interface）。掌握后能读懂 `netstat -r` 类输出，并理解默认路由如何补全未知目的地。关联：前置第 8 条表结构；后置第 26 条默认路由相关的策略讨论。
+- **127.0.0.1 / 127.0.0.1 / UH / 0 / 26492 / lo0**：回环地址（loopback）条目。Flags 中的 `H` 表示该路由指向一台主机（host）而不是一个网络（net）；出接口 lo0 是回环接口。Use 计数 26492 表示该条目已被使用了 26492 次。
+- **192.168.2. / 192.168.2.5 / U / 2 / 13 / fa0**：目的为 192.168.2.0 网段（表中以 192.168.2. 的省略写法表示一个网段前缀），下一跳 192.168.2.5，Flags 为 `U`（Up，路由可用），Ref 为 2，Use 为 13，出接口 fa0。
+- **193.55.114. / 193.55.114.6 / U / 3 / 58503 / le0**：目的 193.55.114.0 网段，下一跳 193.55.114.6，Ref 3，Use 58503，出接口 le0。
+- **192.168.3. / 192.168.3.5 / U / 2 / 25 / qaa0**：目的 192.168.3.0 网段，下一跳 192.168.3.5，Ref 2，Use 25，出接口 qaa0。
+- **224.0.0.0 / 193.55.114.6 / U / 3 / 0 / le0**：目的 224.0.0.0 是路由多播地址（route multicast address）。该条目的 Use 计数为 0，表示该多播路由还没有被实际转发使用过；出接口同样是 le0。
+- **default / 193.55.114.129 / UG / 0 / 143454 / （空）**：默认路由（default route），Flags 中的 `G` 表示该路由是经网关（Gateway）的路由，即凡是表中没有更具体匹配的目的地址，都交给 193.55.114.129 转发；Use 计数 143454 说明该条目承担了绝大多数转发量。源图中该行的 Interface 列为空，本笔记不补造该接口名。
 
----
+课件对该表给出五条结论：该路由器连接三个 C 类网络（LAN）——对应表中 192.168.2.、193.55.114.、192.168.3. 三条 `U` 类路由，Flags 中没有 `G`，即它们都是直连网络；该路由器只知道与它直连的 LAN 的路由——除了直连条目、回环条目、多播条目之外，其余流量一律交给 default 条目；默认路由器用于「向上」走（default router used to "go up"）——即本区域内的主机与 LAN 只需一条 default 路由把出网流量交给上层路由器，无需在本地维护全网的明细路由；路由多播地址为 224.0.0.0——该地址段的报文不按单播路由转发，因此表中单独列出；回环接口（loopback interface）用于调试（for debugging）——对应 lo0 与 127.0.0.1 条目。
 
-##### 12. OSPF 基本机制（page 70）
+这里需要与该页之前第 66 页的小表对照：第 66 页的表是 RIP 内部通告所携带的三元组（目的网络、下一跳、跳数），用于说明距离向量的内容；第 69 页的表是操作系统内核中的实际路由表（含 Flags、Ref、Use、Interface 等管理字段），用于说明 RIP 计算结果落到转发平面后的形态。两表格式不同、用途不同，不应混用。第 69 页的表没有给出跳数（hops）列，因此无法从该表直接读出各目的网络的距离度量。
 
-**a. 严格定义**  
-**OSPF（Open Shortest Path First）**中的“open”指协议**公开可用（publicly available）**。OSPF 使用**链路状态算法（Link State algorithm）**，流程为：**LS 分组扩散（LS packet dissemination）**→ 每个节点维护**拓扑地图（topology map）**→ 用 **Dijkstra 算法**计算路由。OSPF 的通告（advertisement）中**每个邻居路由器对应一个条目**；通告通过**泛洪（flooding）**分发到整个 AS。
+#### 5.5.2.5 OSPF：Open Shortest Path First
 
-**b. 通俗解释**  
-OSPF 把“整张图先学全，再本地算最短路”与 RIP“只和邻居交换距离数字”区分开。三步的因果是：先泛洪链路状态分组，全网才能拼出同一张拓扑图；有图之后每台路由器独立跑 Dijkstra，得到自己为根的最短路径树；因为地图要一致，所以必须泛洪到整个 AS 而不能只告诉邻居。通告按邻居逐条列出，使接收者能重建邻接关系。直接含义是：OSPF 是链路状态协议，控制开销集中在泛洪，计算在本地。
+OSPF 的基本定位（原 PDF 第 70 页）为：「开放」（open）的含义是公开可用（publicly available），即协议规范公开，不属任何厂商专有；采用链路状态算法（uses link state algorithm），其三个环节为——LS 分组的分发（LS packet dissemination），每个节点把描述自己链路状态的分组发送出去；每个节点持有拓扑图（topology map at each node），节点收集到全部 LS 分组后在本地构造出完整的网络拓扑图；用 Dijkstra 算法计算路由（route computation using Dijkstra's algorithm），在拓扑图上计算以本节点为源的最短路径树。此外，OSPF 的通告对每一个邻居路由器携带一个条目（OSPF advertisement carries one entry per neighbor router），即链路状态通告逐条描述本路由器到各个邻居链路的状态与代价，而不是像 RIP 那样描述「到某个目的网络的距离」；通告通过泛洪（flooding）扩散到整个 AS（advertisements disseminated to entire AS）。
 
-**c. 作用与用处**  
-对应 5.4 的 link state 与 Dijkstra。掌握后能对比 RIP（距离向量、跳数、30 秒）与 OSPF（链路状态、代价、触发泛洪）的根本差异。关联：前置第 6 条 IGP；并列第 7 条 RIP；后置第 13、14 条 OSPF 特性与层次化。
+RIP 与 OSPF 的差别由此明确：RIP 的通告内容是到各目的网络的向量，接收方只需比较距离；OSPF 的通告内容是各条链路的状态，接收方需要累积出拓扑图后再自行运行最短路径计算。因此 RIP 的每条通告量小但传播范围只到邻居，OSPF 的单条通告只在区域内泛洪一次但每个节点都掌握全区域拓扑。
 
-##### 13. OSPF 高级特性（page 71）
+#### 5.5.2.6 OSPF 相对 RIP 的「高级」特性（OSPF "advanced" features, not in RIP）
 
-**a. 严格定义**  
-相对 RIP，OSPF 具备：  
-1. **安全（Security）**：所有 OSPF 消息经过认证，防止恶意入侵。  
-2. **多条等开销路径（multiple same-cost paths）**：允许并存（RIP 只保留一条路径）。  
-3. **按服务类型（Type of Service, TOS）的多重度量**：每条链路可为不同 TOS 配置不同代价——例如卫星链路对尽力而为（best effort）业务把 cost 设低，对实时（real time）业务设高。  
-4. **单播与组播统一支持**：**组播 OSPF（Multicast OSPF, MOSPF）**与 OSPF 使用**同一拓扑数据库（topology data base）**。  
-5. **大域中的层次化 OSPF（Hierarchical OSPF）**。
+课件（原 PDF 第 71 页）列出五项 OSPF 独有（RIP 不具备）的特性：
 
-**b. 通俗解释**  
-认证解决“谁有资格改我的路由”；等开销多路径可在多链路上分担负载；按 TOS 设 cost 解决“同一段链路对不同业务代价不同”的问题——卫星时延对交互式实时业务高、对批量吞吐业务低，故用两套 cost；MOSPF 复用同一拓扑库意味着组播转发树与单播路由共享数据面基础，不另建库；层次化把一个大 AS 切成区域，控制链路状态数据库规模。直接含义是：OSPF 在正确性（安全、无环多路径）与可扩展性上系统性强于 RIP。
+1. **安全性（security）**：所有 OSPF 报文都经过鉴别/认证（all OSPF messages authenticated），目的是防止恶意入侵（to prevent malicious intrusion）。**补充说明（非课件原文）**：无鉴别的路由通告可能被伪造，但是否带鉴别字段取决于协议版本和配置，不能因为使用 UDP 就判定无鉴别。RIPv2 已定义鉴别机制，故此处不能把 RIP 整体说成没有鉴别字段。参见 [RFC 2453，4.1](https://www.rfc-editor.org/rfc/rfc2453#section-4.1)。
+2. **允许多条等代价路径（multiple same-cost paths allowed）**，而 RIP 中只保留一条路径（only one path in RIP）。这一差别来自算法本身：Dijkstra 计算完成后，可以同时选择多条代价值相同的最短路径；距离向量算法在收到等值的多个下一跳时通常只保留一条。
+3. **对每条链路可以为不同的 TOS 设置多个代价度量（multiple cost metrics for different TOS）**。课件给的例子是卫星链路（satellite link）：对尽力而为（best effort）业务把该链路的代价设为「低」（low），对实时（real time）业务把该链路的代价设为高（high）。也就是说，同一条链路在不同服务类型下会有不同的最短路径结果。
+4. **集成的单播与多播支持（integrated uni- and multicast support）**：多播 OSPF（Multicast OSPF, MOSPF）使用与 OSPF 相同的拓扑数据库（same topology data base），即多播路由不需要再单独跑一套拓扑发现。
+5. **在大规模域中使用层次化 OSPF（hierarchical OSPF in large domains）**，见 5.5.2.7。
 
-**c. 作用与用处**  
-列出 RIP 不具备的能力清单，是选型与对比题的直接素材。关联：前置第 12 条基本机制；后置第 14 条层次化展开。
+#### 5.5.2.7 层次化 OSPF（Hierarchical OSPF）
 
-##### 14. 层次化 OSPF 的结构与路由器角色（page 72–73）
+课件给出层次化 OSPF 的拓扑形态（原 PDF 第 72 页图）：上方一片被标注为 backbone（主干区域）的连通路由器集合，下方划分为 area 1、area 2、area 3 三个区域，每个区域用虚线椭圆圈出，区域内部有若干 internal routers（内部路由器）。图中用引线标出四类路由器：boundary router（边界路由器）指向主干区域中位于图上方的那台路由器，它连接 AS 外部；backbone router（主干路由器）指向主干区域内的路由器；area border routers（区域边界路由器）指向同时连接主干区域与某个非主干区域的路由器（area 1、area 2、area 3 各有一台这样的路由器与主干相连）；internal routers（内部路由器）指向 area 3 内部的路由器，即完全不与主干区域直接相连的路由器。
 
-**a. 严格定义**  
-大型域中 OSPF 采用**两级层次（two-level hierarchy）**：**本地区域（local area）**与**骨干（backbone）**。规则与角色：  
-- **链路状态通告仅在本区域内（area）传播**；每个节点拥有本区域的详细拓扑，对其他区域的网络只知道自己到它们的**最短路径方向（direction/shortest path）**。  
-- **区域边界路由器（Area border routers）**：对本区域内的网络距离做**汇总（summarize）**，并向其他区域边界路由器通告。  
-- **骨干路由器（Backbone routers）**：运行 OSPF，但路由范围限制在骨干。  
-- **边界路由器（Boundary routers）**：连接到其他 AS。  
+课件的文字说明（原 PDF 第 73 页）逐条定义了这个两级层次：
 
-图示（page 72）：area 1、area 2、area 3 + backbone area；标注 boundary router、backbone router、border routers、internal routers。
-
-**b. 通俗解释**  
-把一个大 AS 切成多个 area，每个 area 内部才知道完整细节，跨 area 只传“汇总后的距离+方向”。原因：若全 AS 都存完整拓扑，节点数增长会使数据库与 Dijkstra 计算开销按边点规模上升，通告泛洪流量也增大；汇总后区域间只交换少量摘要，表项与更新量随之下降。三类路由器的分工按作用域划分：area border 只管本 area 的汇总与区域间交换，backbone router 只在骨干内跑 OSPF，boundary router 负责出 AS。直接含义是：层次化 OSPF 用“区域内详细、区域间摘要”换可扩展性。
-
-**c. 作用与用处**  
-对应 5.4 hierarchical routing 在协议中的落地。掌握后能画出两级 OSPF 拓扑并说明每类路由器的职责边界，也是 page 80“scale”维度的证据之一。关联：前置第 12、13 条；并列 BGP 的策略路由（第 20–22 条）——一个解决规模，一个解决策略。
-
-##### 15. IGRP（page 74）
-
-**a. 严格定义**  
-**IGRP（Interior Gateway Routing Protocol）**为 **Cisco 专有（proprietary）**协议，20 世纪 80 年代中期推出，是 RIP 的后继者。与 RIP 一样采用**距离向量（Distance Vector）**算法；使用**多个代价度量（several cost metrics）**，包括时延（delay）、带宽（bandwidth）、可靠性（reliability）、负载（load）等；通过 **TCP** 交换路由更新；借助**扩散更新算法（Diffusing Update Algorithm, DUAL）**实现**无环路由（loop-free routing）**。
-
-**b. 通俗解释**  
-IGRP 在 RIP 的距离向量框架上做三处加强：度量从单一跳数改为多参数复合，能反映链路质量而不仅是跳数；更新走 TCP，保证单次更新可靠送达；收敛过程用 DUAL，使拓扑变化时按扩散计算避免产生临时环路。选择这些改进的原因是 RIP 跳数过粗、UDP 更新可能丢失、距离向量易出环。直接含义是：IGRP = 距离向量 + 多度量 + TCP + DUAL。
-
-**c. 作用与用处**  
-补全 IGP 三巨头的最后一角。掌握后能在“RIP / OSPF / IGRP”对比表中按算法、度量、封装、防环四行填写。关联：前置第 6 条；与第 7 条 RIP（同为距离向量）、第 12 条 OSPF（链路状态）并列。注：IGRP 已被 EIGRP 取代，课件作为历史/对比保留。
-
----
-
-#### 四、AS 间路由：边界网关协议（BGP）
-
-##### 16. BGP 的定位与三大功能（page 75–76）
-
-**a. 严格定义**  
-互联网自治系统间路由的事实标准（de facto standard）是 **BGP（Border Gateway Protocol，边界网关协议）**。BGP 为每个 AS 提供手段以：  
-1. 从相邻 AS **获取子网可达性信息（obtain subnet reachability information from neighboring ASs）**；  
-2. 将可达性信息**传播给 AS 内所有路由器（propagate reachability information to all AS-internal routers）**；  
-3. 基于可达性信息与**策略（policy）**确定到达子网的**良好路由（good routes）**。  
-BGP 允许子网向互联网其余部分宣告其存在：“我在这里（I am here）”。
-
-**b. 通俗解释**  
-BGP 解决三个问题：邻居告诉我是哪些前缀可达；我把这些前缀信息下发给本 AS 内部路由器；我按管理策略（而非纯距离）选择出 AS 的路径。“I am here”指 AS 通过 BGP 宣告自己拥有的 IP 前缀，使外部知道这些地址落在本 AS。为什么需要策略：各 AS 是不同商业实体，路径选择受合同与结算影响，不能只看跳数。直接含义是：BGP 是可达性分发 + 策略选路协议，不是单纯的最短路径协议。
-
-**c. 作用与用处**  
-**基础概念，独立知识点**（AS 间路由核心）。掌握后能回答“BGP 做什么、与 IGP 边界在哪”。关联：前置第 1–3 条两类路由与网关；后置第 17 条机制、第 18–19 条策略、第 26 条与 IGP 的对比。
-
-##### 17. 路径向量协议（Path Vector protocol）（page 77）
-
-**a. 严格定义**  
-BGP 是**路径向量协议（Path Vector protocol）**：与距离向量协议类似，但每个边界网关（Border Gateway）向邻居（对等体，peers）广播的是到目的的**完整路径，即 AS 序列**。例：网关 X 到目的 Z 发送的路径为  
-$$\mathrm{Path}(X,Z) = X, Y_1, Y_2, Y_3, \ldots, Z$$
-
-**b. 通俗解释**  
-距离向量只给“代价数字”，路径向量给出“经过的 AS 名单”。给出名单的直接作用有两个：接收方可检查列表中是否已含自己所在的 AS，若有则丢弃，从结构上杜绝 AS 间环路；接收方还能按策略判断路径经过了哪些第三方。与 RIP 的差异在于交换内容从标量变为序列。定义的直接含义是：BGP 通告 = 有序 AS 路径。
-
-**c. 作用与用处**  
-解释 BGP 如何在没有全局拓扑的情况下防环并实施策略。掌握后能读懂 BGP 表中的 AS_PATH 字段。关联：前置第 16 条 BGP 功能；后置第 18–19 条策略裁决都基于该路径。
-
-##### 18. BGP 路由策略之一：双宿主网络（page 78）
-
-**a. 严格定义**  
-网络拓扑约定：**A、B、C 为提供商网络（provider networks）**；**X、W、Y 为客户/桩网络（customer / stub network）**。**X 是双宿主的（dual-homed）**：同时接入两个网络。策略：X 不希望 B 的流量经 X 转发到 C；因此 **X 不会向 B 宣告到 C 的路由**。
-
-**b. 通俗解释**  
-X 只付费接入上游，不打算替 B 中转流量。实现方式是控制“向谁通告哪些可达性”：不向 B 通告 C 的路径，B 就无法把去 C 的下一跳设为 X。BGP 的策略通过**选择性通告**落地，而不是通过修改度量。直接含义是：客户桩网络默认只使用、不中转；是否通告决定别人能否把你当转接点。
-
-**c. 作用与用处**  
-展示策略如何写成通告规则。掌握后能判断“某 AS 应否向某邻居发送某前缀的 UPDATE”。关联：前置第 16、17 条；并列第 19 条提供商策略。
-
-##### 19. BGP 路由策略之二：提供商只服务客户（page 79）
-
-**a. 严格定义**  
-已知：A 向 B 通告路径 **AW**；B 向 X 通告路径 **BAW**。问题：B 是否应向 C 通告路径 **BAW**？课件结论：**否**。理由：由于 W 与 C 都不是 B 的客户，B 为 C 转发 CBAW 不获得“收益（revenue）”；B 希望迫使 C 去往 W 时经过 A；B 只希望为**自己的客户**路由（route only to/from its customers）。
-
-**b. 通俗解释**  
-提供商 B 的商业规则是：流量可以进出 B 与其付费客户之间，不允许其他 AS 把 B 当免费过路通道。判断步骤固定：检查路径两端是否落在 B 的客户集合；若是，通告；若否，拒绝通告。这样 C 只能自己找 A 等有客户关系的提供商去 W。直接含义是：BGP 选路首先是关系（provider/customer/peer）驱动，其次才是路径长短。
-
-**c. 作用与用处**  
-与第 18 条构成“客户不中转 + 提供商不免费转接”两条经典策略。掌握后能做“是否应通告”类判断题。关联：前置第 17 条路径向量；后置第 26 条策略维度。
-
----
-
-#### 五、区分 AS 内与 AS 间路由的原因（page 80）
-
-##### 20. 策略（Policy）维度
-
-**a. 严格定义**  
-**AS 间**：管理员需要控制自身流量如何被路由、以及谁的流量可以穿过自己的网络。**AS 内**：单一管理员，无需在协议中做策略决策。
-
-**b. 通俗解释**  
-多管理域时必须用策略约束转发，否则商业与安全要求无法表达；单管理域内目标统一，策略问题不存在，协议可只优化技术指标。直接含义是：策略需求是 AS 间协议与 AS 内协议分家的首要原因。
-
-**c. 作用与用处**  
-**基础概念，独立知识点**（三大原因之一）。掌握后能解释 BGP 为何比 OSPF 复杂（多了关系与通告规则）。
-
-##### 21. 规模（Scale）维度
-
-**a. 严格定义**  
-**层次化路由（hierarchical routing）**节省路由表规模，并减少更新流量（reduced update traffic）。
-
-**b. 通俗解释**  
-AS 间若像单个 AS 内那样对每个前缀维护全局细节，表项数与周期更新字节数会随全网规模增长；层次化（如 OSPF 分区、BGP 按 AS 聚合）使多数表项被摘要替代，表变小、通告变少。直接含义是：分层是控制路由状态规模的手段。
-
-**c. 作用与用处**  
-**基础概念，独立知识点**。对应第 14 条层次化 OSPF 与 BGP 按 AS 路径聚合的实际动机。
-
-##### 22. 性能（Performance）维度
-
-**a. 严格定义**  
-**AS 内**路由可以专注于性能（focus on performance）；**AS 间**路由中**策略可能压过性能**（policy may dominate over performance）。
-
-**b. 通俗解释**  
-AS 内没有商业约束，度量可直接反映时延、带宽等性能；AS 间即使存在更短/更快的路径，若违反结算或关系规则也不能选。直接含义是：跨 AS 最优路径是“满足策略约束下的性能最优”，不是纯性能最优。
-
-**c. 作用与用处**  
-**基础概念，独立知识点**。掌握后能在对比题中说明“为何 AS 间路由不能简单复用 OSPF”。
-
----
-
----
-
-## 补充知识点总结
-
-> 说明：第 1 片补充中的「章节目录」与第 4 片「第五章目录」、总览树内容重复，阅读时以「结构体系 · 全章总览」为准，下表保留原文完整条目供对照。
-
-### 第 1 片补充 · page 1–20
-
-#### 1. 章节目标（page 1，完整保留）
-
-理解网络层服务背后的原理：
-- 网络层服务模型（Network layer service models）
-- 转发与路由的区别（Forwarding versus routing）
-- 路由器如何工作（how a router works）
-- 路由/路径选择（routing / path selection）
-- 规模问题的处理（dealing with scale）
-- 在 Internet 中的实例化与实现（instantiation and implementation in the Internet）
-
-#### 2. 章节目录（page 2 / 9 / 18 一致，完整保留）
-
-| 节 | 标题 | 子项 |
-|---|---|---|
-| 5.1 | Introduction | — |
-| 5.2 | Virtual circuit and datagram networks | — |
-| 5.3 | What's inside a router? | — |
-| 5.4 | Routing algorithms | Dijkstra's algorithm；Broadcast routing；Link state；Distance vector；Hierarchical routing |
-| 5.5 | Routing in the Internet | — |
-| 5.6 | IP: Internet protocol | IPv4 Datagram format；IPv4 addressing；IP fragment；NAT；ARP；ICMP；IPv6 |
-
-注：page 2 目录在 5.6 下列出 NAT、ARP；page 9 与 page 18 的 5.6 列表未重复 NAT、ARP，其余条目相同。
-
-#### 3. 网络层服务模型对比表（page 7，完整保留）
-
-ATM = Asynchronous Transfer Mode（异步传输模式）。
-
-| Network Architecture | Service Model | Bandwidth | Loss | Order | Timing | Congestion feedback |
-|---|---|---|---|---|---|---|
-| Internet | best effort | none | no | no | no | no（通过丢失推断） |
-| ATM | CBR | constant rate | yes | yes | yes | no |
-| ATM | VBR | guaranteed rate | yes | yes | yes | congestion |
-| ATM | ABR | guaranteed minimum | no | yes | no | congestion |
-| ATM | UBR | none | no | yes | no | no |
-
-（表头原文为 Guarantees?：Bandwidth / Loss / Order / Timing / Congestion feedback。表中 Loss 行按课件原文照录，「no」表示不丢、「yes」表示可能丢。）
-
-#### 4. 连接型与无连接网络层服务的三点差别（page 8）
-
-与传输层服务类似，但：
-1. **Service**：主机到主机（host-to-host），而传输层是进程到进程；
-2. **No choice**：网络提供哪一种由网络决定，端系统不能自选；
-3. **Implementation**：在网络核心（network core）中实现，而传输层在端系统实现。
-
-#### 5. 虚电路 vs 数据报 特征对照（page 10、11、14 汇总）
-
-| 对比项 | 虚电路（VC） | 数据报（Datagram） |
-|---|---|---|
-| 呼叫建立 | 有（call setup → data flow → call teardown） | 无 |
-| 分组携带 | VC 标识符（VC identifier） | 目的主机 ID（destination host ID） |
-| 路由器状态 | 为每个连接维护状态 | 无端到端连接状态 |
-| 资源分配 | 可分配带宽、缓冲区 | 不做基于连接的预留 |
-| 同一对分组路径 | 同一 VC 走同一条已建路径 | 可走不同路径 |
-| 实现载体 | ATM、frame-relay、X.25（用信令协议） | Internet |
-| 交互步骤（课件图） | 6 步（含建呼） | 2 步（Send → Receive） |
-
-#### 6. 最长前缀匹配表（page 16，完整保留）
-
-| 目的地址范围（前缀，`*` 通配） | 前缀长度 | 链路接口 |
-|---|---|---|
-| 11001000 00010111 00010*** ********* | 21 bit | 0 |
-| 11001000 00010111 00011000 ********* | 24 bit | 1 |
-| 11001000 00010111 00011*** ********* | 21 bit | 2 |
-| otherwise | — | 3 |
-
-前缀长度算法：逐字节累计固定比特——第三字节 `00010***` 固定 5 bit，故 8+8+5=21；`00011000` 固定 8 bit，故 8+8+8=24。
-
-#### 7. 路由器高层结构框图（page 19，文字描述）
-
-```
-[router input ports] → [high-speed switching fabric] → [router output ports]
-         ↑                        ↑
-   查表（数据面）          routing processor（控制面）
-```
-- 转发/数据平面：硬件，纳秒级；
-- 路由、管理/控制平面：软件，毫秒级。
-
-#### 8. 虚电路建立时序（page 13 图，文字描述）
-
-源主机协议栈与目的主机协议栈经网络核心交互，六步顺序为：
-`1. Initiate call → 2. incoming call → 3. Accept call → 4. Call connected → 5. Data flow begins → 6. Receive data`。
-
-#### 9. 课件中的原文对照句（保留事实，不作为「理解」修辞）
-
-page 4 原文类比句（Analogy）：
-- Routing: process of planning trip from source to dest.
-- Forwarding: process of getting through single interchange.
-
-page 10 原文句：source-to-dest path behaves much like telephone circuit（performance-wise；network actions along source-to-dest path）。
-
----
-
-### 第 2 片补充 · page 21–40
-
-#### 1. 三种交换结构对比（page 21–24）
-
-| 项目 | 经内存 | 经总线 | 经互连网络 |
-|------|--------|--------|------------|
-| 代表/示例 | 第一代路由器；Cisco Catalyst 8500（已退役） | Cisco 5600，32 Gbps 总线 | Cisco 12000，60 Gbps |
-| 数据路径 | 输入端口 → 系统内存（CPU 控制）→ 输出端口 | 输入 → 共享总线 → 输出 | 输入 → Banyan/crossbar 等 → 输出 |
-| 瓶颈 | 内存带宽；每数据报 2 次总线穿越 | 总线带宽与总线竞争 | 互连网络设计与规模 |
-| 适用 | 第一代 | 接入与企业路由器（非区域/骨干） | 可用于更高吞吐；定长信元交换 |
-
-#### 2. 排队、时延与丢包（page 25–27）
-
-| 位置 | 触发条件 | 后果 |
-|------|----------|------|
-| 输入端口 | 交换结构慢于输入合计速率 | 输入队列排队；缓冲溢出 → 时延与丢包；可发生 HOL 阻塞 |
-| 输出端口 | 到达速率 > 输出线路速率 | 输出缓冲排队；溢出 → 时延与丢包 |
-
-- 调度规程（scheduling discipline）：从排队数据报中选择发送者；优先级调度关联「谁获得最好性能」与网络中立性。
-- HOL 阻塞机理：队头占用目标输出，后续分组即使目标空闲也不能前进。
-
-#### 3. 第 5 章目录（page 28，完整保留）
-
-- 5.1 Introduction
-- 5.2 Virtual circuit and datagram networks
-- 5.3 What's inside a router?
-- 5.4 Routing algorithms: Dijkstra's algorithm; Broadcast routing; Link state; Distance vector; Hierarchical routing
-- 5.5 Routing in the Internet
-- 5.6 IP: Internet protocol — IPv4 Datagram format; IPv4 addressing; IP fragment; ICMP; IPv6
-
-#### 4. 路由 / 转发分工（page 29）
-
-- 转发：数据面，查转发表，单跳动作。
-- 路由：控制面，选路径，结果写入转发表。
-- 关系：路由算路 → 下发表项 → 转发执行。
-
-#### 5. 图抽象与代价（page 30–32）
-
-- 节点=路由器，边=物理链路，边权=时延/费用/拥塞。
-- 良好路径通常=最小代价路径；也可有其他定义。
-- $G=(N,E)$，$N=\{u,v,w,x,y,z\}$，$E=\{(u,v),(u,x),(v,x),(v,w),(x,w),(x,y),(w,y),(w,z),(y,z)\}$（课件列举；page 37 算例中 $u$ 还直连 $w$ 等，以该页执行表 $D$ 初值为准）。
-- $c(x,x')$：链路代价，例 $c(w,z)=5$。
-- 路径代价：链路代价之和。
-- 路由算法：求最小代价路径的算法。
-- P2P：$N$=peers，$E$=TCP connections。
-
-#### 6. 路由算法分类（page 33）
-
-| 维度 | 类型 | 含义 | 对应术语 |
-|------|------|------|----------|
-| 信息 | Global | 全网拓扑+链路代价已知 | link state |
-| 信息 | Decentralized | 仅邻居及到邻居代价；迭代+交换 | distance vector |
-| 变化 | Static | 路由缓慢变化 | — |
-| 变化 | Dynamic | 周期更新；响应链路代价变化 | — |
-
-#### 7. Dijkstra 记号与性质（page 34–35）
-
-- $c(x,y)$：链路代价，非邻居为 $\infty$。
-- $D(v)$：源到 $v$ 当前代价估计。
-- $p(v)$：源到 $v$ 的前驱。
-- $N'$：最短路已确定的节点集。
-- 第 $k$ 次迭代后知道 $k$ 个目的地的最短路。
-- page 35 无正文（图示内容未进入文本层）。
-
-#### 8. 例 1（page 36）可辨识数据
-
-- $N'$：u → uw → uwx → uwxv → uwxvy → uwxvyz。
-- 表中散见数值：$\infty$、$7,u$、$3,u$、$5,u$、$11,w$、$6,w$、$14,x$、$10,v$、$12,y$ 等（导出文本行列错位）。
-- notes：前驱回溯得最短路径树；并列可任意打破。
-- 图中出现的边权数字包括：3,4,5,7,8,2,9 等。
-
-#### 9. 例 2（page 37–38）结果汇总
-
-- 源 $u$ 的最短距离：$D(v)=2$，$D(x)=1$，$D(y)=2$，$D(w)=3$，$D(z)=4$。
-- 加入顺序（$N'$）：u, ux, uxy, uxyv, uxyvw, uxyvwz。
-- 转发表：$v\to(u,v)$；$x,y,w,z\to(u,x)$。
-- 交互练习 URL：`http://gaia.cs.umass.edu/kurose_ross/interactive/`
-
-#### 10. Dijkstra 复杂度与振荡（page 39）
-
-- 每轮检查所有非 $N'$ 节点；比较次数 $n(n+1)/2$，$O(n^2)$；优化可至 $O(n\log n)$。
-- 若 $\text{link cost} = \text{amount of carried traffic}$，可能出现路由/代价振荡（图中 $A,B,C,D$ 循环）。
-
-#### 11. 广播路由（page 40）
-
-| 机制 | 要点 |
-|------|------|
-| Flooding | 源 → 所有其他节点 |
-| Broadcast storm | 副本失控 |
-| Sequence-number-controlled flooding | 分组携带 ID + broadcast sequence number |
-| Reverse path forwarding (RPF) | 受控泛洪的一种 |
-| 要求 | 避免 broadcast storm |
-
----
-
-### 第 3 片补充 · page 41–60
-
-#### 1. 本分片算法族谱
-
-```text
-路由算法 5.4
-├── 单播最短路
-│   ├── Link state：泛洪 LS + Dijkstra（全局）
-│   └── Distance vector：Bellman-Ford + 邻居向量（分布式）
-├── Broadcast
-│   ├── 泛洪 → 受控（序号 / RPF）
-│   └── 生成树广播
-└── Hierarchical：AS 内平坦 + AS 间分层（动机 page 59–60）
-```
-
-#### 2. Bellman-Ford 公式汇总
-
-$$
-d_x(y)=\min_{v\in \mathrm{nbr}(x)}\bigl(c(x,v)+d_v(y)\bigr)
-$$
-
-分布式迭代版：
-
-$$
-D_x(y)\leftarrow \min_{v\in \mathrm{nbr}(x)}\bigl(c(x,v)+D_v(y)\bigr),\quad \forall y
-$$
-
-| 符号 | 含义 |
-|------|------|
-| $d_x(y)$ | 真实最小代价 |
-| $D_x(y)$ | 本地估计 |
-| $c(x,v)$ | 链路代价 |
-| $\mathrm{nbr}(x)$ | $x$ 的邻居集合 |
-
-**page 43 代入**：$\min(2+5,\;1+3,\;5+3)=4$。
-
-**page 48 代入**：$D_x(z)=\min(2+1,\;7+0)=3$。
-
-#### 3. 三节点 DV 表收敛数据（page 48–49）
-
-| 节点 | 到 x | 到 y | 到 z（关注列） |
-|------|------|------|----------------|
-| x | 0 | 2 | 直连 7 → **3**（经 y） |
-| y | 2 | 0 | 1 |
-| z | 7 | 1 | 0 |
-
-边：$c(x,y)=2,\;c(y,z)=1,\;c(x,z)=7$。
-
-#### 4. 坏消息传播结论
-
-| 事件 | 传播速度 | 机制后果 |
-|------|----------|----------|
-| 代价变小 / 路由改善 | 快 | $D$ 单调下降，少轮收敛 |
-| 代价变大 / 链路故障 | 慢 | count to infinity；例 **44 次迭代** |
-| 对策 | 毒化反转 | 对下一跳通告“到 $X$ 距离=∞” |
-
-#### 5. LS vs DV 比较表（page 58 完整）
-
-| 比较项 | LS | DV |
-|--------|----|----|
-| 消息复杂度 | $O(nE)$ | 仅邻居交换 |
-| 收敛 | $O(n^2)$；可能振荡 | 时间不一；可能环；count-to-infinity |
-| 健壮性 | 可错报 link cost；错误影响限于本节点算表 | 可错报 path cost；表被他人使用；错误传播 |
-
-#### 6. 层次化路由动机公式化
-
-$$
-\text{平坦路由表规模} \sim |\text{destinations}| \;\xrightarrow{\text{数十亿}}\; \text{存储不可行、更新淹没链路}
-$$
-
-$$
-\text{互联网}=\text{network of networks},\quad
-\text{AS 内 IGP 统一},\quad
-\text{网关}=\text{IGP}+\text{inter-AS}
-$$
-
-#### 7. 生成树性质
-
-- 输入：连通无向图  
-- 生成树：连通 + 无环子图（含全部节点）  
-- 用途：广播无冗余副本  
-
-#### 8. 图片与空页说明
-
-- **page 42–43**：LS 流程框图；BF 方程与 $u,v,w,x,z$ 小图。  
-- **page 45、51–52、54–55、57**：文本无正文，为动画/例图帧。  
-- **page 48–49**：$x\!-\!y\!-\!z$ 三角，边权 2、7、1；三节点表随 time 轴演化。  
-- **page 60**：AS 聚合示意 + gateway routers 标注。
-
----
-
-### 第 4 片补充 · page 61–81
-
-#### 1. 本分片协议速查表
-
-| 协议 | 层次归属 | 算法类别 | 度量 | 更新周期/方式 | 直接封装 | 关键限制/特性 |
-|------|----------|----------|------|----------------|----------|----------------|
-| RIP | AS 内（IGP） | 距离向量 | 跳数，最大 15 | 每 30 s Response/advertisement；180 s 故障判定 | UDP | 单通告 ≤25 目的网；16=无穷；poison reverse |
-| OSPF | AS 内（IGP） | 链路状态 + Dijkstra | 链路 cost（可按 TOS 多套） | LS 分组泛洪 | 直接于 IP（IP 协议号 89，见习题） | 消息认证；等开销多路径；分层 area |
-| IGRP | AS 内（IGP，Cisco 专有） | 距离向量 + DUAL | 多参数：delay、bandwidth、reliability、load 等 | 经 TCP 交换更新 | TCP | DUAL 无环 |
-| BGP | AS 间 | 路径向量 | AS 路径 + 策略 | 对等体间通告完整 AS 序列 | TCP | 事实标准；策略主导；防 AS 环路 |
-
-#### 2. RIP 关键参数（纯数据）
-
-- 距离度量：跳数 hop；**最大 15 跳**；**16 跳 = 无穷/不可达**
-- 通告周期：**30 s**
-- 故障超时：**180 s** 未听到通告 → 邻居/链路宣告死亡
-- 单条通告容量：**最多 25 个目的网络**
-- 首次进入 BSD-UNIX 发行版：**1982 年**
-- 表管理进程：**route-d（daemon）**
-- 通告承载：**UDP 数据报**（周期性重复）
-- 防环机制：**poison reverse（毒化反转）**，抑制 ping-pong 环路
-
-#### 3. OSPF 工作三步与分层规则
-
-$$
-\text{LS 分组泛洪} \;\longrightarrow\; \text{每节点拓扑地图} \;\longrightarrow\; \text{Dijkstra 计算路由}
-$$
-
-- 通告粒度：每个邻居路由器一条
-- 分发范围：整个 AS（flooding）
-- 层次：local area + backbone 两级
-- 通告限制：LSA 仅在本 area 内
-- 跨 area：仅知到其他 area 网络的最短路径方向
-- 汇总点：Area border routers
-- 骨干内协议实例：Backbone routers
-- 出 AS 连接点：Boundary routers
-
-#### 4. giroflee.eurocom.fr 路由表字段说明（page 69 表格完整保留）
-
-| Destination | Gateway | Flags | Ref | Use | Interface | 说明 |
-|-------------|---------|-------|-----|-----|-----------|------|
-| 127.0.0.1 | 127.0.0.1 | UH | 0 | 26492 | lo0 | 环回接口，调试用 |
-| 192.168.2. | 192.168.2.5 | U | 2 | 13 | fa0 | 直连 C 类 LAN |
-| 193.55.114. | 193.55.114.6 | U | 3 | 58503 | le0 | 直连 C 类 LAN |
-| 192.168.3. | 192.168.3.5 | U | 2 | 25 | qaa0 | 直连 C 类 LAN |
-| 224.0.0.0 | 193.55.114.6 | U | 3 | 0 | le0 | 组播地址路由 |
-| default | 193.55.114.129 | UG | 0 | 143454 | （未印出） | 默认路由，“go up” |
-
-#### 5. BGP 策略判断所需的拓扑事实（page 78–79）
-
-- 提供商网络：**A、B、C**
-- 客户/桩网络：**X、W、Y**
-- X 为 **dual-homed（双宿主）**：接两个网络
-- 通告示例：$A \to B:\; AW$；$B \to X:\; BAW$
-- 决策问题：$B \to C:\; BAW$？→ **不通告**（W、C 皆非 B 客户）
-- X 决策：不向 B 宣告到 C 的路由（避免被 B 用作转接）
-
-#### 6. 三大区分维度（page 80 公式化对照）
-
-$$
-\begin{array}{ll}
-\textbf{Policy} & \text{Inter-AS：管理员控制路由与穿行流量；Intra-AS：单一管理员，无策略决策} \\
-\textbf{Scale} & \text{层次化路由} \Rightarrow \text{表项减少，更新流量减少} \\
-\textbf{Performance} & \text{Intra-AS 优先性能；Inter-AS 中 policy 可能 dominate performance}
-\end{array}
-$$
-
-#### 7. 第五章目录原文结构（page 63 完整）
-
-- 5.1 Introduction
-- 5.2 Virtual circuit and datagram networks
-- 5.3 What’s inside a router?
-- 5.4 Routing algorithms: Dijkstra’s algorithm；Broadcast routing；Link state；Distance vector；Hierarchical routing
-- 5.5 Routing in the Internet
-- 5.6 IP: Internet protocol: IPv4 Datagram format；IPv4 addressing；IP fragment；ICMP；IPv6
-
-#### 8. 图片关键信息文字化
-
-- **page 61**：三 AS（A/B/C）互联；接口命名 A.a、A.c、C.b、B.a；链路 a/b/c/d；网关 A.c 网络层同时画出 inter-AS 与 intra-AS 路由；下垫 link layer、physical layer。
-- **page 62**：h1（AS A）→（Intra-AS within A）→（Inter-AS between A and B）→（Intra-AS within B）→ h2a（AS B）。
-- **page 66**：网络 w,x,y,z + 路由器 A,B,C,D 拓扑；D 的路由表即“目的/下一跳/跳数”三列表。
-- **page 72**：area 1/2/3 + backbone area；四类节点标注：internal routers、border routers、backbone router、boundary router。
-
----
-
----
-
-## 解题方法汇总
-
-（按页序统一编号；跨片同源步骤已并入同一条方法，不重复列出）
-
-### 方法 1：最长前缀匹配查表（选输出接口）
-
-- **适用场景**：已知路由器转发表（前缀 + 接口）与一个 32 位目的地址，求分组应从哪个链路接口发出。
-- **已知条件**：
-  1. 转发表各行的地址前缀（固定比特 + `*` 通配）；
-  2. 目的地址 DA（按 8 比特一组的 4 个字节）。
-- **计算步骤**：
-  1. 第一步：对转发表第 1 行，取该行固定比特位数作为前缀长度 $L$（有 `*` 的位不计；`00010***` 计 5 bit）。
-  2. 第二步：将 DA 的前 $L$ 比特与该行固定比特逐位比较，记录是否匹配。
-  3. 第三步：对表中其余行重复第一步、第二步，得到全部匹配行及其前缀长度集合 $\{L_i\}$。
-  4. 第四步：取 $\max_i L_i$，即最长匹配；若无任何行匹配，落到 `otherwise` 行。
-  5. 第五步：输出该最长匹配行对应的链路接口号。
-- **常见错误**：
-  - 在多个匹配项中任选一行，而非选前缀最长者；
-  - 把通配位 `*` 也拿去比较；
-  - 前缀长度数错（把 `*` 算进固定位，或漏算已固定的比特）；
-  - 与「第一匹配行」（first match）混淆——本规则是最长匹配，不是首次匹配。
-
----
-
----
-
-### 方法 2：Dijkstra 最短路径算法（链路状态核心计算）
-
-- **适用场景**：图中所有节点已知完整拓扑与链路代价；求**单一源**到**所有其他节点**的最小代价路径（含例 2 的 $u\to$ 其余节点）。
-- **已知条件**：
-  1. 节点集 $N$ 与边集 $E$；
-  2. 每条边代价 $c(x,y)$（非邻居取 $\infty$）；
-  3. 源节点（如 $u$）。
-- **计算步骤**：
-  1. 第一步（初始化，Step 0）：令 $N'=\{u\}$；对每个 $v\neq u$，若 $(u,v)\in E$ 则 $D(v)=c(u,v)$、$p(v)=u$，否则 $D(v)=\infty$、$p(v)$ 空。
-  2. 第二步（选择）：在 $V\setminus N'$ 中取 $D(w)$ 最小的节点 $w$（并列时任取一个）。
-  3. 第三步（归入）：$N' \leftarrow N' \cup \{w\}$。
-  4. 第四步（松弛）：对每个仍在 $V\setminus N'$ 的 $v$，计算  
-     $$D(v) \leftarrow \min\big(D(v),\, D(w)+c(w,v)\big)$$  
-     若 $D(w)+c(w,v) < D(v)$，则更新 $D(v)=D(w)+c(w,v)$，$p(v)=w$；否则 $D(v),p(v)$ 不变。
-  5. 第五步（重复）：若 $|N'|<|N|$，返回第二步；否则继续。
-  6. 第六步（读结果）：对每个 $v$，$D(v)$ 即源到 $v$ 的最短距离；沿 $p(v)\to p(p(v))\to\cdots\to$ 源回溯，得到最短路径树。
-  7. 第七步（生成转发表，源 $u$）：对每个目的 $v$，取 $u$ 到 $v$ 树上路径的**第一条边** $(u,\text{next})$ 作为表项「destination $v$ → link $(u,\text{next})$」。
-  8. 结果：全表 $D(\cdot)$、$p(\cdot)$、最短路径树、源节点转发表。
-- **常见错误**：
-  - 节点已进入 $N'$ 后仍改它的 $D$（已定死不应再更新）；
-  - 更新时用错 $c(w,v)$（用了非 $w\!-\!v$ 边或把 $\infty$ 当普通数错误参与）；
-  - 初始化漏设非邻居为 $\infty$；
-  - 并列时误以为必须唯一解（课件明确可任意打破）；
-  - 把 $p(v)$ 理解成距离而不是前驱节点；
-  - 转发表误写成「整条路径」而不是「第一条边」。
-
----
-
-### 方法 3：由前驱 $p(\cdot)$ 构造最短路径树
-
-- **适用场景**：Dijkstra 执行结束后，需要可视化或导出转发表。
-- **已知条件**：源 $u$；每个 $v\neq u$ 的 $p(v)$。
-- **计算步骤**：
-  1. 第一步：对每个 $v\neq u$，画有向边 $p(v)\to v$。
-  2. 第二步：从任一 $v$ 沿 $p$ 反复回溯：$v\to p(v)\to p(p(v))\to\cdots$，直到 $u$，记录整条路径。
-  3. 第三步：对源 $u$ 的转发表，读出路径上 $u$ 之后的第一个节点 $\text{next}$，填入 link $(u,\text{next})$。
-  4. 结果：以 $u$ 为根的最短路径树 + 每个目的的下一跳。
-- **常见错误**：回溯时走成到其他目的的边；转发表写了最后一跳而不是第一跳；并列选了不同前驱却与执行表不一致。
-
----
-
-### 方法 4：链路状态 / 距离向量 的分类判别
-
-- **适用场景**：判断某路由算法属于 link state 还是 distance vector，或判断 static/dynamic。
-- **已知条件**：算法是否让每个节点拥有**全网**拓扑与链路代价；路由更新是慢变、周期还是随代价触发。
-- **计算步骤**：
-  1. 第一步：若「所有路由器有完整拓扑+链路代价」→ 归为 **global / link state**。
-  2. 第二步：若「只知道邻居与到邻居的代价，靠与邻居迭代交换」→ 归为 **decentralized / distance vector**。
-  3. 第三步：若路由「缓慢变化」→ **static**；若「周期更新或随链路代价变而变」→ **dynamic**。
-  4. 结果：得到该算法在两个维度上的分类标签。
-- **常见错误**：把「周期 hello」误判为必须 global；把 Dijkstra（计算手段）与 link state（信息分发方式）混为一谈——课件中 Dijkstra 用于 link state 一类。
-
----
-
-### 方法 5：广播时避免广播风暴的受控泛洪
-
-- **适用场景**：需要把一个分组送到网内**所有**其他节点，且必须避免广播风暴。
-- **已知条件**：广播分组；（RPF 时）各节点到源的最短路径/「通向源的入链路」信息。
-- **计算步骤**：
-  1. 第一步：源产生广播分组，写入节点 **ID** 与 **broadcast sequence number**（序号控制法）。
-  2. 第二步：节点收到分组后，按「本是否已见过该 ID+序号」丢弃重复副本；未见过则转发（序号控制）。
-  3. 第三步（RPF）：仅当分组到达的接口是本节点**通往源的最短路径所用入链路**时才转发，否则丢弃。
-  4. 结果：分组仍到达所有节点，但副本数量受控，避免 broadcast storm。
-- **常见错误**：不带序号导致环路中无限复制；RPF 用错入链路（与到源的最短路不一致）导致部分节点收不到或仍大量冗余。
-
----
-
-### 方法 6：判断是否可能发生路由振荡
-
-- **适用场景**：链路代价与流量相关时，评估链路状态路由稳定性。
-- **已知条件**：代价是否定义为承载流量的函数；是否所有源在同一信息下同时重算最短路。
-- **计算步骤**：
-  1. 第一步：设链路代价 $=$ 该链路上的流量。
-  2. 第二步：所有源按当前代价各自求最短路 → 得到一组新路由。
-  3. 第三步：按新路由重新分配流量 → 得到新的一组边代价。
-  4. 第四步：若新代价使某些源改回旧路径类型，则回到第二步，观察是否在两个（或多个）状态间循环。
-  5. 结果：若状态循环出现，即发生 oscillations（如 page 39 的 $A,B,C,D$ 循环）。
-- **常见错误**：只看一次重算就断言稳定；忽略「全体同时切换」与流量耦合。
-
-> 本分片**无**独立的数值计算公式题（如带宽/时延代入）；全部方法为算法步骤类，已全部列入。
-
----
-
----
-
-### 方法 7：Bellman-Ford 单步更新（邻居代入求 min）
-
-- **适用场景**：已知邻居到目的的估计向量与本地链路代价，求本地到该目的的更新值。  
-- **已知条件**：$c(x,v)$ 对每个邻居；各 $D_v(y)$；目标 $y$。  
-- **计算步骤**：  
-  1. 第一步：列出所有邻居 $v$，构造候选值 $c(x,v)+D_v(y)$。  
-  2. 第二步：代入数值（例 page 43：$2+5=7$，$1+3=4$，$5+3=8$）。  
-  3. 第三步：取 $\min$ 得 $D_x(y)$（例 $4$）。  
-  4. 第四步：若新值 < 旧值则写入 DV 并准备通告邻居；否则不改。  
-  5. 结果：更新后的 $D_x(y)$。  
-- **常见错误**：把 $D_v(y)$ 误用成 $D_y(v)$；对非邻居套公式；漏加 $c(x,v)$。
-
----
-
-### 方法 8：距离向量收敛演算（多轮）
-
-- **适用场景**：小图上手算各节点表直至稳定。  
-- **已知条件**：全图 $c(\cdot,\cdot)$；每轮谁向谁发送向量。  
-- **计算步骤**：  
-  1. 第一步：初始化：到自身 0，到直连邻居为边权，其余 $\infty$。  
-  2. 第二步：按事件顺序，对每个收到新向量的节点跑方法一，逐 $y$ 更新。  
-  3. 第三步：若任一 $D_x(y)$ 改变，将 $D_x$ 发给邻居。  
-  4. 第四步：重复至无表项变化。  
-  5. 结果：收敛向量；到某目的值应等于最短路径代价（如 $D_x(z)=3$）。  
-- **常见错误**：同轮内使用尚未更新的邻居值却忘记这是异步设定；初始化把非直连写成 0。
-
----
-
-### 方法 9：计数到无穷情景分析
-
-- **适用场景**：链路失效后判断是否出现坏消息慢、需要多少迭代。  
-- **已知条件**：失效链路；当前各 DV；是否启用毒化反转。  
-- **计算步骤**：  
-  1. 第一步：将直连该链的 $c$ 改为 $\infty$（或极大），本地重算 $D$。  
-  2. 第二步：不启用毒化时，邻居仍用旧 $D$ 使本机算出虚假有限值，通告出去。  
-  3. 第三步：记录各轮 $D$ 递增序列，直至全体达到无穷标记（或课件例 44 轮稳定）。  
-  4. 第四步：启用毒化反转后重做：$Z$ 对 $Y$ 通告到 $X$ 为 $\infty$，打断二元环，检查是否仍有多节点环残留。  
-  5. 结果：判断问题是否出现、是否被部分缓解。  
-- **常见错误**：认为毒化反转可根治一切环；把 44 次迭代误当成消息条数而非迭代轮数。
-
----
-
-### 方法 10：链路状态重算流程
-
-- **适用场景**：某链路代价变化后的 LS 更新。  
-- **已知条件**：变化链路 $(a,b)$ 新旧代价；泛洪机制。  
-- **计算步骤**：  
-  1. 第一步：检测到本地链路代价变化的节点生成新 LS 包。  
-  2. 第二步：泛洪至全网，替换旧条目，保证视图一致。  
-  3. 第三步：每节点对新图跑 Dijkstra（方法五见 part2 / 本分片 page 42 文字流程）。  
-  4. 第四步：更新转发表。  
-  5. 结果：全网最短路与新代价一致。  
-- **常见错误**：只改本机表不泛洪；重复泛洪不抑制。
-
----
-
-### 方法 11：生成树广播构造
-
-- **适用场景**：需要无环广播结构。  
-- **已知条件**：连通无向图 $(V,E)$。  
-- **计算步骤**：  
-  1. 第一步：确认图连通。  
-  2. 第二步：求一棵包含全部顶点的无环连通子图（如以源为根做 BFS 树/最短路径树）。  
-  3. 第三步：广播包只沿树边转发一次。  
-  4. 结果：每节点恰收一份（沿树），无冗余。  
-- **常见错误**：子图漏顶点仍称生成树；残留环导致重复。
-
----
-
-### 方法 12：LS vs DV 选型判断
-
-- **适用场景**：比较题/简答题。  
-- **已知条件**：网络规模 $n,E$、是否多管理域、对收敛与容错要求。  
-- **计算步骤**：  
-  1. 第一步：列消息量——LS $O(nE)$ vs DV 邻居交换。  
-  2. 第二步：列收敛——LS $O(n^2)$ 可振荡 vs DV 时间不定有环。  
-  3. 第三步：列健壮性——LS 错误限本机计算 vs DV 错误传播。  
-  4. 第四步：若还需管理自治/规模，追加 page 59–60 层次化理由。  
-  5. 结果：结构化对比结论。  
-- **常见错误**：只比算法时间复杂度不比消息复杂度；把层次化算进 LS/DV 本体而不算扩展需求。
-
----
-
-### 方法 13：AS/网关职责划分判定
-
-- **适用场景**：判断某路由器是否应运行 inter-AS 协议。  
-- **已知条件**：路由器是否位于 AS 边界；AS 列表。  
-- **计算步骤**：  
-  1. 第一步：确认节点是否属于某个 AS 的内部。  
-  2. 第二步：全部 AS 内路由器 → 必须运行该 AS 的 intra-AS 协议。  
-  3. 第三步：若同时邻接其他 AS → 标记为网关，额外运行 inter-AS 协议。  
-  4. 结果：协议集合 = {IGP} 或 {IGP, inter-AS}。  
-- **常见错误**：让非网关路由器直连跑 inter-AS；认为不同 AS 必须相同 IGP。
-
----
-
----
-
-### 方法 14：RIP 路由表条目读取与下一跳/跳数判定
-
-- **适用场景**：给定拓扑与某路由器的距离向量表，判断目的网络的下一跳、跳数，或判断是否直连。
-- **已知条件**：路由表三列（Destination Network、Next Router、Num. of hops）；可选：拓扑图。
-- **计算步骤**：
-  1. 第一步：在 Destination Network 列中查找目标网络名（如 w、y、z、x）。
-  2. 第二步：读出同行 Next Router——若为具体路由器名，则转发时先交给该路由器；若为 `--`（或空），判定为直连网络。
-  3. 第三步：读出同行 Num. of hops，作为到该目的的路径代价；直连时该值应为 1（page 66 中 x → `--`, 1）。
-  4. 第四步：若有多个候选路由，取跳数最小者作为最优，记录其 Next Router。
-  5. 结果：得到（下一跳，跳数）二元组；跳数 ≥ 16 则视为不可达。
-- **常见错误**：把 Next Router 与本机接口混淆；忽略 `--` 表示直连；与 OSPF 的 cost 混用跳数规则。
-
----
-
-### 方法 15：RIP 链路故障检测与毒化反转收敛
-
-- **适用场景**：邻居停止通告或需防止经邻居的路由环路时。
-- **已知条件**：通告周期 30 s；故障阈值 180 s；无穷跳数定义 16。
-- **计算步骤**：
-  1. 第一步：为每邻居维护“最近一次通告时间”；若 `当前时间 − 最近通告时间 > 180 s`，判定邻居/链路死亡。
-  2. 第二步：将所有“下一跳 = 该邻居”的路由表项置为无效（或跳数改为 16）。
-  3. 第三步：向所有邻居发送更新后的 advertisement（新表项）。
-  4. 第四步：邻居若表项因此变化，继续向其邻居发送 advertisement，直至全网不再变化（收敛）。
-  5. 第五步（防 ping-pong 环）：对“经邻居 N 可达”的前缀，向 N 通告跳数 16（poison reverse），使 N 不再选择经本机回绕的路径。
-  6. 结果：故障信息随逐跳通告扩散；环路被 16 跳不可达截断。
-- **常见错误**：把 180 s 与 30 s 混淆（180=6×30）；认为 poison reverse 是“删路由”而不是“通告 16”；误设最大跳数为大于 15 的值。
-
----
-
-### 方法 16：默认路由“向上”转发判定
-
-- **适用场景**：路由表无目的地址精确/前缀匹配项时，决定是否出本网络。
-- **已知条件**：路由表中的 `default` 行及其 Gateway、Interface；分组的目的 IP。
-- **计算步骤**：
-  1. 第一步：用目的 IP 依次匹配表中 Destination 列的网络前缀（最长前缀优先）。
-  2. 第二步：若存在匹配，取该行 Gateway 与 Interface 转发，算法结束。
-  3. 第三步：若无匹配，查找 `default` 行；以该行 Gateway 为下一跳（page 69：`193.55.114.129`）经对应接口发出，实现 go up。
-  4. 第四步：若连 default 行也没有，丢弃并（在支持时）返回 ICMP 目的不可达。
-  5. 结果：命中行的 (Gateway, Interface) 即为转发动作。
-- **常见错误**：把 127.0.0.1/lo0 当作可外发路径；忽略 224.0.0.0 组播行的特殊用途；对直连前缀仍去查 default。
-
----
-
-### 方法 17：BGP 路径向量通告与“是否应通告”策略裁决
-
-- **适用场景**：判断某 BGP 路由器是否应向某邻居发送一条含 AS 序列的路径。
-- **已知条件**：本 AS 的客户集合与提供商/对等体关系；已有路径（如 AW、BAW）；候选邻居；候选目的。
-- **计算步骤**：
-  1. 第一步：写出若通告后邻居将学到的完整路径（把本 AS 号插在路径最前面，如 B 向 C 考虑 `B,A,W`）。
-  2. 第二步：环路检查——若该 AS 序列已包含接收方所在 AS，则不发送。
-  3. 第三步：策略检查——判断路径目的端与接收方是否符合本 AS 商业规则：客户桩（如 X）不向提供商通告“去其他提供商”的路由；提供商（如 B）仅通告涉及**自己客户**的路径，拒绝让非客户（如 C）免费穿越（W、C 非 B 客户 ⇒ 不通告 BAW 给 C）。
-  4. 第四步：若通过，发送 Path Vector 更新 $\mathrm{Path}(\cdot,\cdot)=X,Y_1,\ldots,Z$；否则抑制该通告。
-  5. 结果：通告或不通告，并可说明策略理由（迫使对方改走其他提供商，如 C 经 A 去 W）。
-- **常见错误**：只比跳数/AS 个数忽略关系；忘记先做 AS 环路检查；把 dual-homed 客户当成转接 AS。
-
----
-
-### 方法 18：习题型——网络层路由协议“直接封装”关系判定
-
-- **适用场景**：选择题/填空题给出若干路由协议，问其消息直接由何种协议封装。
-- **已知条件**：各协议实现事实：RIP→UDP；OSPF→IP；BGP→TCP；（IGRP 课件写明用 TCP 交换更新，但本题不考）。
-- **计算步骤**：
-  1. 第一步：将题干协议映射到封装三元组：RIP 记 (1)=UDP，OSPF 记 (2)=IP，BGP 记 (3)=TCP。
-  2. 第二步：按题干出现顺序拼接为序列 (UDP, IP, TCP)。
-  3. 第三步：对照选项：A. TCP、UDP、IP；B. TCP、IP、UDP；C. UDP、TCP、IP；D. UDP、IP、TCP。
-  4. 结果：选 **D**。
-- **常见错误**：把 OSPF 记成 TCP（OSPF 直接使用 IP，不经 TCP/UDP）；把 BGP 记成 UDP；选项顺序与题干顺序不对应。
-
----
-
-### 方法 19：层次化 OSPF 区域内/间路由信息粒度判定
-
-- **适用场景**：问某节点对本 area 或其他 area 网络掌握多少拓扑信息。
-- **已知条件**：两级层次（local area、backbone）；路由器角色（internal / area border / backbone / boundary）。
-- **计算步骤**：
-  1. 第一步：确定提问节点所在 area。
-  2. 第二步：若目的在**同一 area** → 节点拥有该 area 详细拓扑，可本地 Dijkstra 得到逐链路路径。
-  3. 第三步：若目的在**其他 area** → 节点只有 Area border routers 汇总后的距离摘要，仅知到该目的网络的最短路径**方向**，不知其内部链路。
-  4. 第四步：跨 AS 流量再交给 boundary router 做 inter-AS 路由。
-  5. 结果：输出“详细拓扑 / 仅方向摘要 / 交边界路由”三类答案之一。
-- **常见错误**：认为泛洪覆盖全 AS 而非单 area；混淆 area border（区域间）与 boundary（AS 间）两类边界路由器。
-
----
-
----
-
-## 例题汇总
-
-（按页序统一编号；题干与解题步骤保持分片原文完整性，每步不跳步）
-
-### 例题 1：最长前缀匹配 — DA 以 `00011000` 结头
-
-**题干**：
-转发表为：
-
-| 目的地址范围 | 链路接口 |
+| 层级/角色 | 课件给出的规则 |
 |---|---|
-| 11001000 00010111 00010*** ********* | 0 |
-| 11001000 00010111 00011000 ********* | 1 |
-| 11001000 00010111 00011*** ********* | 2 |
-| otherwise | 3 |
+| 总体结构 | **两级层次：本地区域（local area）+ 主干（backbone）**（two-level hierarchy） |
+| 链路状态通告的范围 | **链路状态通告只在本区域内传播（link-state advertisements only in area）** |
+| 每节点的拓扑知识 | **每个节点拥有本区域的详细拓扑；对其他区域的网络只知道方向（最短路径）**（each node has detailed area topology; only know direction (shortest path) to nets in other areas） |
+| 区域边界路由器（area border routers） | **「汇总」（summarize）本区域内到各网络的距离，并向其他区域边界路由器通告** |
+| 主干路由器（backbone routers） | **运行仅限于主干的 OSPF 路由（run OSPF routing limited to backbone）** |
+| 边界路由器（boundary routers） | **连接到其他 AS（connect to other AS'es）** |
 
-已知目的地址：
-DA: 11001000 00010111 00011000 10101010
+需要注意术语上的区分：boundary router 承担的是 AS 之间的连接（即 5.5.1 中的「网关」），而 area border router 承担的是同一 AS 内区域之间的连接，两者在层次化 OSPF 的图中都出现，但处在不同的边界上。源图中 boundary router 的另一端通向 AS 外部的连接未在本页画出。
 
-求：该分组应从哪个链路接口转发（which interface?）。
+#### 5.5.2.8 IGRP：Interior Gateway Routing Protocol
 
-**解**：
+课件第 74 页标题为 IGRP，介绍其 Cisco 专有背景、20 世纪 80 年代中期出现、距离向量算法，以及延迟、带宽、可靠性、负载等多个度量；末两条写作“使用 TCP 交换更新”和“通过 DUAL 实现无环路路由”。
 
-第 1 步：写出 DA 的四个字节：$b_1=$ `11001000`，$b_2=$ `00010111`，$b_3=$ `00011000`，$b_4=$ `10101010`。
+**课件纠错与协议区分**：IGRP 直接由 IP 承载，使用协议号 9，不使用 TCP。DUAL 属于 EIGRP；EIGRP 使用自己的可靠传输机制，并由 IP 协议号 88 标识，同样不能写成 TCP。课件把 IGRP、EIGRP 的特征混在了一起。参见 [IANA 协议号登记表](https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml) 与 [RFC 7868，DUAL 和可靠传输机制](https://www.rfc-editor.org/rfc/rfc7868)。
 
-第 2 步：检查第 1 行。固定比特为前 21 位：`11001000 00010111 00010`。取 DA 前 21 位：`11001000 00010111 00011`（$b_3$ 前 5 位为 `00011`）。逐位比较：`00010` vs `00011` 第 5 位不同 → **不匹配**，$L_1$ 无效。
+把三种 IGP 与后面要讲的 BGP 放在一起对照，可以看出一处易混点：
 
-第 3 步：检查第 2 行。固定比特为前 24 位：`11001000 00010111 00011000`。DA 前 24 位：`11001000 00010111 00011000`。逐字节比较三组全部相同 → **匹配**，前缀长度 $L_2 = 24$，对应接口 1。
+| 协议 | 算法类别 | 承载路由更新的传输层协议 | 管理进程形态 |
+|---|---|---|---|
+| RIP | 距离向量 | UDP | 应用层守护进程 routed（route-d） |
+| IGRP | 距离向量 | IP（协议号 9；更正课件） | Cisco 路由器内部进程 |
+| OSPF | 链路状态 | 课件未说明其承载方式（见下方说明） | 运行于路由器内部的 IP 层协议 |
+| BGP | 路径向量 | TCP（见 5.5.3.2） | 网关路由器上的模式进程 |
 
-第 4 步：检查第 3 行。固定比特为前 21 位：`11001000 00010111 00011`。DA 前 21 位前两字节相同，第三字节前 5 位 `00011` 与固定位 `00011` 相同 → **匹配**，前缀长度 $L_3 = 21$，对应接口 2。
+课件在 OSPF 部分只说明了链路状态算法、通告内容与泛洪方式，没有给出 OSPF 报文承载在哪个传输层协议之上的表述，因此本笔记不补写该结论；章末习题正是围绕 RIP、OSPF、BGP 各自直接封装的协议提问，属于本课件的考查点。
 
-第 5 步：收集匹配结果：$\{L_2=24 \to 1,\ L_3=21 \to 2\}$。求最长：$\max(24, 21) = 24$，取 $L_2$ 行。
+### 5.5.3 域间路由协议（Inter-AS routing）
 
-第 6 步：验证：24 位前缀比 21 位更长，规则要求取最长匹配；24 位行的地址范围完整包含本 DA（DA 高 24 位完全等于该行固定前缀）。21 位行虽也匹配，但被更长前缀取代。
+#### 5.5.3.1 域间路由的拓扑形态
 
-**答案**：链路接口 **1**。
+课件（原 PDF 第 75 页图）给出与 5.5.1 相同的拓扑：三个 AS（A、B、C）各自用矩形平面表示，矩形内画出本 AS 内部的网段（小椭圆）与路由器，网关路由器为 C.b、A.a、B.a。图中以红色加粗线段突出显示连接网关路由器的域间链路。其中 C.b—B.a 与 C.b—A.a 两段读取明确；另一段红色线段位于 A.a 与 B.a 之间，其具体连接对存在读取不确定性。该页无文字要点，其作用是给出「AS 之间如何通过网关互联」的图形背景，由此可以明确的结论是：域间路由只在网关路由器之间进行，AS 内部的路由器不参与域间路由。
 
----
+#### 5.5.3.2 BGP：Border Gateway Protocol
 
----
+BGP 的定位（原 PDF 第 76 页）：BGP 是事实标准（the de facto standard），即 Internet 上的域间路由协议。BGP 为每个 AS 提供三种能力：
 
-### 例题 2：最长前缀匹配 — DA 以 `00010110` 结头
+1. 从相邻 AS 获取子网可达性信息（obtain subnet reachability information from neighboring ASs）；
+2. 把可达性信息传播给本 AS 内所有路由器（propagate reachability information to all AS-internal routers）；
+3. 依据可达性信息和策略，确定到各子网的良好路由（determine good routes to subnets based on reachability information and policy）。注意课件用的是 good routes 而不是 least-cost routes，因为域间路由的选择受策略（policy）约束，而非单纯的代价最小。
 
-**题干**：
-转发表同例题 1：
+此外，BGP 使一个子网能够向 Internet 的其余部分宣告自己的存在：I am here（我在这里）。
 
-| 目的地址范围 | 链路接口 |
-|---|---|
-| 11001000 00010111 00010*** ********* | 0 |
-| 11001000 00010111 00011000 ********* | 1 |
-| 11001000 00010111 00011*** ********* | 2 |
-| otherwise | 3 |
+BGP 的工作方式是路径向量协议（path vector protocol，原 PDF 第 77 页）：它与距离向量协议相似（similar to distance vector protocol）；每个边界网关向其邻居（peers，对等体）广播到达目的地的整条路径，即 AS 的序列（each border gateway broadcast to neighbors (peers) entire path (i.e, sequence of ASs) to destination）；课件给出的例子是，网关 X 可能向对等体发送它到目的地 Z 的路径，写作
 
-已知目的地址：
-DA: 11001000 00010111 00010110 10100001
+$$\text{Path}(X,Z) = X, Y_1, Y_2, Y_3, \dots, Z$$
 
-求：该分组应从哪个链路接口转发（which interface?）。
+即路径由从 X 出发依次经过的 AS 编号序列构成，一直到目的地 Z。路径向量与距离向量的关键区别是：距离向量只传播「到目的地的距离值 + 下一跳」，接收方无法知道对方走的是哪条路；路径向量传播完整的 AS 序列，因此接收方可以看出该路径是否经过自己、是否构成环路，也可以据此实施策略（决定是否采纳或是否继续向外通告）。**补充说明（非课件原文）**：路径向量中携带完整 AS 序列，正是运营商能在域间路由上执行策略判定的数据基础。
 
-**解**：
+#### 5.5.3.3 BGP 的路由策略（BGP routing policy）
 
-第 1 步：写出 DA 的四个字节：$b_1=$ `11001000`，$b_2=$ `00010111`，$b_3=$ `00010110`，$b_4=$ `10100001`。
+课件（原 PDF 第 78、79 页，两页使用同一拓扑与图例）给出一个用于说明策略的网络。图例（legend）说明：大块的浅色区域表示提供商网络（provider network），小的圆形节点表示客户网络（customer network）。拓扑中：A、B、C 是提供商网络（provider networks）；X、W、Y 是客户网络，且都是桩网络（stub network）——桩网络指只通过一条或少数几条链路与外部的提供商相连、不承担为其他网络转发流量的网络；连接关系为 W 接在 A 上，A 与 B、A 与 C 之间有直连，B 与 X 相连，C 与 X 相连，Y 接在 C 上。
 
-第 2 步：检查第 1 行。固定 21 位：`11001000 00010111 00010`。DA 前 21 位：$b_1,b_2$ 与固定位相同；$b_3$ 前 5 位为 `00010`，与固定位 `00010` 相同 → **匹配**，$L_1 = 21$，对应接口 0。
+**策略条目一（原 PDF 第 78 页）**：X 是双归属的（dual-homed），它同时连接到两个网络（attached to two networks），图中 X 同时连到提供商 B 与提供商 C；X 不希望从 B 进来、再经由 X 转发到 C（X does not want to route from B via X to C）；因此 X 不会向 B 通告一条到 C 的路由（so X will not advertise to B a route to C）。这一条说明的是桩网络的策略逻辑：X 同时接入 B 和 C，是为了获得冗余或更好的出口，而不是为了替 B 和 C 之间的流量做中转（那会消耗 X 自己的链路与设备资源，且 X 从中得不到收益）。实现这一意图的手段是不通告——X 不把「到 C 的路由」告诉 B，B 便无从得知经过 X 可以到达 C。
 
-第 3 步：检查第 2 行。固定 24 位：`11001000 00010111 00011000`。DA 第三字节为 `00010110`，与 `00011000` 比较：第 5 位 `0` vs `1` 不同 → **不匹配**。
+**策略条目二（原 PDF 第 79 页）**：课件接着以一个具体通告序列提出问题：A 向 B 通告路径 AW（A advertises to B the path AW），即「从 A 出发经 W 这条路径」，供 B 使用，A 与 W 的关系是提供商与客户；B 向 X 通告路径 BAW（B advertises to X the path BAW），即 B 把 A 给自己的路径前面加上自己，变成 B→A→W 通告给它的客户 X；问题是 B 是否应当向 C 通告路径 BAW（should B advertise to C the path BAW?）。答案是绝对不应该（No way!），理由是：无论 W 还是 C 都不是 B 的客户（neither W nor C are B's customers），B 为 C 转发形如 CBAW 的流量得不到任何收益（B gets no "revenue" for routing CBAW）；B 想让 C 只能经由 A 到达 W（B wants to force C to route to W via A），即把 C→A→W 这段流量推给 A 承担；B 只想为自己与客户之间的流量做路由（B wants to route only to/from its customers!）。
 
-第 4 步：检查第 3 行。固定 21 位：`11001000 00010111 00011`。DA 第三字节前 5 位 `00010` vs 固定位 `00011`，第 5 位不同 → **不匹配**。
+把两条策略合起来看，可以归纳出域间路由选择的基本规律：提供商向客户通告「可以经我到达我及我的其他客户/提供商」的路径；提供商之间（对等/兄弟关系）的通告受到严格的收益约束，超出直接收益的转发会被主动抑制；客户网络通过限制通告范围，避免自己成为上游之间的中转通道。需要强调：这些取舍全部由策略决定，而不是由链路代价决定——这正是 5.5.4 中「为什么域内与域间路由必须不同」的第一条理由。
 
-第 5 步：收集匹配结果：仅 $\{L_1 = 21 \to 0\}$。最长匹配即 $L_1$。
+### 5.5.4 为什么域内与域间路由必须不同（Why different Intra- and Inter-AS routing?）
 
-第 6 步：验证：DA 高 21 位 `11001000 00010111 00010` 与第 1 行前缀逐位一致；第 2、3 行已在第 3、4 步排除；不存在更长匹配，不落入 otherwise。
+课件（原 PDF 第 80 页）从三个方面给出回答。
 
-**答案**：链路接口 **0**。
+**策略（policy）**。域间（inter-AS）：管理者希望控制自己的流量如何被路由，以及谁可以经由自己的网络进行路由（admin wants control over how its traffic routed, who routes through its net）。域内（intra-AS）：由单一管理者管理，因此不需要做策略决策（single admin, so no policy decisions needed）。
 
----
+**规模（scale）**。层次化路由节省路由表规模，减少更新流量（hierarchical routing saves table size, reduced update traffic）。
 
----
+**性能（performance）**。域内（intra-AS）：可以专注于性能（can focus on performance），因为不受策略约束，最短路径/最小代价即为目标。域间（inter-AS）：策略可能压倒性能考量（policy may dominate over performance），即选出的路径未必是代价最小的路径。
 
-### 例题 3：Dijkstra 执行例（page 36，N′ 序列与 notes）
-
-**题干**：
-在含节点 $u,v,w,x,y,z$ 的加权无向/有向图上，以 $u$ 为源运行 Dijkstra 算法。课件执行表的 Step 为 0–5，$N'$ 列结果依次为：
-
-$$
-u,\quad uw,\quad uwx,\quad uwxv,\quad uwxvy,\quad uwxvyz
-$$
-
-表中可辨识的 $D$ 值片段包括：$\infty$、$7,u$、$3,u$、$5,u$、$11,w$、$6,w$、$14,x$、$10,v$、$12,y$ 等（纯文本导出时该表行列错位，无法在不猜测边集的情况下逐步复原每一格）。课件 notes 要求：
-
-1. construct shortest path tree by tracing predecessor nodes；
-2. ties can exist（can be broken arbitrarily）。
-
-请说明：算法每一步在做什么；$N'$ 如何增长；如何由该表得到最短路径树；并列如何处理。
-
-**解**：
-
-第 1 步：初始化（Step 0）。置 $N'=\{u\}$。对每个 $v\neq u$，若与 $u$ 直连则 $D(v)=c(u,v)$、$p(v)=u$；否则 $D(v)=\infty$。在表中可见部分初始化值含 $\infty$ 与若干形如 $7,u$、$3,u$、$5,u$ 的「距离,前驱=u」项。
-
-第 2 步：Step 1。在 $V\setminus N'$ 中选当前 $D$ 最小的节点加入 $N'$，课件结果为 $w$，故 $N'=\{uw\}$。用 $w$ 松弛：对仍不在 $N'$ 的节点，若 $D(\text{旧}) > D(w)+c(w,\cdot)$ 则更新 $D$ 与 $p$。表中出现 $11,w$、$6,w$ 表示某些节点的前驱被更新为 $w$。
-
-第 3 步：Step 2。再次选最小 $D$ 者，课件结果为 $x$，$N'=\{uwx\}$。用 $x$ 松弛，表中出现 $14,x$ 等「前驱=x」的更新项。
-
-第 4 步：Step 3。加入 $v$，$N'=\{uwxv\}$。松弛后表中保留 $14,x$、$10,v$ 等，表示部分节点经 $v$ 的路径更优或维持。
-
-第 5 步：Step 4。加入 $y$，$N'=\{uwxvy\}$。松弛后见 $12,y$，即存在节点 $z$（或他点）满足 $D=12$、$p=y$。
-
-第 6 步：Step 5。加入 $z$，$N'=\{uwxvyz\}=N$，所有节点最短距离确定，算法结束。
-
-第 7 步：构造最短路径树。对每个已确定 $D$ 的节点，沿 $p$ 回溯到 $u$，把每条 $p(v)\to v$ 画入树（notes: construct shortest path tree by tracing predecessor nodes）。
-
-第 8 步：处理并列。若两节点当前 $D$ 相等，任选其一加入 $N'$（notes: ties can exist, can be broken arbitrarily）；不同打破方式可能得到不同的树，但所有 $D(v)$ 最终值相同。
-
-**答案**：$N'$ 按 $u\to uw\to uwx\to uwxv\to uwxvy\to uwxvyz$ 增长，共 6 步结束；由各步 $p(\cdot)$ 回溯得到源 $u$ 的最短路径树；并列任意打破不影响最终距离。该页表格在文本导出中行列错位，逐步数值以例题 4（page 37）为准。
+这三条与 5.4 节引进层次路由的动机、以及 5.5.3.3 中 BGP 的策略实例完全对应：域内协议（RIP、OSPF、IGRP）追求算法上的最优路由，域间协议（BGP）首先服从商业策略与可达性约束，性能只在策略允许的范围内作比较。
 
 ---
 
----
+### 习题 1：RIP、OSPF 与 BGP 报文的直接封装协议（原 PDF 第 81 页）
 
-### 例题 4：Dijkstra 完整执行例（page 37，同 page 31 图）
+#### 题干（原文完整保留）
 
-**题干**：
-对图 $G=(N,E)$，$N=\{u,v,w,x,y,z\}$，$E=\{(u,v),(u,x),(v,x),(v,w),(x,w),(x,y),(w,y),(w,z),(y,z)\}$（page 31），以 $u$ 为源执行 Dijkstra。课件给出的执行表（Step 0–5）数据如下：
+**Exercise-1**
 
-- Step 0，$N'=u$：$D(v),p(v)=2,u$；$D(w),p(w)=5,u$；$D(x),p(x)=1,u$；$D(y),p(y)=\infty$；$D(z),p(z)=\infty$
-- Step 1，$N'=ux$：$D(v)=2,u$；$D(w)=4,x$；$D(y)=2,x$；$D(z)=\infty$
-- Step 2，$N'=uxy$：$D(v)=2,u$；$D(w)=3,y$；$D(z)=4,y$
-- Step 3，$N'=uxyv$：$D(w)=3,y$；$D(z)=4,y$
-- Step 4，$N'=uxyvw$：$D(z)=4,y$
-- Step 5，$N'=uxyvwz$
+1. The protocols for directly encapsulating RIP、OSPF and BGP messages are
 
-（页上原始排版中：$D(v)$ 列为三行 `2,u`；$D(w)$ 列为 `5,u / 4,x / 3,y / 3,y`；$D(x)$ 列为 `1,u`；$D(y)$ 列为 `∞ / 2,x`；$D(z)$ 列为 `∞ / ∞ / 4,y / 4,y / 4,y`。）
+A. TCP、UDP、IP
 
-请按 Dijkstra 步骤逐步复算，填出各步并给出源到各点的最短距离。计算中实际用到的链路代价由表中数值反推为：$c(u,v)=2$，$c(u,x)=1$，$c(u,w)=5$，$c(x,w)=3$，$c(x,y)=1$，$c(y,w)=1$，$c(y,z)=2$。
+B. TCP、IP、UDP
 
-**解**：
+C. UDP、TCP、IP
 
-第 1 步：初始化（Step 0）。$N'=\{u\}$。$u$ 的直连邻居取边权，非邻居取 $\infty$：
+D. UDP、IP、TCP
 
-- $D(v)=c(u,v)=2$，$p(v)=u$
-- $D(w)=c(u,w)=5$，$p(w)=u$
-- $D(x)=c(u,x)=1$，$p(x)=u$
-- $D(y)=\infty$，$D(z)=\infty$
+（题目问：直接封装 RIP、OSPF 与 BGP 报文的协议依次是什么。）
 
-中间结果：$(D(v),D(w),D(x),D(y),D(z))=(2,5,1,\infty,\infty)$。
+#### 解题依据
 
-第 2 步：在 $\{v,w,x,y,z\}$ 中选最小 $D$：$D(x)=1$ 最小，加入 $N'$，$N'=\{ux\}$。
+本题的四个选项是 TCP、UDP、IP 三种协议的部分排列，题目要求按 RIP、OSPF、BGP 的顺序一一对应，判断依据是各路由协议在协议栈中所处的层次以及它所直接使用的下层承载协议，这三点在前面的小节中均有对应叙述。
 
-第 3 步：用 $x$ 松弛所有不在 $N'$ 的节点（公式 $D\leftarrow\min(D,\,D(x)+c(x,\cdot))$，$D(x)=1$）：
+第一，**RIP（Routing Information Protocol，路由信息协议）** 是 Intra-AS（自治系统内部）路由协议，属于距离向量（distance vector）算法，其距离度量是跳数（# of hops，最大值为 15 跳），距离向量每 30 秒交换一次。课件明确指出，RIP 的路由表由一个应用层的进程 route-d（daemon，守护进程）管理，RIP 的通告（advertisement）是装在 UDP 报文中发送的，并且周期性地重复（5.5.2.3）。因此 RIP 报文直接被 UDP 封装。
 
-- 对 $v$：$\min(2,\;1+c(x,v))$。由表保持 $D(v)=2,u$，知 $1+c(x,v)\ge 2$，$D(v)$ 不变，$p(v)=u$。
-- 对 $w$：$\min(5,\;1+c(x,w))=\min(5,\;1+3)=4<5$，故 $D(w)=4$，$p(w)=x$。
-- 对 $y$：$\min(\infty,\;1+c(x,y))=\min(\infty,\;1+1)=2$，故 $D(y)=2$，$p(y)=x$。
-- 对 $z$：仍为 $\infty$。
+第二，**OSPF（Open Shortest Path First，开放最短路径优先）** 同样属于 Intra-AS 路由协议，但算法是链路状态（link state）算法：各节点用泛洪方式扩散链路状态分组，每个节点持有全网拓扑图，再用 Dijkstra 算法计算路由。OSPF 的报文不经过传输层协议，而是直接由 IP 数据报承载（5.5.2.5）。
 
-中间结果（Step 1 末）：$D=(v:2,\;w:4,\;x:1\text{已定},\;y:2,\;z:\infty)$。
+第三，**BGP（Border Gateway Protocol，边界网关协议）** 是 Internet 的 Inter-AS（自治系统之间）路由事实标准，属于路径向量（path vector）协议，每个边界网关向其对等体（peer）通告到达目的地的 AS 路径。BGP 消息由 TCP 承载，以取得可靠的、面向连接的传输（5.5.3.2）。
 
-第 4 步：在 $\{v,w,y,z\}$ 中选最小 $D$：$D(v)=2$ 与 $D(y)=2$ 并列，课件选 $y$（并列可任意打破），$N'=\{uxy\}$。
+#### 逐步求解
 
-第 5 步：用 $y$ 松弛（$D(y)=2$）：
+第 1 步：确定 RIP 的直接封装协议。依据「RIP 通告装于 UDP 报文、由应用层 route-d 进程周期发送」，RIP 对应 UDP。排除选项 B（B 的第一项为 TCP）。
 
-- 对 $v$：$\min(2,\;2+c(y,v))\ge 2$，$D(v)=2,u$ 不变。
-- 对 $w$：$\min(4,\;2+c(y,w))=\min(4,\;2+1)=3<4$，故 $D(w)=3$，$p(w)=y$。
-- 对 $z$：$\min(\infty,\;2+c(y,z))=\min(\infty,\;2+2)=4$，故 $D(z)=4$，$p(z)=y$。
+第 2 步：确定 OSPF 的直接封装协议。依据「OSPF 使用链路状态算法，链路状态分组由 IP 直接承载，不经传输层」，OSPF 对应 IP。排除选项 A（A 的第二项为 UDP）与选项 C（C 的第二项为 TCP）。
 
-中间结果（Step 2 末）：$D=(v:2,\;w:3,\;y\text{已定},\;z:4)$。
+第 3 步：确定 BGP 的直接封装协议。依据「BGP 使用 TCP 向对等体通告 AS 路径」，BGP 对应 TCP。至此只剩选项 D。
 
-第 6 步：在 $\{v,w,z\}$ 中选最小 $D$：$D(v)=2$ 最小，加入 $N'$，$N'=\{uxyv\}$。
+第 4 步：写出结果。三项依次为 UDP、IP、TCP，与选项 D 完全一致。
 
-第 7 步：用 $v$ 松弛（$D(v)=2$）：
+#### 逐项排除
 
-- 对 $w$：$\min(3,\;2+c(v,w))$。由表 $D(w)$ 保持 $3,y$，知 $2+c(v,w)\ge 3$，不更新。
-- 对 $z$：$\min(4,\;2+c(v,z))$。保持 $4,y$，不更新。
+- 选项 A（TCP、UDP、IP）：把 RIP 判成 TCP、把 OSPF 判成 UDP。RIP 使用 UDP 而非 TCP；OSPF 直接跑在 IP 上，不用 UDP。错误。
+- 选项 B（TCP、IP、UDP）：把 RIP 判成 TCP、把 BGP 判成 UDP。RIP 用 UDP；BGP 使用 TCP 而非 UDP。错误。
+- 选项 C（UDP、TCP、IP）：把 OSPF 判成 TCP、把 BGP 判成 IP。OSPF 不经过 TCP；BGP 需要 TCP 的可靠有序传输，不走裸 IP。错误。
+- 选项 D（UDP、IP、TCP）：RIP 对应 UDP，OSPF 对应 IP，BGP 对应 TCP，三项均与前面各小节的叙述相符。正确。
 
-中间结果（Step 3 末）：$D(w)=3,y$；$D(z)=4,y$。
+#### 答案
 
-第 8 步：在 $\{w,z\}$ 中选最小 $D$：$D(w)=3<4$，加入 $N'$，$N'=\{uxyvw\}$。
+**D. UDP、IP、TCP**，即 RIP 报文直接被 UDP 封装，OSPF 报文直接被 IP 封装，BGP 报文直接被 TCP 封装。
 
-第 9 步：用 $w$ 松弛（$D(w)=3$）：
+#### 用原题数据校验
 
-- 对 $z$：$\min(4,\;3+c(w,z))$。由表保持 $4,y$，知 $3+c(w,z)\ge 4$，不更新。
+校验点 1（顺序）：题目要求的对应顺序是「RIP、OSPF、BGP」，选项 D 给出「UDP、IP、TCP」。把三者按位对齐：RIP↔UDP、OSPF↔IP、BGP↔TCP，与第 1—3 步分别得到的结论逐项吻合，说明顺序没有被颠倒。
 
-中间结果（Step 4 末）：$D(z)=4,y$。
+校验点 2（与课件其它陈述的一致性）：课件在 IGRP 部分说明 IGRP（Interior Gateway Routing Protocol，Cisco 私有协议）使用 TCP 交换路由更新。这说明课件本身明确区分了不同路由协议的不同承载方式——RIP 走 UDP、IGRP 走 TCP、OSPF 直接走 IP，因此「所有路由协议都跑在同一种传输协议上」的推断与课件不符，选项 A、B、C 都隐含了这种错误对应。由此进一步确认选项 D。
 
-第 10 步：最后加入 $z$，$N'=\{uxyvwz\}=N$，算法结束。
+校验点 3（完备性）：选项集合 {TCP, UDP, IP} 的 6 种全排列中，本题给出了 4 种。三个待填空位各对应一个唯一正确的协议，因此正确答案在给定选项中唯一，不存在多解；D 是其中唯一同时满足 RIP=UDP、OSPF=IP、BGP=TCP 的选项。
 
-第 11 步：读出各源到目的最短距离（单位与边权相同）：
+#### 与本题相关的协议承载对照
 
-- $u\to v$：$D(v)=2$，路径 $u\to v$
-- $u\to x$：$D(x)=1$，路径 $u\to x$
-- $u\to y$：$D(y)=2$，路径 $u\to x\to y$
-- $u\to w$：$D(w)=3$，路径 $u\to x\to y\to w$
-- $u\to z$：$D(z)=4$，路径 $u\to x\to y\to z$
+| 路由协议 | 类别（按作用域） | 算法类型 | 直接封装协议 | 课件依据 |
+| --- | --- | --- | --- | --- |
+| RIP | Intra-AS（IGP） | 距离向量，度量=跳数（最大 15） | UDP（通告装在 UDP 报文中，由应用层 route-d 周期发送） | 第 65、68 页 |
+| OSPF | Intra-AS（IGP） | 链路状态 + Dijkstra | IP（链路状态分组由 IP 直接承载） | 第 70 页 |
+| IGRP | Intra-AS（IGP，Cisco 私有） | 距离向量（多种度量） | IP，协议号 9（第 74 页误写 TCP，见前文纠错） | 第 74 页 |
+| BGP | Inter-AS | 路径向量 | TCP | 第 76、77 页 |
 
-第 12 步：用原始边权验证 $u\to w$ 与 $u\to z$：
-
-- $u\to x\to y\to w$：$c(u,x)+c(x,y)+c(y,w)=1+1+1=3=D(w)$，且不短于其他候选（如 $u\to w$ 直连为 5，$u\to x\to w$ 为 $1+3=4>3$）。
-- $u\to x\to y\to z$：$1+1+2=4=D(z)$。
-- $u\to v$：$2=D(v)$；$u\to x$：$1=D(x)$。
-
-验证通过，与执行表一致。
-
-**答案**：$N'$ 序列为 $u,\;ux,\;uxy,\;uxyv,\;uxyvw,\;uxyvwz$；最短距离为 $D(v)=2,\;D(x)=1,\;D(y)=2,\;D(w)=3,\;D(z)=4$；前驱为 $p(v)=u,\;p(x)=u,\;p(y)=x,\;p(w)=y,\;p(z)=y$。
-
----
-
----
-
-### 例题 5：由例题 4 生成最短路径树与 $u$ 的转发表（page 38）
-
-**题干**：
-基于例题 4 的执行表，画出从 $u$ 出发的最短路径树，并列出 $u$ 的转发表（destination, link）。课件给出的转发表为：$v\to(u,v)$；$x\to(u,x)$；$y\to(u,x)$；$w\to(u,x)$；$z\to(u,x)$。请由前驱关系验证该表。
-
-**解**：
-
-第 1 步：取例题 4 的前驱：$p(v)=u$，$p(x)=u$，$p(y)=x$，$p(w)=y$，$p(z)=y$。
-
-第 2 步：回溯各目的路径：
-
-- $v$：$v\leftarrow u$ ⇒ 路径 $u\to v$
-- $x$：$x\leftarrow u$ ⇒ $u\to x$
-- $y$：$y\leftarrow x\leftarrow u$ ⇒ $u\to x\to y$
-- $w$：$w\leftarrow y\leftarrow x\leftarrow u$ ⇒ $u\to x\to y\to w$
-- $z$：$z\leftarrow y\leftarrow x\leftarrow u$ ⇒ $u\to x\to y\to z$
-
-第 3 步：读每条路径上 $u$ 的第一条边（下一跳）：
-
-- $u\to v$ 的第一条边是 $(u,v)$
-- $u\to x$ 的第一条边是 $(u,x)$
-- $u\to x\to y$ 的第一条边是 $(u,x)$
-- $u\to x\to y\to w$ 的第一条边是 $(u,x)$
-- $u\to x\to y\to z$ 的第一条边是 $(u,x)$
-
-第 4 步：与课件转发表逐行比对：destination $v$ 对应 $(u,v)$，destination $x,y,w,z$ 均对应 $(u,x)$，完全一致。
-
-第 5 步：验证代价（原始数据）：
-
-- 到 $v$：直连 2；
-- 到 $x$：1；
-- 到 $y$：$1+1=2$；
-- 到 $w$：$1+1+1=3$；
-- 到 $z$：$1+1+2=4$。
-
-均等于例题 4 的 $D(\cdot)$。
-
-**答案**：最短路径树以 $u$ 为根，边为 $(u,v),(u,x),(x,y),(y,w),(y,z)$；转发表为  
-$\{v:(u,v),\; x:(u,x),\; y:(u,x),\; w:(u,x),\; z:(u,x)\}$，与 page 38 课件一致。
-
----
-
----
-
-### 例题 6：链路代价随流量变化导致的路由振荡（page 39）
-
-**题干**：
-四节点网络 $A,B,C,D$。设定链路代价等于该链路上承载的流量（link cost = amount of carried traffic）。初始给出一组代价（含小量 $\varepsilon$）。按当前代价为各源寻找新路由（given these costs, find new routing…），新路由导致新的代价分布（resulting in new costs），再按新代价寻找路由……课件图示该过程在若干状态间循环。请说明振荡如何发生。
-
-**解**：
-
-第 1 步：读取初始状态。图「initial」给出一组边代价（含 $1$、$1+\varepsilon$、$\varepsilon$、$0$ 等标注，节点为 $A,B,C,D$）。
-
-第 2 步：所有源按「最小代价路径」规则同时重算路由（given these costs, find new routing…）。
-
-第 3 步：新路由改变各边流量；因 $\text{cost}=\text{traffic}$，得到新代价组（resulting in new costs，图中出现 $2+\varepsilon$、$1+\varepsilon$ 等）。
-
-第 4 步：再按新代价重算路由，得到又一组流量与代价，图中显示其分布回到与初始同类的形态（例如 $1$、$1+\varepsilon$、$\varepsilon$、$0$ 结构再现）。
-
-第 5 步：重复第 2–4 步，状态在「初态型代价 → 另一型代价 → 初态型代价」之间循环，即出现 oscillations。
-
-第 6 步：结论——当代价与流量正相关且全体同时切换最短路时，链路状态路由可能不稳定。
-
-**答案**：存在振荡（oscillations possible）：代价随流量变化 → 全体改道 → 流量分布变 → 代价再变 → 再改道，课件图中 $A,B,C,D$ 的路由与代价循环往复。
-
----
-
----
-
-### 例题 7：用受控泛洪实现避免广播风暴的广播（page 40）
-
-**题干**：
-源节点需将一个分组交付给网络中所有其他节点。朴素 flooding 会导致 broadcast storm。课件给出两种受控泛洪：（1）序号控制泛洪——在广播分组中加入 ID 与 broadcast sequence number；（2）反向路径转发（RPF）。要求避免 broadcast storm。请给出算法步骤。
-
-**解**：
-
-第 1 步（目标分解）：广播 = 交付到所有其他节点；约束 = 避免副本无限增殖（broadcast storm）。
-
-第 2 步（序号控制法）：源在分组中写入自身 ID 与单调递增的 broadcast sequence number。
-
-第 3 步：节点收到分组后，若「(ID, seq)」已处理过则丢弃；否则向除入链路外的邻居转发（或按协议转发）。
-
-第 4 步（RPF）：节点仅当分组到达接口等于「本节点到源的最短路径出链路的反向」（即通向源的入链路）时才转发，否则丢弃。
-
-第 5 步：重复接收/转发直至无新副本；因重复被去重或非最短路入站被丢弃，不再形成广播风暴。
-
-第 6 步：结果——所有可达节点收到广播，且满足「Be able to avoid the broadcast storm」。
-
-**答案**：采用带 ID+序号的受控泛洪或 RPF，可把 flooding 的副本限制在受控范围，实现无广播风暴的全网广播。
-
----
-
----
-
-### 例题 8：Bellman-Ford 求 $d_u(z)$（page 43）
-
-**题干**：已知 $d_v(z)=5$，$d_w(z)=3$，$d_x(z)=3$，且 $u$ 的邻居为 $v,x,w$，$c(u,v)=2$，$c(u,x)=1$，$c(u,w)=5$。求 $d_u(z)$。
-
-**解**：
-
-第 1 步：写出 BF 方程：$d_u(z)=\min\{c(u,v)+d_v(z),\; c(u,x)+d_x(z),\; c(u,w)+d_w(z)\}$。
-
-第 2 步：代入：$c(u,v)+d_v(z)=2+5=7$。
-
-第 3 步：代入：$c(u,x)+d_x(z)=1+3=4$。
-
-第 4 步：代入：$c(u,w)+d_w(z)=5+3=8$。
-
-第 5 步：取最小：$\min\{7,4,8\}=4$。
-
-**答案**：$d_u(z)=4$（经邻居 $x$）。
-
----
-
-### 例题 9：三节点距离向量更新（page 48–49）
-
-**题干**：节点 $x,y,z$ 互连，$c(x,y)=2$，$c(x,z)=7$，$c(y,z)=1$。各节点已有邻居向量：$D_y(y)=0$，$D_z(y)=1$，$D_y(z)=1$，$D_z(z)=0$。求节点 $x$ 表中的 $D_x(y)$ 与 $D_x(z)$。
-
-**解**：
-
-第 1 步：对目的 $y$：$D_x(y)=\min\{c(x,y)+D_y(y),\; c(x,z)+D_z(y)\}$。
-
-第 2 步：代入：$2+0=2$，$7+1=8$；$\min\{2,8\}=2$ ⇒ $D_x(y)=2$。
-
-第 3 步：对目的 $z$：$D_x(z)=\min\{c(x,y)+D_y(z),\; c(x,z)+D_z(z)\}$。
-
-第 4 步：代入：$2+1=3$，$7+0=7$；$\min\{3,7\}=3$ ⇒ $D_x(z)=3$。
-
-第 5 步：对比直连 7，确认经 $y$ 的两跳更优；若表曾写 7 则更新为 3，并通告邻居。
-
-**答案**：$D_x(y)=2$，$D_x(z)=3$。
-
----
-
-### 例题 10：链路状态策略下的更新（page 42）
-
-**题干**：描述“每节点广播 LS 包 + Dijkstra”的链路状态算法在链路代价变化时的处理步骤。
-
-**解**：
-
-第 1 步：各节点向所有其他节点广播 link-state packets，形成全网一致、完整的网络视图。
-
-第 2 步：各节点用 Dijkstra 计算从自己到网络中所有其他节点的最小代价路径。
-
-第 3 步：若链路代价变化，对新状态**重新广播（re-broadcast）**。
-
-第 4 步：各节点基于新视图**重新计算（re-compute）**最短路并更新转发信息。
-
-**答案**：变化后 = re-broadcast + re-compute；未变化前全网视图一致且路径为 least-cost。
-
----
-
-### 例题 11：计数到无穷现象判读（page 53）
-
-**题干**：课件指出：链路代价变化时坏消息传播慢，算法稳定前经历 44 次迭代。请说明该现象名称、成因与一种缓解方法。
-
-**解**：
-
-第 1 步：识别问题名称：**count to infinity problem（计数到无穷）**。
-
-第 2 步：成因：距离向量仅依赖邻居的旧估计；故障后邻居间互相引用过时的有限代价，使到目的的估计被逐轮抬高，收敛极慢（好消息则 $D$ 立刻下降、传播快）。
-
-第 3 步：课件数据：稳定前 **44 iterations**。
-
-第 4 步：缓解方法（page 56）：**poisoned reverse**——若 $Z$ 经 $Y$ 到 $X$，则 $Z$ 向 $Y$ 通告到 $X$ 为无穷，阻止 $Y$ 经 $Z$ 回绕；课件同时指出需评估其是否**完全**解决（答案：不能完全解决）。
-
-**答案**：现象 = count to infinity；成因 = 坏消息依赖旧向量慢速纠正；44 次迭代；缓解 = poisoned reverse（不彻底根治）。
-
----
-
-### 例题 12：LS vs DV 三维比较（page 58）
-
-**题干**：从消息复杂度、收敛速度、健壮性三方面比较 link state 与 distance vector 算法（$n$ 节点，$E$ 条链路）。
-
-**解**：
-
-第 1 步（消息）：LS 需使状态到达全网，发送量级 **$O(nE)$** 条消息；DV **只在邻居之间**交换向量。
-
-第 2 步（收敛）：LS 算法复杂度 **$O(n^2)$**，动态代价下**可能振荡**；DV **收敛时间变化**，**可能产生路由环**，存在 **count-to-infinity**。
-
-第 3 步（健壮性）：LS 下节点可能通告**错误链路代价**，但**各节点只计算自己的表**，错误影响范围有限；DV 下节点可能通告**错误路径代价**，**他人的表会使用该值**，**错误在网络中传播**。
-
-**答案**：LS = $O(nE)$ 消息、$O(n^2)$ 且可能振荡、错误较局部；DV = 邻居间消息、收敛不定且有环/无穷计数、错误易传播。
-
----
-
-### 例题 13：RIP / OSPF / BGP 的直接封装协议（Exercise-1）
-
-**题干**：The protocols for directly encapsulating RIP、OSPF and BGP messages are  
-A. TCP、UDP、IP  
-B. TCP、IP、UDP  
-C. UDP、TCP、IP  
-D. UDP、IP、TCP  
-
-（即：直接封装 RIP、OSPF、BGP 消息的协议依次是____。）
-
-**解**：
-
-第 1 步：回忆/定位 RIP 的封装。课件 page 68 写明：advertisements sent in **UDP** packets —— RIP 消息由 UDP 直接封装。故序列第 1 项 = UDP。
-
-第 2 步：回忆/定位 OSPF 的封装。OSPF 属链路状态协议，其报文不使用 TCP 或 UDP，而是直接由 **IP** 数据报封装（IP 协议字段 89）。故序列第 2 项 = IP。
-
-第 3 步：回忆/定位 BGP 的封装。BGP 对等体之间建立可靠传输会话，消息由 **TCP** 段封装（端口 179）。故序列第 3 项 = TCP。
-
-第 4 步：按题干顺序（RIP、OSPF、BGP）拼接三元组：
-$$(\text{RIP},\ \text{OSPF},\ \text{BGP}) = (\text{UDP},\ \text{IP},\ \text{TCP})$$
-
-第 5 步：对照选项：A=(TCP,UDP,IP) 否；B=(TCP,IP,UDP) 否；C=(UDP,TCP,IP) 否；D=(UDP,IP,TCP) 与第 4 步一致。
-
-**答案**：**D．UDP、IP、TCP**
-
----
-
-## 质量检查清单（合并后自检）
-
-- [x] 结构体系覆盖 page 1–81；目录重复页（2/9/18/28/63）已去重说明。
-- [x] 知识点详解按 4 片覆盖；每个叶子含定义 + 理解 + 作用。
-- [x] 「理解」部分无比喻/类比/拟人；课件自带类比句隔离在补充总结作事实存档。
-- [x] 补充总结保留服务模型表、前缀表、交换结构表、LS/DV 比较表、RIP/OSPF 参数、路由表等完整数据。
-- [x] 解题方法统一编号，共 19 种，均含适用场景/已知条件/计算步骤/常见错误。
-- [x] 例题统一编号，共 13 道，题干完整、步骤无跳步、含验证。
-- [x] 公式为 LaTeX；专业术语首次出现标注英文。
-
+要点：Intra-AS 协议中 RIP 与 IGRP 虽同为距离向量，但承载方式不同（RIP 用 UDP、IGRP 用 TCP），本题只考 RIP；OSPF 是此处唯一不经传输层、直接由 IP 承载的路由协议；Inter-AS 的 BGP 依靠 TCP 提供可靠传输。
